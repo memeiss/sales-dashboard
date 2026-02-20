@@ -429,7 +429,7 @@ body {
     <div class="upload-right">
       <div class="upload-status">
         <div class="status-dot" id="statusDot"></div>
-        <span id="statusText">샘플 데이터 표시 중</span>
+        <span id="statusText">엑셀 파일을 업로드해주세요</span>
       </div>
       <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -464,12 +464,12 @@ body {
   <div class="header-right">
     <div class="period-selector">
       <label>연도</label>
-      <select id="selYear" onchange="onPeriodChange()">
+      <select id="selYear">
         <option value="">연도</option>
       </select>
       <span class="period-sep">·</span>
       <label>월</label>
-      <select id="selMonth" onchange="onPeriodChange()">
+      <select id="selMonth">
         <option value="">월</option>
       </select>
     </div>
@@ -972,10 +972,10 @@ let charts = {};
 function onPeriodChange() {
   const selY = document.getElementById('selYear');
   const selM = document.getElementById('selMonth');
-  if (!selY.value || !selM.value) return;
 
-  YEAR  = parseInt(selY.value);
-  MONTH = parseInt(selM.value);
+  YEAR  = parseInt(selY.value) || new Date().getFullYear();
+  MONTH = parseInt(selM.value) || new Date().getMonth() + 1;
+
   const days = daysInMonth(YEAR, MONTH);
   const mm   = String(MONTH).padStart(2,'0');
   const dd   = String(days).padStart(2,'0');
@@ -990,7 +990,6 @@ function onPeriodChange() {
       DATA.products.filter(p => p.year==YEAR && p.month==MONTH)
     );
   } else {
-    // 데이터 없음 — 빈 상태 유지
     renderAll([], [], [], []);
   }
 }
@@ -1013,7 +1012,8 @@ function processFile(file) {
       const wb = XLSX.read(evt.target.result, {type:'array', cellDates:true});
       parseWB(wb);
       document.getElementById('statusDot').style.background = '#4ADE80';
-      document.getElementById('statusText').textContent = `${file.name} 연동됨`;
+      document.getElementById('statusDot').style.boxShadow = '0 0 0 3px rgba(74,222,128,0.3)';
+      document.getElementById('statusText').textContent = `✅ ${file.name} 연동됨`;
       showToast('✅ 데이터가 업로드되었습니다!');
 
       // Firebase에 월별로 저장 (YYYY-MM 키)
@@ -1259,7 +1259,35 @@ function loadSample() {
 }
 
 // ─── Render All ───
+function resetDash() {
+  // 데이터 없을 때 전체 – 초기화
+  const ids = ['s1-total-sales','s1-yoy','s1-target','s1-achieve','s1-daily-avg','s1-prev-total',
+    's1-max-amount','s1-max-day','s1-min-amount','s1-min-day',
+    's1-online-total','s1-online-target','s1-online-ach','s1-online-yoy','s1-online-max-amt','s1-online-max-day','s1-online-min-amt','s1-online-min-day',
+    's1-offline-total','s1-offline-target','s1-offline-ach','s1-offline-yoy','s1-offline-max-amt','s1-offline-max-day','s1-offline-min-amt','s1-offline-min-day',
+    's1-donut-online','s1-donut-offline',
+    's2-total','s2-yoy','s2-achieve','s2-daily','s2-orders','s2-orders-yoy',
+    's2-max-amount','s2-max-day','s2-min-amount','s2-min-day',
+    's2-own-sales','s2-own-pct','s2-own-yoy','s2-own-uv','s2-own-cvr',
+    's2-nav-sales','s2-nav-pct','s2-nav-yoy','s2-nav-uv','s2-nav-cvr',
+    's2-etc-sales','s2-etc-pct','s2-etc-yoy','s2-etc-uv','s2-etc-cvr',
+    's2-total-uv','s2-new-uv','s2-new-pct','s2-return-uv','s2-return-pct','s2-cvr','s2-ord-total','s2-aov','s2-wd-cvr','s2-we-cvr',
+    's3-total','s3-yoy','s3-daily','s3-top-cat','s3-top-cat-val',
+    'sub-total','sub-total-cnt','sub-active-cnt','sub-cancel-cnt','sub-ltr'];
+  ids.forEach(id => set(id, '–'));
+  for(let i=0;i<7;i++) { set('wdv-'+i,'–'); const b=document.getElementById('wdb-'+i); if(b) b.style.height='0%'; }
+  set('s1-weekday-avg','–'); set('s1-weekend-avg','–'); set('s1-best-day','–');
+  document.getElementById('s1-prog').style.width = '0%';
+  document.getElementById('s2-prog').style.width = '0%';
+  ['dailyChart','channelDonut','d2cChart','catDonut','deliveryChart','catBarChart-0','catBarChart-1','catBarChart-2','catBarChart-3','catBarChart-4'].forEach(destroyChart);
+  const catRowsEl = document.getElementById('catRows'); if(catRowsEl) catRowsEl.innerHTML='';
+  const top5El    = document.getElementById('top5Body'); if(top5El) top5El.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">엑셀 파일을 업로드하면 데이터가 표시됩니다</td></tr>';
+  const subEl     = document.getElementById('subProdBody'); if(subEl) subEl.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">엑셀 파일을 업로드하면 데이터가 표시됩니다</td></tr>';
+  const delEl     = document.getElementById('deliveryBody'); if(delEl) delEl.innerHTML='';
+}
+
 function renderAll(daily, d2c, cat, products) {
+  if (!daily.length && !d2c.length && !cat.length) { resetDash(); return; }
   renderS1(daily);
   renderS2(d2c);
   renderS3(cat, products);
@@ -1682,14 +1710,13 @@ function setYoy(id, curr, prev) {
 // ⚠️ 아래 firebaseConfig를 본인의 Firebase 프로젝트 설정으로 교체하세요.
 // Firebase 콘솔 > 프로젝트 설정 > 앱 > firebaseConfig 복사
 const firebaseConfig = {
-  apiKey: "AIzaSyAm-Fnz1YKh7OKrPFKjAPO42BwTa3XPnOs",
-  authDomain: "sales-dashboard-d4939.firebaseapp.com",
-  projectId: "sales-dashboard-d4939",
-  storageBucket: "sales-dashboard-d4939.firebasestorage.app",
-  messagingSenderId: "996073785958",
-  appId: "1:996073785958:web:62ef7dee215121f4ae3ba7"
+  apiKey:            "YOUR_API_KEY",
+  authDomain:        "YOUR_PROJECT.firebaseapp.com",
+  projectId:         "YOUR_PROJECT_ID",
+  storageBucket:     "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId:             "YOUR_APP_ID"
 };
-
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
@@ -1735,7 +1762,7 @@ function updateMonthSelector(periods) {
   selM.value = months[months.length - 1]; // 최신 월 기본 선택
 }
 
-// 년도 변경 시 해당 연도의 월만 표시
+// ─── 년/월 셀렉터 이벤트 (단일 등록) ───
 document.getElementById('selYear').addEventListener('change', () => {
   const periods = new Set();
   DATA.daily.forEach(r => {
@@ -1745,6 +1772,7 @@ document.getElementById('selYear').addEventListener('change', () => {
   if (periods.size) updateMonthSelector([...periods]);
   onPeriodChange();
 });
+document.getElementById('selMonth').addEventListener('change', onPeriodChange);
 
 // ─── Firebase 저장 ──────────────────────────────────────────
 async function saveToFirebase(docId, data) {
@@ -1785,10 +1813,14 @@ async function loadAllFromFirebase() {
 
     if (DATA.daily.length) {
       document.getElementById('statusDot').style.background = '#4ADE80';
-      document.getElementById('statusText').textContent = '서버 데이터 연동됨';
+      document.getElementById('statusDot').style.boxShadow = '0 0 0 3px rgba(74,222,128,0.3)';
+      document.getElementById('statusText').textContent = '✅ 서버 데이터 연동됨';
       updatePeriodSelector();
       onPeriodChange();
       showToast('✅ 데이터를 불러왔습니다');
+    } else {
+      document.getElementById('statusText').textContent = '엑셀 파일을 업로드해주세요';
+      showToast('ℹ️ 저장된 데이터가 없습니다. 엑셀을 업로드해주세요.');
     }
   } catch(e) {
     showToast('❌ Firebase 로드 실패: ' + e.message);
