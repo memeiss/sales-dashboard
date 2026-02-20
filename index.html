@@ -5,7 +5,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OMNI - Sales dashboard</title>
+<title>OMNI - Sales Dashboard</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -356,8 +356,22 @@ body {
 .weekday-name { font-size:10px;color:var(--muted);margin-bottom:5px;font-weight:700; }
 .weekday-name.top-day { color:var(--blue); }
 .weekday-val { font-size:10px;font-weight:700;color:var(--text);word-break:break-all;line-height:1.3; }
-.weekday-bar { height:38px;display:flex;align-items:flex-end;justify-content:center;margin:5px 0; }
-.weekday-bar-inner { width:16px;border-radius:2px 2px 0 0; }
+.weekday-bar { height:48px;display:flex;align-items:flex-end;justify-content:center;gap:3px;margin:5px 0; }
+.weekday-bar-inner { width:10px;border-radius:2px 2px 0 0;transition:height 0.5s ease; }
+
+/* 요일 탭 */
+.wd-tabs { display:flex;gap:6px;margin-bottom:10px; }
+.wd-tab {
+  padding:5px 13px;border-radius:6px;border:1px solid var(--border);
+  font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;
+  background:var(--surface);color:var(--text2);transition:all 0.18s;
+}
+.wd-tab.active-all   { background:var(--text);  color:#fff;border-color:var(--text); }
+.wd-tab.active-on    { background:#2563EB;       color:#fff;border-color:#2563EB; }
+.wd-tab.active-off   { background:#F59E0B;       color:#fff;border-color:#F59E0B; }
+/* 3-bar 모드 sub-labels */
+.weekday-sub-vals { display:flex;gap:3px;justify-content:center;flex-wrap:wrap;margin-top:2px; }
+.weekday-sub-val  { font-size:8px;font-weight:700;line-height:1.3; }
 
 /* ── Category rows ── */
 .cat-row {
@@ -479,7 +493,7 @@ body {
     <div class="logo-badge">OD</div>
     <div>
       <div class="header-title">OMNI Sales Dashboard</div>
-      <div class="header-meta">옴니채널 통합 매출 분석 시스템</div>
+      <div class="header-meta">OMNI 채널 월별 매출 분석 자료</div>
     </div>
   </div>
   <div class="header-right">
@@ -502,9 +516,9 @@ body {
 <!-- Nav -->
 <div class="nav-container">
   <div class="nav-tabs">
-    <button class="nav-tab active" onclick="goTo(0)">📊 OMNI 매출</button>
+    <button class="nav-tab active" onclick="goTo(0)">📊 OMNI 전체</button>
     <button class="nav-tab" onclick="goTo(1)">🛒 D2C 채널</button>
-    <button class="nav-tab" onclick="goTo(2)">🏷️ 자사몰 카테고리</button>
+    <button class="nav-tab" onclick="goTo(2)">🏷️ 자사몰 식단별 상세</button>
   </div>
 </div>
 
@@ -534,8 +548,8 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:var(--blue-lt)">📊</div>
     <div>
-      <h2>OMNI 매출 대시보드</h2>
-      <p id="s1-period-label">전체 채널 통합 매출 현황 · 2025년 1월</p>
+      <h2>OMNI - 매출 대시보드</h2>
+      <p id="s1-period-label">전체 채널 통합 매출 현황</p>
     </div>
   </div>
 
@@ -589,7 +603,7 @@ body {
   <div class="ch-label">채널별 매출 현황</div>
   <div class="grid-2" style="margin-bottom:12px;">
     <div class="chart-card" style="margin-bottom:0">
-      <div class="chart-card-title" style="color:var(--blue)">🌐 온라인 채널</div>
+      <div class="chart-card-title" style="color:var(--blue)">🌐 D2C 채널</div>
       <div class="grid-2" style="gap:8px;margin-bottom:8px;">
         <div><div class="stat-label">총 매출액</div><div class="stat-value krw" id="s1-online-total">–</div></div>
         <div><div class="stat-label">목표액</div><div class="stat-value krw" id="s1-online-target">–</div></div>
@@ -665,20 +679,109 @@ body {
   <!-- 요일별 -->
   <div style="height:12px"></div>
   <div class="ch-label">요일별 평균 매출</div>
+
+  <!-- 탭 -->
+  <div class="wd-tabs">
+    <button class="wd-tab active-all" id="wdTab-all"  onclick="setWdTab('all')">전체</button>
+    <button class="wd-tab"            id="wdTab-on"   onclick="setWdTab('on')">🌐 온라인</button>
+    <button class="wd-tab"            id="wdTab-off"  onclick="setWdTab('off')">🏪 오프라인</button>
+  </div>
+
   <div style="display:flex;gap:12px;">
-    <div class="grid-7" style="flex:2;margin-bottom:0;">
-      <div class="weekday-card" id="wd-0"><div class="weekday-name" id="wdn-0">월</div><div class="weekday-bar"><div class="weekday-bar-inner" id="wdb-0" style="background:var(--cat1)"></div></div><div class="weekday-val" id="wdv-0">–</div></div>
-      <div class="weekday-card" id="wd-1"><div class="weekday-name" id="wdn-1">화</div><div class="weekday-bar"><div class="weekday-bar-inner" id="wdb-1" style="background:var(--cat1)"></div></div><div class="weekday-val" id="wdv-1">–</div></div>
-      <div class="weekday-card" id="wd-2"><div class="weekday-name" id="wdn-2">수</div><div class="weekday-bar"><div class="weekday-bar-inner" id="wdb-2" style="background:var(--cat1)"></div></div><div class="weekday-val" id="wdv-2">–</div></div>
-      <div class="weekday-card" id="wd-3"><div class="weekday-name" id="wdn-3">목</div><div class="weekday-bar"><div class="weekday-bar-inner" id="wdb-3" style="background:var(--cat1)"></div></div><div class="weekday-val" id="wdv-3">–</div></div>
-      <div class="weekday-card" id="wd-4"><div class="weekday-name" id="wdn-4">금</div><div class="weekday-bar"><div class="weekday-bar-inner" id="wdb-4" style="background:var(--cat1)"></div></div><div class="weekday-val" id="wdv-4">–</div></div>
-      <div class="weekday-card" id="wd-5"><div class="weekday-name" id="wdn-5">토</div><div class="weekday-bar"><div class="weekday-bar-inner" id="wdb-5" style="background:var(--cat1)"></div></div><div class="weekday-val" id="wdv-5">–</div></div>
-      <div class="weekday-card" id="wd-6"><div class="weekday-name" id="wdn-6">일</div><div class="weekday-bar"><div class="weekday-bar-inner" id="wdb-6" style="background:var(--cat1)"></div></div><div class="weekday-val" id="wdv-6">–</div></div>
+    <div class="grid-7" style="flex:2;margin-bottom:0;" id="wdGrid">
+      <!-- 각 카드: 막대 3개(전/온/오) + 현재 탭 값 표시 -->
+      <div class="weekday-card" id="wd-0">
+        <div class="weekday-name" id="wdn-0">월</div>
+        <div class="weekday-bar">
+          <div class="weekday-bar-inner" id="wdb-all-0" style="background:#64748B"></div>
+          <div class="weekday-bar-inner" id="wdb-on-0"  style="background:#2563EB"></div>
+          <div class="weekday-bar-inner" id="wdb-off-0" style="background:#F59E0B"></div>
+        </div>
+        <div class="weekday-val" id="wdv-0">–</div>
+      </div>
+      <div class="weekday-card" id="wd-1">
+        <div class="weekday-name" id="wdn-1">화</div>
+        <div class="weekday-bar">
+          <div class="weekday-bar-inner" id="wdb-all-1" style="background:#64748B"></div>
+          <div class="weekday-bar-inner" id="wdb-on-1"  style="background:#2563EB"></div>
+          <div class="weekday-bar-inner" id="wdb-off-1" style="background:#F59E0B"></div>
+        </div>
+        <div class="weekday-val" id="wdv-1">–</div>
+      </div>
+      <div class="weekday-card" id="wd-2">
+        <div class="weekday-name" id="wdn-2">수</div>
+        <div class="weekday-bar">
+          <div class="weekday-bar-inner" id="wdb-all-2" style="background:#64748B"></div>
+          <div class="weekday-bar-inner" id="wdb-on-2"  style="background:#2563EB"></div>
+          <div class="weekday-bar-inner" id="wdb-off-2" style="background:#F59E0B"></div>
+        </div>
+        <div class="weekday-val" id="wdv-2">–</div>
+      </div>
+      <div class="weekday-card" id="wd-3">
+        <div class="weekday-name" id="wdn-3">목</div>
+        <div class="weekday-bar">
+          <div class="weekday-bar-inner" id="wdb-all-3" style="background:#64748B"></div>
+          <div class="weekday-bar-inner" id="wdb-on-3"  style="background:#2563EB"></div>
+          <div class="weekday-bar-inner" id="wdb-off-3" style="background:#F59E0B"></div>
+        </div>
+        <div class="weekday-val" id="wdv-3">–</div>
+      </div>
+      <div class="weekday-card" id="wd-4">
+        <div class="weekday-name" id="wdn-4">금</div>
+        <div class="weekday-bar">
+          <div class="weekday-bar-inner" id="wdb-all-4" style="background:#64748B"></div>
+          <div class="weekday-bar-inner" id="wdb-on-4"  style="background:#2563EB"></div>
+          <div class="weekday-bar-inner" id="wdb-off-4" style="background:#F59E0B"></div>
+        </div>
+        <div class="weekday-val" id="wdv-4">–</div>
+      </div>
+      <div class="weekday-card" id="wd-5">
+        <div class="weekday-name" id="wdn-5">토</div>
+        <div class="weekday-bar">
+          <div class="weekday-bar-inner" id="wdb-all-5" style="background:#64748B"></div>
+          <div class="weekday-bar-inner" id="wdb-on-5"  style="background:#2563EB"></div>
+          <div class="weekday-bar-inner" id="wdb-off-5" style="background:#F59E0B"></div>
+        </div>
+        <div class="weekday-val" id="wdv-5">–</div>
+      </div>
+      <div class="weekday-card" id="wd-6">
+        <div class="weekday-name" id="wdn-6">일</div>
+        <div class="weekday-bar">
+          <div class="weekday-bar-inner" id="wdb-all-6" style="background:#64748B"></div>
+          <div class="weekday-bar-inner" id="wdb-on-6"  style="background:#2563EB"></div>
+          <div class="weekday-bar-inner" id="wdb-off-6" style="background:#F59E0B"></div>
+        </div>
+        <div class="weekday-val" id="wdv-6">–</div>
+      </div>
     </div>
+
     <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
-      <div class="stat-card" style="flex:1"><div class="stat-label">주중 평균</div><div class="stat-value krw" id="s1-weekday-avg">–</div></div>
-      <div class="stat-card" style="flex:1"><div class="stat-label">주말 평균</div><div class="stat-value krw" id="s1-weekend-avg">–</div><div class="stat-sub" id="s1-weekend-diff">–</div></div>
-      <div class="stat-card c-blue" style="flex:1"><div class="stat-label">🏆 최고 요일</div><div class="stat-value sm hi" id="s1-best-day">–</div></div>
+      <div class="stat-card" style="flex:1">
+        <div class="stat-label">주중 평균</div>
+        <div class="stat-value krw" id="s1-weekday-avg">–</div>
+      </div>
+      <div class="stat-card" style="flex:1">
+        <div class="stat-label">주말 평균</div>
+        <div class="stat-value krw" id="s1-weekend-avg">–</div>
+        <div class="stat-sub" id="s1-weekend-diff">–</div>
+      </div>
+      <div class="stat-card c-blue" style="flex:1">
+        <div class="stat-label">🏆 최고 요일</div>
+        <div class="stat-value sm hi" id="s1-best-day">–</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 범례 -->
+  <div style="display:flex;gap:14px;margin-top:8px;padding-left:4px;">
+    <div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:var(--text2);">
+      <div style="width:10px;height:10px;border-radius:2px;background:#64748B;flex-shrink:0;"></div>전체
+    </div>
+    <div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:var(--text2);">
+      <div style="width:10px;height:10px;border-radius:2px;background:#2563EB;flex-shrink:0;"></div>온라인
+    </div>
+    <div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:var(--text2);">
+      <div style="width:10px;height:10px;border-radius:2px;background:#F59E0B;flex-shrink:0;"></div>오프라인
     </div>
   </div>
 </div>
@@ -688,8 +791,8 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:var(--green-lt)">🛒</div>
     <div>
-      <h2>D2C 채널 매출 대시보드</h2>
-      <p id="s2-period-label">Direct-to-Consumer 채널 성과 분석 · 2025년 1월</p>
+      <h2>D2C - 매출 대시보드</h2>
+      <p id="s2-period-label">D2C 채널별 성과 분석</p>
     </div>
   </div>
 
@@ -743,7 +846,7 @@ body {
       </thead>
       <tbody>
         <tr>
-          <td><span style="font-weight:700;">🏠 자사몰</span></td>
+          <td><span style="font-weight:700;">자사몰</span></td>
           <td style="font-weight:700;" id="s2-own-sales">–</td>
           <td><div class="mini-bar-wrap"><div class="mini-bar-bg"><div class="mini-bar-fill" id="s2-own-bar" style="background:var(--cat1);width:0%"></div></div><span id="s2-own-pct" style="font-size:12px;font-weight:700;min-width:38px;text-align:right;">–</span></div></td>
           <td><span id="s2-own-yoy">–</span></td>
@@ -751,7 +854,7 @@ body {
           <td style="font-weight:700;" id="s2-own-cvr">–</td>
         </tr>
         <tr>
-          <td><span style="font-weight:700;">N 네이버스토어</span></td>
+          <td><span style="font-weight:700;">네이버스토어</span></td>
           <td style="font-weight:700;" id="s2-nav-sales">–</td>
           <td><div class="mini-bar-wrap"><div class="mini-bar-bg"><div class="mini-bar-fill" id="s2-nav-bar" style="background:var(--cat3);width:0%"></div></div><span id="s2-nav-pct" style="font-size:12px;font-weight:700;min-width:38px;text-align:right;">–</span></div></td>
           <td><span id="s2-nav-yoy">–</span></td>
@@ -759,7 +862,7 @@ body {
           <td style="font-weight:700;" id="s2-nav-cvr">–</td>
         </tr>
         <tr>
-          <td><span style="font-weight:700;">📦 기타</span></td>
+          <td><span style="font-weight:700;">기타 (카카오/ARS)</span></td>
           <td style="font-weight:700;" id="s2-etc-sales">–</td>
           <td><div class="mini-bar-wrap"><div class="mini-bar-bg"><div class="mini-bar-fill" id="s2-etc-bar" style="background:var(--muted);width:0%"></div></div><span id="s2-etc-pct" style="font-size:12px;font-weight:700;min-width:38px;text-align:right;">–</span></div></td>
           <td><span id="s2-etc-yoy">–</span></td>
@@ -795,8 +898,8 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:var(--amber-lt)">🏷️</div>
     <div>
-      <h2>자사몰 카테고리별 대시보드</h2>
-      <p id="s3-period-label">카테고리 · 상품 · 정기결제 심층 분석 · 2025년 1월</p>
+      <h2>자사몰 - 카테고리별 식단 상세 현황</h2>
+      <p id="s3-period-label">카테고리 · 상품 · 정기결제 심층 분석</p>
     </div>
   </div>
 
@@ -1335,7 +1438,13 @@ function resetDash() {
     's3-total','s3-yoy','s3-daily','s3-top-cat','s3-top-cat-val',
     'sub-total','sub-total-cnt','sub-active-cnt','sub-cancel-cnt','sub-ltr'];
   ids.forEach(id => set(id, '–'));
-  for(let i=0;i<7;i++) { set('wdv-'+i,'–'); const b=document.getElementById('wdb-'+i); if(b) b.style.height='0%'; }
+  for(let i=0;i<7;i++) {
+    set('wdv-'+i,'–');
+    ['all','on','off'].forEach(t => {
+      const b = document.getElementById('wdb-'+t+'-'+i);
+      if (b) b.style.height = '0%';
+    });
+  }
   set('s1-weekday-avg','–'); set('s1-weekend-avg','–'); set('s1-best-day','–');
   document.getElementById('s1-prog').style.width = '0%';
   document.getElementById('s2-prog').style.width = '0%';
@@ -1415,31 +1524,51 @@ function renderS1(rows) {
   set('s1-donut-online',  onPct+'%');
   set('s1-donut-offline', offPct+'%');
 
-  // Weekday
-  const wdT=[0,0,0,0,0,0,0], wdC=[0,0,0,0,0,0,0];
-  rows.forEach(r => { const wd=getDow(r.date); wdT[wd]+=(r.total||0); wdC[wd]++; });
-  const wdA = wdT.map((t,i) => wdC[i]>0?t/wdC[i]:0);
-  const maxWd = Math.max(...wdA);
-  const bestI = wdA.indexOf(maxWd);
-  wdA.forEach((v,i) => {
-    set('wdv-'+i, fmtKRW(Math.round(v)));
-    const bar = document.getElementById('wdb-'+i);
-    if (bar) bar.style.height = (maxWd>0?v/maxWd*100:0)+'%';
-    const card = document.getElementById('wd-'+i);
-    const nameEl = document.getElementById('wdn-'+i);
-    if (card) card.classList.toggle('top', i===bestI);
-    if (nameEl) nameEl.classList.toggle('top-day', i===bestI);
+  // Weekday — 전체/온라인/오프라인 3채널
+  const wdTall=[0,0,0,0,0,0,0], wdTon=[0,0,0,0,0,0,0], wdToff=[0,0,0,0,0,0,0], wdC=[0,0,0,0,0,0,0];
+  rows.forEach(r => {
+    const wd = getDow(r.date);
+    wdTall[wd] += (r.total||0);
+    wdTon[wd]  += (r.online||0);
+    wdToff[wd] += (r.offline||0);
+    wdC[wd]++;
   });
-  const wdAvgDays  = [0,1,2,3,4].filter(i=>wdC[i]>0);
-  const weAvgDays  = [5,6].filter(i=>wdC[i]>0);
-  const wdAvg = wdAvgDays.length ? wdAvgDays.reduce((s,i)=>s+wdA[i],0)/wdAvgDays.length : 0;
-  const weAvg = weAvgDays.length ? weAvgDays.reduce((s,i)=>s+wdA[i],0)/weAvgDays.length : 0;
+  const wdAll = wdTall.map((t,i) => wdC[i]>0 ? t/wdC[i] : 0);
+  const wdOn  = wdTon.map((t,i)  => wdC[i]>0 ? t/wdC[i] : 0);
+  const wdOff = wdToff.map((t,i) => wdC[i]>0 ? t/wdC[i] : 0);
+
+  // 각 채널의 max 기준으로 막대 높이 계산
+  const wdMaxAll = Math.max(...wdAll) || 1;
+  const wdMaxOn  = Math.max(...wdOn)  || 1;
+  const wdMaxOff = Math.max(...wdOff) || 1;
+
+  // DATA에 저장 (탭 전환 시 재사용)
+  DATA._wd = { wdAll, wdOn, wdOff, maxAll:wdMaxAll, maxOn:wdMaxOn, maxOff:wdMaxOff, wdC };
+
+  // 막대 높이 세팅
+  for (let i = 0; i < 7; i++) {
+    const bAll = document.getElementById('wdb-all-'+i);
+    const bOn  = document.getElementById('wdb-on-'+i);
+    const bOff = document.getElementById('wdb-off-'+i);
+    if (bAll) bAll.style.height = (wdAll[i]/wdMaxAll*100)+'%';
+    if (bOn)  bOn.style.height  = (wdOn[i]/wdMaxOn*100)+'%';
+    if (bOff) bOff.style.height = (wdOff[i]/wdMaxOff*100)+'%';
+  }
+
+  // 현재 탭 기준으로 값 텍스트 + 최고 요일 표시
+  const curTab = window._wdTab || 'all';
+  applyWdTab(curTab);
+
+  // 주중/주말 평균 (전체 기준)
+  const wdAvgDays = [0,1,2,3,4].filter(i=>wdC[i]>0);
+  const weAvgDays = [5,6].filter(i=>wdC[i]>0);
+  const wdAvg = wdAvgDays.length ? wdAvgDays.reduce((s,i)=>s+wdAll[i],0)/wdAvgDays.length : 0;
+  const weAvg = weAvgDays.length ? weAvgDays.reduce((s,i)=>s+wdAll[i],0)/weAvgDays.length : 0;
   set('s1-weekday-avg', fmtKRW(Math.round(wdAvg)));
   set('s1-weekend-avg', fmtKRW(Math.round(weAvg)));
-  const diff = wdAvg>0?(weAvg-wdAvg)/wdAvg*100:0;
-  const el = document.getElementById('s1-weekend-diff');
-  if(el) { el.textContent = (diff>=0?'+':'')+diff.toFixed(1)+'% vs 주중'; el.style.color=diff>=0?'var(--green)':'var(--red)'; }
-  set('s1-best-day', WD_FULL[bestI]);
+  const diff = wdAvg>0 ? (weAvg-wdAvg)/wdAvg*100 : 0;
+  const elDiff = document.getElementById('s1-weekend-diff');
+  if (elDiff) { elDiff.textContent=(diff>=0?'+':'')+diff.toFixed(1)+'% vs 주중'; elDiff.style.color=diff>=0?'var(--green)':'var(--red)'; }
 
   // Charts
   const labels    = rows.map(r => r.date.slice(5).replace('-','/'));
@@ -1753,6 +1882,36 @@ if (delivery.length) {
   });
 }
 } // renderS3 end
+
+// ─── 요일별 탭 전환 ───
+function applyWdTab(tab) {
+  window._wdTab = tab;
+  if (!DATA._wd) return;
+  const { wdAll, wdOn, wdOff } = DATA._wd;
+  const vals = tab==='on' ? wdOn : tab==='off' ? wdOff : wdAll;
+  const maxV = Math.max(...vals) || 1;
+  const bestI = vals.indexOf(Math.max(...vals));
+
+  for (let i = 0; i < 7; i++) {
+    set('wdv-'+i, fmtKRW(Math.round(vals[i])));
+    const card   = document.getElementById('wd-'+i);
+    const nameEl = document.getElementById('wdn-'+i);
+    if (card)   card.classList.toggle('top', i===bestI);
+    if (nameEl) nameEl.classList.toggle('top-day', i===bestI);
+  }
+  set('s1-best-day', WD_FULL[bestI]);
+}
+
+function setWdTab(tab) {
+  window._wdTab = tab;
+  // 탭 버튼 스타일
+  ['all','on','off'].forEach(t => {
+    const btn = document.getElementById('wdTab-'+t);
+    if (!btn) return;
+    btn.className = 'wd-tab' + (t===tab ? ' active-'+t : '');
+  });
+  applyWdTab(tab);
+}
 
 // ─── Helpers ───
 function set(id, val) { const el=document.getElementById(id); if(el) el.textContent=val; }
