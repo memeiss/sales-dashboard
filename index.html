@@ -5,7 +5,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OMNI - Sales Dashboard</title>
+<title>OMNI - Sales dashboard</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -435,6 +435,10 @@ body {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
         엑셀 파일 업로드
       </button>
+      <button class="upload-btn" id="saveBtn" onclick="saveDataToFirebase()" style="background:rgba(255,255,255,0.15);color:#fff;border:1.5px solid rgba(255,255,255,0.5);" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg>
+        서버에 저장
+      </button>
       <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(event)">
     </div>
   </div>
@@ -825,85 +829,86 @@ body {
     </div>
 
 <!-- 변경 후 -->
-<div class="chart-card" style="margin-bottom:0">
-  <div class="chart-card-title">카테고리별 상품 상세 매출</div>
-  <!-- 카테고리 탭 -->
-  <div id="catTabBar" style="display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap;"></div>
-  <!-- 카테고리별 캔버스 (JS로 show/hide) -->
-  <div id="catChartWrap" style="height:185px;position:relative;">
-    <canvas id="catBarChart-0" style="position:absolute;inset:0"></canvas>
-    <canvas id="catBarChart-1" style="position:absolute;inset:0;display:none"></canvas>
-    <canvas id="catBarChart-2" style="position:absolute;inset:0;display:none"></canvas>
-    <canvas id="catBarChart-3" style="position:absolute;inset:0;display:none"></canvas>
-    <canvas id="catBarChart-4" style="position:absolute;inset:0;display:none"></canvas>
-  </div>
-</div>
+    <div class="chart-card" style="margin-bottom:0">
+      <div class="chart-card-title">카테고리별 상품 상세 매출</div>
+      <!-- 카테고리 탭 -->
+      <div id="catTabBar" style="display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap;"></div>
+      <!-- 카테고리별 캔버스 (JS로 show/hide) -->
+      <div id="catChartWrap" style="height:185px;position:relative;">
+        <canvas id="catBarChart-0" style="position:absolute;inset:0"></canvas>
+        <canvas id="catBarChart-1" style="position:absolute;inset:0;display:none"></canvas>
+        <canvas id="catBarChart-2" style="position:absolute;inset:0;display:none"></canvas>
+        <canvas id="catBarChart-3" style="position:absolute;inset:0;display:none"></canvas>
+        <canvas id="catBarChart-4" style="position:absolute;inset:0;display:none"></canvas>
+      </div>
+    </div>
+  </div><!-- grid-2 end -->
 
   <!-- ════ 정기결제 현황 ════ -->
-<!-- ════ 정기결제 현황 ════ -->
-<div class="sub-header">
-  <div class="section-icon" style="background:#EFF6FF;width:32px;height:32px;font-size:14px;">🔄</div>
-  <h3>정기결제 현황</h3>
-  <span class="sub-badge">Subscription</span>
-</div>
+  <div class="sub-header">
+    <div class="section-icon" style="background:#EFF6FF;width:32px;height:32px;font-size:14px;">🔄</div>
+    <h3>정기결제 현황</h3>
+    <span class="sub-badge">Subscription</span>
+  </div>
 
-<!-- ① 매출 현황 -->
-<div class="ch-label">매출 현황</div>
-<div class="sub-grid" style="grid-template-columns:repeat(5,1fr)">
-  <div class="sub-card">
-    <div class="sub-label">총 매출액</div>
-    <div class="sub-value krw" id="sub-total">–</div>
+  <!-- ① 매출 현황 -->
+  <div class="ch-label">매출 현황</div>
+  <div class="sub-grid" style="grid-template-columns:repeat(5,1fr)">
+    <div class="sub-card">
+      <div class="sub-label">총 매출액</div>
+      <div class="sub-value krw" id="sub-total">–</div>
+    </div>
+    <div class="sub-card">
+      <div class="sub-label">전체 신청 건수</div>
+      <div class="sub-value" id="sub-total-cnt">–</div>
+    </div>
+    <div class="sub-card">
+      <div class="sub-label">진행 건수</div>
+      <div class="sub-value" style="color:var(--green)" id="sub-active-cnt">–</div>
+    </div>
+    <div class="sub-card">
+      <div class="sub-label">해지 건수</div>
+      <div class="sub-value" style="color:var(--red)" id="sub-cancel-cnt">–</div>
+    </div>
+    <div class="sub-card c-blue">
+      <div class="sub-label">구독 유지율</div>
+      <div class="sub-value hi" id="sub-ltr">–</div>
+    </div>
   </div>
-  <div class="sub-card">
-    <div class="sub-label">전체 신청 건수</div>
-    <div class="sub-value" id="sub-total-cnt">–</div>
-  </div>
-  <div class="sub-card">
-    <div class="sub-label">진행 건수</div>
-    <div class="sub-value" style="color:var(--green)" id="sub-active-cnt">–</div>
-  </div>
-  <div class="sub-card">
-    <div class="sub-label">해지 건수</div>
-    <div class="sub-value" style="color:var(--red)" id="sub-cancel-cnt">–</div>
-  </div>
-  <div class="sub-card c-blue">
-    <div class="sub-label">구독 유지율</div>
-    <div class="sub-value hi" id="sub-ltr">–</div>
-  </div>
-</div>
 
-<!-- ② 상품(식단)별 현황 -->
-<div class="ch-label">정기결제 상품별 현황</div>
-<div class="chart-card">
-  <div class="chart-card-title">식단별 매출 · 진행건수 · 해지건수 · 구독 유지율</div>
-  <table class="data-table">
-    <thead>
-      <tr>
-        <th>상품명(식단)</th><th>카테고리</th>
-        <th>매출액</th><th>전체 대비</th>
-        <th>진행 건수</th><th>해지 건수</th><th>구독 유지율</th>
-      </tr>
-    </thead>
-    <tbody id="subProdBody"></tbody>
-  </table>
-</div>
-
-<!-- ③ 배송 횟수 -->
-<div class="ch-label">전체 배송 횟수 현황</div>
-<div class="grid-2" style="margin-bottom:0">
-  <div class="chart-card" style="margin-bottom:0">
-    <div class="chart-card-title">배송 횟수별 신청 건수</div>
-    <div style="height:160px"><canvas id="deliveryChart"></canvas></div>
-  </div>
-  <div class="sub-card" style="margin-bottom:0">
-    <table class="data-table" style="width:100%">
+  <!-- ② 상품(식단)별 현황 -->
+  <div class="ch-label">정기결제 상품별 현황</div>
+  <div class="chart-card">
+    <div class="chart-card-title">식단별 매출 · 진행건수 · 해지건수 · 구독 유지율</div>
+    <table class="data-table">
       <thead>
-        <tr><th>구분</th><th>건수</th><th>비율</th></tr>
+        <tr>
+          <th>상품명(식단)</th><th>카테고리</th>
+          <th>매출액</th><th>전체 대비</th>
+          <th>진행 건수</th><th>해지 건수</th><th>구독 유지율</th>
+        </tr>
       </thead>
-      <tbody id="deliveryBody"></tbody>
+      <tbody id="subProdBody"></tbody>
     </table>
   </div>
-</div>
+
+  <!-- ③ 배송 횟수 -->
+  <div class="ch-label">전체 배송 횟수 현황</div>
+  <div class="grid-2" style="margin-bottom:0">
+    <div class="chart-card" style="margin-bottom:0">
+      <div class="chart-card-title">배송 횟수별 신청 건수</div>
+      <div style="height:160px"><canvas id="deliveryChart"></canvas></div>
+    </div>
+    <div class="chart-card" style="margin-bottom:0">
+      <div class="chart-card-title">배송 횟수별 비율</div>
+      <table class="data-table">
+        <thead><tr><th>구분</th><th>건수</th><th>비율</th></tr></thead>
+        <tbody id="deliveryBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- slide end -->
 
 </div><!-- slides-track -->
 </div><!-- slides-wrapper -->
@@ -1007,34 +1012,60 @@ function handleFile(e) { if (e.target.files[0]) processFile(e.target.files[0]); 
 function processFile(file) {
   showToast('📂 파일을 읽는 중...');
   const reader = new FileReader();
-  reader.onload = async evt => {
+  reader.onload = evt => {
     try {
       const wb = XLSX.read(evt.target.result, {type:'array', cellDates:true});
       parseWB(wb);
-      document.getElementById('statusDot').style.background = '#4ADE80';
-      document.getElementById('statusDot').style.boxShadow = '0 0 0 3px rgba(74,222,128,0.3)';
-      document.getElementById('statusText').textContent = `✅ ${file.name} 연동됨`;
-      showToast('✅ 데이터가 업로드되었습니다!');
-
-      // Firebase에 월별로 저장 (YYYY-MM 키)
-      const months = new Set(DATA.daily.map(r => r.date.slice(0,7)));
-      for (const ym of months) {
-        const [y, m] = ym.split('-').map(Number);
-        const filterYM = r => r.date.startsWith(ym);
-        const docId = ym; // e.g. "2026-01"
-        await saveToFirebase(docId, {
-          daily:        DATA.daily.filter(filterYM),
-          d2c:          DATA.d2c.filter(filterYM),
-          cat:          DATA.cat.filter(filterYM),
-          products:     DATA.products.filter(p => p.year==y && p.month==m),
-          sub:          (DATA.sub?.year==y && DATA.sub?.month==m) ? DATA.sub : null,
-          monthTargets: DATA.monthTargets,
-          updatedAt:    new Date().toISOString(),
-        });
-      }
-    } catch(err) { showToast('❌ 파일 오류: ' + err.message); }
+      document.getElementById('statusDot').style.background = '#FBBF24';
+      document.getElementById('statusDot').style.boxShadow = '0 0 0 3px rgba(251,191,36,0.3)';
+      document.getElementById('statusText').textContent = `📂 ${file.name} 로드됨 — [서버에 저장] 버튼을 눌러주세요`;
+      // 저장 버튼 활성화
+      const saveBtn = document.getElementById('saveBtn');
+      saveBtn.disabled = false;
+      saveBtn.style.background = '#fff';
+      saveBtn.style.color = 'var(--blue)';
+      saveBtn.style.border = 'none';
+      showToast('✅ 파일 로드 완료! [서버에 저장] 버튼을 눌러주세요.');
+    } catch(err) { showToast('❌ 파일 오류: ' + err.message); console.error(err); }
   };
   reader.readAsArrayBuffer(file);
+}
+
+// ─── 저장 버튼 클릭 시 Firebase에 저장 ───
+async function saveDataToFirebase() {
+  if (!DATA.daily.length) { showToast('⚠️ 먼저 엑셀 파일을 업로드해주세요.'); return; }
+  const saveBtn = document.getElementById('saveBtn');
+  saveBtn.innerHTML = '저장 중...';
+  saveBtn.disabled = true;
+  try {
+    const months = new Set(DATA.daily.map(r => r.date.slice(0,7)));
+    for (const ym of months) {
+      const [y, m] = ym.split('-').map(Number);
+      const filterYM = r => r.date.startsWith(ym);
+      await db.collection('dashboard').doc(ym).set({
+        daily:        DATA.daily.filter(filterYM),
+        d2c:          DATA.d2c.filter(filterYM),
+        cat:          DATA.cat.filter(filterYM),
+        products:     DATA.products.filter(p => p.year==y && p.month==m),
+        sub:          (DATA.sub?.year==y && DATA.sub?.month==m) ? DATA.sub : null,
+        monthTargets: DATA.monthTargets || null,
+        updatedAt:    new Date().toISOString(),
+      });
+    }
+    document.getElementById('statusDot').style.background = '#4ADE80';
+    document.getElementById('statusDot').style.boxShadow = '0 0 0 3px rgba(74,222,128,0.3)';
+    document.getElementById('statusText').textContent = '☁️ 서버 저장 완료 — 모든 기기에서 조회 가능';
+    saveBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px"><path d="M20 6L9 17l-5-5"/></svg> 저장 완료`;
+    saveBtn.style.background = 'rgba(74,222,128,0.25)';
+    saveBtn.style.color = '#fff';
+    saveBtn.style.border = '1.5px solid rgba(74,222,128,0.6)';
+    showToast('☁️ 서버 저장 완료! 다른 PC에서도 데이터가 표시됩니다.');
+  } catch(e) {
+    showToast('❌ 저장 실패: ' + e.message);
+    console.error(e);
+    saveBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/></svg> 서버에 저장`;
+    saveBtn.disabled = false;
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────
@@ -1711,12 +1742,12 @@ function setYoy(id, curr, prev) {
 // ⚠️ 아래 firebaseConfig를 본인의 Firebase 프로젝트 설정으로 교체하세요.
 // Firebase 콘솔 > 프로젝트 설정 > 앱 > firebaseConfig 복사
 const firebaseConfig = {
-  apiKey:            "YOUR_API_KEY",
-  authDomain:        "YOUR_PROJECT.firebaseapp.com",
-  projectId:         "YOUR_PROJECT_ID",
-  storageBucket:     "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId:             "YOUR_APP_ID"
+  apiKey: "AIzaSyAm-Fnz1YKh7OKrPFKjAPO42BwTa3XPnOs",
+  authDomain: "sales-dashboard-d4939.firebaseapp.com",
+  projectId: "sales-dashboard-d4939",
+  storageBucket: "sales-dashboard-d4939.firebasestorage.app",
+  messagingSenderId: "996073785958",
+  appId: "1:996073785958:web:62ef7dee215121f4ae3ba7"
 };
 firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
