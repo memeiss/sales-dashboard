@@ -5,7 +5,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OMNI - Sales Dashboard</title>
+<title>OMNI - Sales dashboard</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -438,10 +438,39 @@ body {
 .toast.show { opacity:1; }
 
 @media(max-width:768px){
-  .grid-4 { grid-template-columns:repeat(2,1fr); }
-  .grid-7 { grid-template-columns:repeat(4,1fr); }
-  .sub-grid { grid-template-columns:repeat(2,1fr); }
+  /* 기본 레이아웃 */
+  .grid-4  { grid-template-columns:repeat(2,1fr); }
+  .grid-7  { grid-template-columns:repeat(4,1fr); }
+  .sub-grid{ grid-template-columns:repeat(2,1fr); }
   .slide,.header,.arrow-nav,.nav-container,.upload-inner { padding-left:14px;padding-right:14px; }
+
+  /* ── 모바일에서 1열로 쌓이는 grid ── */
+  .grid-stack {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── grid-3도 모바일 1열 ── */
+  .grid-3 { grid-template-columns: 1fr !important; }
+
+  /* ── 도넛 차트 컨테이너: 모바일에서 전체 너비 활용 ── */
+  .cat-chart-grid .chart-card:first-child > div {
+    justify-content: center;
+  }
+  .cat-chart-grid .chart-card:first-child canvas {
+    width: 180px !important;
+    height: 180px !important;
+  }
+
+  /* ── stat-value 글자 오버플로 방지 ── */
+  .stat-value.krw { font-size: 16px; word-break: break-all; }
+  .daystat-amount  { font-size: 16px !important; word-break: break-all; }
+
+  /* ── 도넛 범례 텍스트 줄바꿈 허용 ── */
+  .donut-legend { flex-wrap: wrap; gap: 6px; }
+
+  /* ── 카테고리 탭 버튼 모바일 ── */
+  #catTabBar { flex-wrap: wrap; gap: 4px; }
+  #catTabBar button { font-size: 11px; padding: 4px 8px; }
 }
 </style>
 </head>
@@ -493,7 +522,7 @@ body {
     <div class="logo-badge">OD</div>
     <div>
       <div class="header-title">OMNI Sales Dashboard</div>
-      <div class="header-meta">OMNI 채널 월별 매출 분석 자료</div>
+      <div class="header-meta">옴니채널 통합 매출 분석 시스템</div>
     </div>
   </div>
   <div class="header-right">
@@ -516,9 +545,9 @@ body {
 <!-- Nav -->
 <div class="nav-container">
   <div class="nav-tabs">
-    <button class="nav-tab active" onclick="goTo(0)">📊 OMNI 전체</button>
+    <button class="nav-tab active" onclick="goTo(0)">📊 OMNI 매출</button>
     <button class="nav-tab" onclick="goTo(1)">🛒 D2C 채널</button>
-    <button class="nav-tab" onclick="goTo(2)">🏷️ 자사몰 식단별 상세</button>
+    <button class="nav-tab" onclick="goTo(2)">🏷️ 자사몰 카테고리</button>
   </div>
 </div>
 
@@ -548,7 +577,7 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:var(--blue-lt)">📊</div>
     <div>
-      <h2>OMNI - 매출 대시보드</h2>
+      <h2>OMNI 매출 대시보드</h2>
       <p id="s1-period-label">전체 채널 통합 매출 현황</p>
     </div>
   </div>
@@ -601,9 +630,9 @@ body {
 
   <!-- 채널별 -->
   <div class="ch-label">채널별 매출 현황</div>
-  <div class="grid-2" style="margin-bottom:12px;">
+  <div class="grid-2 grid-stack" style="margin-bottom:12px;">
     <div class="chart-card" style="margin-bottom:0">
-      <div class="chart-card-title" style="color:var(--blue)">🌐 D2C 채널</div>
+      <div class="chart-card-title" style="color:var(--blue)">🌐 온라인 채널</div>
       <div class="grid-2" style="gap:8px;margin-bottom:8px;">
         <div><div class="stat-label">총 매출액</div><div class="stat-value krw" id="s1-online-total">–</div></div>
         <div><div class="stat-label">목표액</div><div class="stat-value krw" id="s1-online-target">–</div></div>
@@ -659,7 +688,7 @@ body {
   </div>
 
   <!-- 차트 -->
-  <div class="grid-2">
+  <div class="grid-2 grid-stack">
     <div class="chart-card" style="margin-bottom:0">
       <div class="chart-card-title">일자별 매출 추이</div>
       <div style="height:185px"><canvas id="dailyChart"></canvas></div>
@@ -667,7 +696,7 @@ body {
     <div class="chart-card" style="margin-bottom:0">
       <div class="chart-card-title">채널별 매출 비중</div>
       <div style="display:flex;align-items:center;gap:18px;height:185px;overflow:hidden;">
-        <div style="position:relative;width:160px;height:160px;flex-shrink:0;"><canvas id="channelDonut"></canvas></div>
+        <div style="position:relative;width:min(160px,45vw);height:min(160px,45vw);flex-shrink:0;"><canvas id="channelDonut"></canvas></div>
         <div class="donut-legend">
           <div class="legend-item"><div class="legend-dot" style="background:var(--cat1)"></div><span>온라인</span><span class="legend-val" id="s1-donut-online">–</span></div>
           <div class="legend-item"><div class="legend-dot" style="background:#F59E0B"></div><span>오프라인</span><span class="legend-val" id="s1-donut-offline">–</span></div>
@@ -791,8 +820,8 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:var(--green-lt)">🛒</div>
     <div>
-      <h2>D2C - 매출 대시보드</h2>
-      <p id="s2-period-label">D2C 채널별 성과 분석</p>
+      <h2>D2C 채널 매출 대시보드</h2>
+      <p id="s2-period-label">Direct-to-Consumer 채널 성과 분석</p>
     </div>
   </div>
 
@@ -846,7 +875,7 @@ body {
       </thead>
       <tbody>
         <tr>
-          <td><span style="font-weight:700;">자사몰</span></td>
+          <td><span style="font-weight:700;">🏠 자사몰</span></td>
           <td style="font-weight:700;" id="s2-own-sales">–</td>
           <td><div class="mini-bar-wrap"><div class="mini-bar-bg"><div class="mini-bar-fill" id="s2-own-bar" style="background:var(--cat1);width:0%"></div></div><span id="s2-own-pct" style="font-size:12px;font-weight:700;min-width:38px;text-align:right;">–</span></div></td>
           <td><span id="s2-own-yoy">–</span></td>
@@ -854,7 +883,7 @@ body {
           <td style="font-weight:700;" id="s2-own-cvr">–</td>
         </tr>
         <tr>
-          <td><span style="font-weight:700;">네이버스토어</span></td>
+          <td><span style="font-weight:700;">N 네이버스토어</span></td>
           <td style="font-weight:700;" id="s2-nav-sales">–</td>
           <td><div class="mini-bar-wrap"><div class="mini-bar-bg"><div class="mini-bar-fill" id="s2-nav-bar" style="background:var(--cat3);width:0%"></div></div><span id="s2-nav-pct" style="font-size:12px;font-weight:700;min-width:38px;text-align:right;">–</span></div></td>
           <td><span id="s2-nav-yoy">–</span></td>
@@ -862,7 +891,7 @@ body {
           <td style="font-weight:700;" id="s2-nav-cvr">–</td>
         </tr>
         <tr>
-          <td><span style="font-weight:700;">기타 (카카오/ARS)</span></td>
+          <td><span style="font-weight:700;">📦 기타</span></td>
           <td style="font-weight:700;" id="s2-etc-sales">–</td>
           <td><div class="mini-bar-wrap"><div class="mini-bar-bg"><div class="mini-bar-fill" id="s2-etc-bar" style="background:var(--muted);width:0%"></div></div><span id="s2-etc-pct" style="font-size:12px;font-weight:700;min-width:38px;text-align:right;">–</span></div></td>
           <td><span id="s2-etc-yoy">–</span></td>
@@ -898,7 +927,7 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:var(--amber-lt)">🏷️</div>
     <div>
-      <h2>자사몰 - 카테고리별 식단 상세 현황</h2>
+      <h2>자사몰 카테고리별 대시보드</h2>
       <p id="s3-period-label">카테고리 · 상품 · 정기결제 심층 분석</p>
     </div>
   </div>
@@ -923,7 +952,7 @@ body {
   </div>
 
   <!-- 카테고리 + TOP5 -->
-  <div class="grid-2">
+  <div class="grid-2 grid-stack">
     <div class="chart-card" style="margin-bottom:0">
       <div class="chart-card-title">카테고리별 매출액 및 구성비</div>
       <div id="catRows"></div>
@@ -939,11 +968,11 @@ body {
 
   <!-- 차트 -->
   <div style="height:12px"></div>
-  <div class="grid-2">
+  <div class="grid-2 grid-stack cat-chart-grid">
     <div class="chart-card" style="margin-bottom:0">
       <div class="chart-card-title">카테고리별 매출 비중</div>
       <div style="display:flex;align-items:center;gap:16px;height:185px;overflow:hidden;">
-        <div style="position:relative;width:160px;height:160px;flex-shrink:0;"><canvas id="catDonut"></canvas></div>
+        <div style="position:relative;width:min(160px,45vw);height:min(160px,45vw);flex-shrink:0;"><canvas id="catDonut"></canvas></div>
         <div class="donut-legend" id="catLegend"></div>
       </div>
     </div>
@@ -1014,7 +1043,7 @@ body {
 
   <!-- ③ 배송 횟수 -->
   <div class="ch-label">전체 배송 횟수 현황</div>
-  <div class="grid-2" style="margin-bottom:0">
+  <div class="grid-2 grid-stack" style="margin-bottom:0">
     <div class="chart-card" style="margin-bottom:0">
       <div class="chart-card-title">배송 횟수별 신청 건수</div>
       <div style="height:160px"><canvas id="deliveryChart"></canvas></div>
