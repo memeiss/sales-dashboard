@@ -2436,6 +2436,7 @@ async function loadEventsFromFirebase() {
     });
     EVT_LIST.sort((a,b) => (b.startDate||'').localeCompare(a.startDate||''));
     renderEvtTabs();
+   if (EVT_LIST.length > 0) selectEvt(EVT_LIST[0].id);
   } catch(e) { console.error('이벤트 로드 실패', e); }
 }
 
