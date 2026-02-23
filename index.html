@@ -970,30 +970,43 @@ body {
 
   <!-- 차트 -->
   <div style="height:12px"></div>
-  <div class="grid-2 grid-stack cat-chart-grid">
-    <div class="chart-card" style="margin-bottom:0">
-      <div class="chart-card-title">카테고리별 매출 비중</div>
-      <div style="display:flex;align-items:center;gap:16px;height:185px;overflow:hidden;">
-        <div style="position:relative;width:min(160px,45vw);height:min(160px,45vw);flex-shrink:0;"><canvas id="catDonut"></canvas></div>
-        <div class="donut-legend" id="catLegend"></div>
-      </div>
+  <div class="chart-card" style="margin-bottom:0">
+    <div class="chart-card-title">카테고리별 상품 상세 매출</div>
+    <!-- 카테고리 탭 -->
+    <div id="catTabBar" style="display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap;"></div>
+    <!-- 카테고리별 캔버스 (JS로 show/hide) -->
+    <div id="catChartWrap" style="height:220px;position:relative;">
+      <canvas id="catBarChart-0" style="position:absolute;inset:0"></canvas>
+      <canvas id="catBarChart-1" style="position:absolute;inset:0;display:none"></canvas>
+      <canvas id="catBarChart-2" style="position:absolute;inset:0;display:none"></canvas>
+      <canvas id="catBarChart-3" style="position:absolute;inset:0;display:none"></canvas>
+      <canvas id="catBarChart-4" style="position:absolute;inset:0;display:none"></canvas>
     </div>
+  </div>
 
-<!-- 변경 후 -->
-    <div class="chart-card" style="margin-bottom:0">
-      <div class="chart-card-title">카테고리별 상품 상세 매출</div>
-      <!-- 카테고리 탭 -->
-      <div id="catTabBar" style="display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap;"></div>
-      <!-- 카테고리별 캔버스 (JS로 show/hide) -->
-      <div id="catChartWrap" style="height:220px;position:relative;">
-        <canvas id="catBarChart-0" style="position:absolute;inset:0"></canvas>
-        <canvas id="catBarChart-1" style="position:absolute;inset:0;display:none"></canvas>
-        <canvas id="catBarChart-2" style="position:absolute;inset:0;display:none"></canvas>
-        <canvas id="catBarChart-3" style="position:absolute;inset:0;display:none"></canvas>
-        <canvas id="catBarChart-4" style="position:absolute;inset:0;display:none"></canvas>
-      </div>
-    </div>
-  </div><!-- grid-2 end -->
+  <!-- ════ 연간 카테고리별 매출 현황 ════ -->
+  <div style="height:16px"></div>
+  <div class="ch-label">연간 카테고리별 매출 현황</div>
+  <div class="chart-card" style="padding:0;overflow:auto;">
+    <table class="data-table" id="annualTable" style="min-width:900px;font-size:11px;">
+      <thead>
+        <tr id="annualHeaderRow">
+          <th style="min-width:90px;position:sticky;left:0;background:var(--surface);z-index:2;text-align:left;padding:10px 12px;">구분</th>
+          <th style="min-width:60px;">합계</th>
+          <th style="min-width:62px;">1월</th><th style="min-width:62px;">2월</th>
+          <th style="min-width:62px;">3월</th><th style="min-width:62px;">4월</th>
+          <th style="min-width:62px;">5월</th><th style="min-width:62px;">6월</th>
+          <th style="min-width:62px;">7월</th><th style="min-width:62px;">8월</th>
+          <th style="min-width:62px;">9월</th><th style="min-width:62px;">10월</th>
+          <th style="min-width:62px;">11월</th><th style="min-width:62px;">12월</th>
+          <th style="min-width:68px;background:#FFF7ED;color:#EA580C;font-weight:800;">전월 比</th>
+        </tr>
+      </thead>
+      <tbody id="annualBody">
+        <tr><td colspan="15" style="text-align:center;color:var(--muted);padding:24px;">엑셀 파일을 업로드하면 연간 데이터가 표시됩니다</td></tr>
+      </tbody>
+    </table>
+  </div>
 
   <!-- ════ 정기결제 현황 ════ -->
   <div class="sub-header">
@@ -1161,28 +1174,20 @@ body {
         <div class="chart-card-title">일자별 매출 현황</div>
         <div style="height:200px"><canvas id="evtDailyChart"></canvas></div>
       </div>
-      <div class="chart-card" style="margin-bottom:0">
+      <!-- 전년 비교: 데이터 있을 때만 표시 -->
+      <div class="chart-card" id="evtYoyCard" style="margin-bottom:0;display:none;">
         <div class="chart-card-title">전년 동기 비교</div>
-        <div id="evtYoySection">
-          <div id="evtNoYoy" style="display:flex;align-items:center;justify-content:center;height:160px;color:var(--muted);font-size:13px;flex-direction:column;gap:8px;">
-            <span style="font-size:24px;">📋</span>
-            전년도 데이터 없음<br>
-            <span style="font-size:11px;">엑셀에 전년 데이터 입력 시 비교 표시</span>
+        <div class="grid-2" style="gap:8px;margin-bottom:10px;">
+          <div class="stat-card" style="padding:12px;">
+            <div class="stat-label">올해 매출</div>
+            <div class="stat-value krw" style="font-size:16px;" id="ev-this-total">–</div>
           </div>
-          <div id="evtYoyContent" style="display:none;">
-            <div class="grid-2" style="gap:8px;margin-bottom:10px;">
-              <div class="stat-card" style="padding:12px;">
-                <div class="stat-label">올해 매출</div>
-                <div class="stat-value krw" style="font-size:16px;" id="ev-this-total">–</div>
-              </div>
-              <div class="stat-card" style="padding:12px;">
-                <div class="stat-label">전년 매출</div>
-                <div class="stat-value krw" style="font-size:16px;" id="ev-prev-total">–</div>
-              </div>
-            </div>
-            <div style="height:120px"><canvas id="evtYoyChart"></canvas></div>
+          <div class="stat-card" style="padding:12px;">
+            <div class="stat-label">전년 매출</div>
+            <div class="stat-value krw" style="font-size:16px;" id="ev-prev-total">–</div>
           </div>
         </div>
+        <div style="height:120px"><canvas id="evtYoyChart"></canvas></div>
       </div>
     </div>
 
@@ -1670,7 +1675,7 @@ function resetDash() {
   set('s1-weekday-avg','–'); set('s1-weekend-avg','–'); set('s1-best-day','–');
   document.getElementById('s1-prog').style.width = '0%';
   document.getElementById('s2-prog').style.width = '0%';
-  ['dailyChart','channelDonut','d2cChart','catDonut','deliveryChart','catBarChart-0','catBarChart-1','catBarChart-2','catBarChart-3','catBarChart-4'].forEach(destroyChart);
+  ['dailyChart','channelDonut','d2cChart','deliveryChart','catBarChart-0','catBarChart-1','catBarChart-2','catBarChart-3','catBarChart-4'].forEach(destroyChart);
   const catRowsEl = document.getElementById('catRows'); if(catRowsEl) catRowsEl.innerHTML='';
   const top5El    = document.getElementById('top5Body'); if(top5El) top5El.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">엑셀 파일을 업로드하면 데이터가 표시됩니다</td></tr>';
   const subEl     = document.getElementById('subProdBody'); if(subEl) subEl.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">엑셀 파일을 업로드하면 데이터가 표시됩니다</td></tr>';
@@ -1682,6 +1687,7 @@ function renderAll(daily, d2c, cat, products) {
   renderS1(daily);
   renderS2(d2c);
   renderS3(cat, products);
+  renderAnnualTable();
 }
 
 // ─── SLIDE 1 ───
@@ -1969,20 +1975,6 @@ function renderS3(cat, products) {
   });
   if(!sorted.length) tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">데이터 없음</td></tr>';
 
-  // Donut
-  destroyChart('catDonut');
-  charts['catDonut'] = new Chart(document.getElementById('catDonut'), {
-    type:'doughnut',
-    data:{ labels:catT.map(c=>c.label), datasets:[{data:catT.map(c=>c.total), backgroundColor:catT.map(c=>c.color), borderWidth:0, hoverOffset:3}] },
-    options:{ responsive:true, maintainAspectRatio:true, plugins:{legend:{display:false}, tooltip:{callbacks:{label:ctx=>`${ctx.label}: ${(grand>0?ctx.raw/grand*100:0).toFixed(1)}%`}}}, cutout:'65%' }
-  });
-  // Legend
-  const leg = document.getElementById('catLegend'); leg.innerHTML='';
-  catT.forEach(c => {
-    const pct=(grand>0?c.total/grand*100:0).toFixed(1);
-    leg.innerHTML+=`<div class="legend-item"><div class="legend-dot" style="background:${c.color}"></div><span>${c.label}</span><span class="legend-val">${pct}%</span></div>`;
-  });
-
   // Bar
 // ✅ 변경 후 — 카테고리별 탭 + 각각 바차트
 // 탭 버튼 생성
@@ -2078,6 +2070,106 @@ function switchCatTab(idx, catT) {
     btn.style.color       = active ? '#fff'        : 'var(--text2)';
     btn.style.borderColor = active ? catT[i].color : 'var(--border)';
   });
+}
+
+// ─── 연간 카테고리별 매출 표 렌더링 ───────────────────────────
+function renderAnnualTable() {
+  const tbody = document.getElementById('annualBody');
+  if (!tbody) return;
+
+  // DATA.products 전체에서 연도별로 집계
+  // 현재 선택된 연도 기준
+  const allProds = DATA.products.filter(p => p.year == YEAR);
+  if (!allProds.length) {
+    tbody.innerHTML = '<tr><td colspan="15" style="text-align:center;color:var(--muted);padding:24px;">데이터 없음 — 해당 연도 엑셀을 업로드해주세요</td></tr>';
+    return;
+  }
+
+  // 카테고리 → 상품 목록 추출 (DATA.products 전체 기준)
+  const catOrder  = ['새벽배송','건강케어','질환케어','보충케어','이벤트/기타'];
+  const catColors = { '새벽배송':CAT_COLORS[0],'건강케어':CAT_COLORS[1],'질환케어':CAT_COLORS[2],'보충케어':CAT_COLORS[3],'이벤트/기타':CAT_COLORS[4] };
+
+  // 상품별 월별 매출 맵: {catName: {prodName: {month: sales}}}
+  const tree = {};
+  allProds.forEach(p => {
+    const cat  = p.category || '기타';
+    const name = p.name     || '–';
+    const m    = Number(p.month);
+    if (!tree[cat]) tree[cat] = {};
+    if (!tree[cat][name]) tree[cat][name] = {};
+    tree[cat][name][m] = (tree[cat][name][m] || 0) + (p.sales || 0);
+  });
+
+  // 전체 월별 합계 (합계 행용)
+  const totalByMonth = {};
+  for (let m=1; m<=12; m++) totalByMonth[m] = 0;
+  allProds.forEach(p => { totalByMonth[Number(p.month)] = (totalByMonth[Number(p.month)]||0) + (p.sales||0); });
+  const grandTotal = Object.values(totalByMonth).reduce((s,v)=>s+v,0);
+
+  // 데이터가 있는 월만 감지
+  const activeMths = [...Array(12).keys()].map(i=>i+1).filter(m => totalByMonth[m] > 0);
+
+  // 전월 비 계산 함수 (현재 선택 월 기준)
+  const mmNow  = MONTH;
+  const mmPrev = MONTH > 1 ? MONTH - 1 : null;
+
+  const fmtCell = v => v > 0 ? Math.round(v/10000).toLocaleString('ko-KR')+'만' : '';
+  const momCell = (now, prev) => {
+    if (!prev || prev === 0) return '';
+    const pct = (now - prev) / prev * 100;
+    const color = pct >= 0 ? 'var(--green)' : 'var(--red)';
+    return `<span style="color:${color};font-weight:700">${pct>=0?'+':''}${pct.toFixed(1)}%</span>`;
+  };
+
+  let html = '';
+
+  // 합계 행
+  const totNow  = totalByMonth[mmNow]  || 0;
+  const totPrev = mmPrev ? (totalByMonth[mmPrev] || 0) : 0;
+  html += `<tr style="font-weight:800;background:var(--bg);">
+    <td style="position:sticky;left:0;background:var(--bg);padding:9px 12px;font-weight:800;">합계</td>
+    <td style="font-weight:800;">${fmtCell(grandTotal)}</td>
+    ${[...Array(12).keys()].map(i=>`<td style="${i+1===mmNow?'background:#EFF6FF;font-weight:800;':''}">${fmtCell(totalByMonth[i+1])}</td>`).join('')}
+    <td style="background:#FFF7ED;">${momCell(totNow, totPrev)}</td>
+  </tr>`;
+
+  // 카테고리 → 상품
+  const renderCats = catOrder.filter(cat => tree[cat]);
+  renderCats.forEach(cat => {
+    const color = catColors[cat] || '#64748B';
+    const prods = Object.keys(tree[cat]).sort();
+
+    // 카테고리 소계 행
+    const catMonthly = {};
+    for (let m=1; m<=12; m++) {
+      catMonthly[m] = prods.reduce((s, name) => s + (tree[cat][name][m] || 0), 0);
+    }
+    const catTotal  = Object.values(catMonthly).reduce((s,v)=>s+v,0);
+    const catNow    = catMonthly[mmNow]  || 0;
+    const catPrev   = mmPrev ? (catMonthly[mmPrev] || 0) : 0;
+    html += `<tr style="background:var(--bg);">
+      <td style="position:sticky;left:0;background:var(--bg);padding:8px 12px;font-weight:800;color:${color};">${cat}</td>
+      <td style="font-weight:700;">${fmtCell(catTotal)}</td>
+      ${[...Array(12).keys()].map(i=>`<td style="${i+1===mmNow?'background:#EFF6FF;':''}">${fmtCell(catMonthly[i+1])}</td>`).join('')}
+      <td style="background:#FFF7ED;">${momCell(catNow, catPrev)}</td>
+    </tr>`;
+
+    // 상품 행
+    prods.forEach(name => {
+      const pm = tree[cat][name];
+      const pTotal = Object.values(pm).reduce((s,v)=>s+v,0);
+      const pNow   = pm[mmNow]  || 0;
+      const pPrev  = mmPrev ? (pm[mmPrev] || 0) : 0;
+      html += `<tr>
+        <td style="position:sticky;left:0;background:var(--surface);padding:7px 12px 7px 22px;color:var(--text2);">${name}</td>
+        <td>${fmtCell(pTotal)}</td>
+        ${[...Array(12).keys()].map(i=>`<td style="${i+1===mmNow?'background:#EFF6FF;':''}">${fmtCell(pm[i+1]||0)}</td>`).join('')}
+        <td style="background:#FFF7ED;">${momCell(pNow, pPrev)}</td>
+      </tr>`;
+    });
+  });
+
+  tbody.innerHTML = html;
 }
 
 // ── 정기결제 렌더링 ──
@@ -2408,8 +2500,7 @@ function renderEvtDashboard(id) {
     // 데이터 없음 상태
     ['ev-total','ev-yoy','ev-orders','ev-orders-yoy','ev-aov'].forEach(i => set(i,'–'));
     document.getElementById('evtUploadStatus').textContent = '데이터 없음 — 엑셀을 업로드해주세요';
-    document.getElementById('evtNoYoy').style.display   = 'flex';
-    document.getElementById('evtYoyContent').style.display = 'none';
+    document.getElementById('evtYoyCard').style.display = 'none';
     ['evtDailyChart','evtYoyChart'].forEach(k => destroyChart(k));
     document.getElementById('evtProdBody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">이벤트 엑셀 파일을 업로드하면 데이터가 표시됩니다</td></tr>';
     return;
@@ -2475,10 +2566,10 @@ function renderEvtDashboard(id) {
     }
   });
 
-  // 전년 비교
+  // 전년 비교 — 데이터 있을 때만 카드 표시
+  const yoyCard = document.getElementById('evtYoyCard');
   if (prevTot > 0) {
-    document.getElementById('evtNoYoy').style.display    = 'none';
-    document.getElementById('evtYoyContent').style.display = 'block';
+    yoyCard.style.display = 'block';
     set('ev-this-total', fmtKRW(thisTot));
     set('ev-prev-total', fmtKRW(prevTot));
     destroyChart('evtYoyChart');
@@ -2503,8 +2594,8 @@ function renderEvtDashboard(id) {
       }
     });
   } else {
-    document.getElementById('evtNoYoy').style.display    = 'flex';
-    document.getElementById('evtYoyContent').style.display = 'none';
+    yoyCard.style.display = 'none';
+    destroyChart('evtYoyChart');
   }
 
   // 상품별 테이블
