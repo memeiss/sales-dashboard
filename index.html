@@ -1408,24 +1408,52 @@ function processFile(file) {
 
 // ─── 저장 버튼 클릭 시 Firebase에 저장 ───
 async function saveDataToFirebase() {
-  if (!DATA.daily.length) { showToast('⚠️ 먼저 엑셀 파일을 업로드해주세요.'); return; }
+  const hasDaily = DATA.daily.length > 0;
+  const hasProds = DATA.products.length > 0;
+  if (!hasDaily && !hasProds) { showToast('⚠️ 먼저 엑셀 파일을 업로드해주세요.'); return; }
+
   const saveBtn = document.getElementById('saveBtn');
   saveBtn.innerHTML = '저장 중...';
   saveBtn.disabled = true;
   try {
-    const months = new Set(DATA.daily.map(r => r.date.slice(0,7)));
-    for (const ym of months) {
+    // daily 기반 월 목록 + products 기반 월 목록을 합산
+    const monthsSet = new Set();
+    DATA.daily.forEach(r => monthsSet.add(r.date.slice(0,7)));
+    DATA.products.forEach(p => {
+      if (p.year && p.month) {
+        const mm = String(p.month).padStart(2,'0');
+        monthsSet.add(`${p.year}-${mm}`);
+      }
+    });
+
+    for (const ym of monthsSet) {
       const [y, m] = ym.split('-').map(Number);
-      const filterYM = r => r.date.startsWith(ym);
-      await db.collection('dashboard').doc(ym).set({
-        daily:        DATA.daily.filter(filterYM),
-        d2c:          DATA.d2c.filter(filterYM),
-        cat:          DATA.cat.filter(filterYM),
-        products:     DATA.products.filter(p => p.year==y && p.month==m),
-        sub:          (DATA.sub?.year==y && DATA.sub?.month==m) ? DATA.sub : null,
-        monthTargets: DATA.monthTargets || null,
+      const filterYM = r => r.date && r.date.startsWith(ym);
+      // 기존 문서를 먼저 읽어서 없는 필드는 기존 값 유지 (merge)
+      const docRef  = db.collection('dashboard').doc(ym);
+      const existing = await docRef.get();
+      const prev    = existing.exists ? existing.data() : {};
+
+      const payload = {
+        daily:        DATA.daily.filter(filterYM).length
+                        ? DATA.daily.filter(filterYM)
+                        : (prev.daily || []),
+        d2c:          DATA.d2c.filter(filterYM).length
+                        ? DATA.d2c.filter(filterYM)
+                        : (prev.d2c || []),
+        cat:          DATA.cat.filter(filterYM).length
+                        ? DATA.cat.filter(filterYM)
+                        : (prev.cat || []),
+        products:     DATA.products.filter(p => p.year==y && p.month==m).length
+                        ? DATA.products.filter(p => p.year==y && p.month==m)
+                        : (prev.products || []),
+        sub:          DATA.sub
+                        ? ((DATA.sub.year==y && DATA.sub.month==m) ? DATA.sub : prev.sub || null)
+                        : (prev.sub || null),
+        monthTargets: DATA.monthTargets || prev.monthTargets || null,
         updatedAt:    new Date().toISOString(),
-      });
+      };
+      await docRef.set(payload);
     }
     document.getElementById('statusDot').style.background = '#4ADE80';
     document.getElementById('statusDot').style.boxShadow = '0 0 0 3px rgba(74,222,128,0.3)';
@@ -2315,11 +2343,14 @@ const db = firebase.firestore();
 
 // ─── 업로드 데이터 기준 년/월 셀렉터 동적 업데이트 ───────────
 function updatePeriodSelector() {
-  // 업로드된 데이터에서 존재하는 연/월 조합 추출
+  // 업로드된 데이터에서 존재하는 연/월 조합 추출 (daily + products 모두 참조)
   const periods = new Set();
   DATA.daily.forEach(r => {
     const d = new Date(r.date);
     periods.add(`${d.getFullYear()}-${d.getMonth()+1}`);
+  });
+  DATA.products.forEach(p => {
+    if (p.year && p.month) periods.add(`${p.year}-${p.month}`);
   });
 
   if (!periods.size) return;
@@ -2331,13 +2362,11 @@ function updatePeriodSelector() {
 
   selY.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
 
-  // 최신 연도 기본 선택
   const latestYear = years[years.length - 1];
   selY.value = prevY && years.includes(parseInt(prevY)) ? prevY : latestYear;
 
   updateMonthSelector([...periods]);
 
-  // 이전 선택 월 복원 또는 최신 월 선택
   if (prevM && selM.querySelector(`option[value="${prevM}"]`)) {
     selM.value = prevM;
   }
@@ -2352,7 +2381,7 @@ function updateMonthSelector(periods) {
     .map(p => parseInt(p.split('-')[1]))
     .sort((a,b)=>a-b);
   selM.innerHTML = months.map(m => `<option value="${m}">${m}월</option>`).join('');
-  selM.value = months[months.length - 1]; // 최신 월 기본 선택
+  selM.value = months[months.length - 1];
 }
 
 // ─── 년/월 셀렉터 이벤트 (단일 등록) ───
@@ -2361,6 +2390,9 @@ document.getElementById('selYear').addEventListener('change', () => {
   DATA.daily.forEach(r => {
     const d = new Date(r.date);
     periods.add(`${d.getFullYear()}-${d.getMonth()+1}`);
+  });
+  DATA.products.forEach(p => {
+    if (p.year && p.month) periods.add(`${p.year}-${p.month}`);
   });
   if (periods.size) updateMonthSelector([...periods]);
   onPeriodChange();
@@ -2404,7 +2436,7 @@ async function loadAllFromFirebase() {
       if (d.monthTargets) DATA.monthTargets = d.monthTargets;
     });
 
-    if (DATA.daily.length) {
+    if (DATA.daily.length || DATA.products.length) {
       document.getElementById('statusDot').style.background = '#4ADE80';
       document.getElementById('statusDot').style.boxShadow = '0 0 0 3px rgba(74,222,128,0.3)';
       document.getElementById('statusText').textContent = '✅ 서버 데이터 연동됨';
