@@ -5,7 +5,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OMNI - Sales Dashboard</title>
+<title>매출 대시보드</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -548,6 +548,7 @@ body {
     <button class="nav-tab active" onclick="goTo(0)">📊 OMNI 매출</button>
     <button class="nav-tab" onclick="goTo(1)">🛒 D2C 채널</button>
     <button class="nav-tab" onclick="goTo(2)">🏷️ 자사몰 카테고리</button>
+    <button class="nav-tab" onclick="goTo(3)">🎯 이벤트 성과</button>
   </div>
 </div>
 
@@ -560,6 +561,7 @@ body {
     <div class="dot active" onclick="goTo(0)"></div>
     <div class="dot" onclick="goTo(1)"></div>
     <div class="dot" onclick="goTo(2)"></div>
+    <div class="dot" onclick="goTo(3)"></div>
   </div>
   <button class="arrow-btn" id="nextBtn" onclick="navigate(1)">
     다음<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9,6 15,12 9,18"/></svg>
@@ -577,8 +579,8 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:var(--blue-lt)">📊</div>
     <div>
-      <h2>OMNI - 월별 매출 대시보드</h2>
-      <p id="s1-period-label">전체 채널 통합 매출 현황</p>
+      <h2>OMNI 매출 대시보드</h2>
+      <p id="s1-period-label">전체 채널 통합 매출 현황 · 2025년 1월</p>
     </div>
   </div>
 
@@ -820,8 +822,8 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:var(--green-lt)">🛒</div>
     <div>
-      <h2>D2C - 월별 매출 대시보드</h2>
-      <p id="s2-period-label">자사몰/네이버/기타 채널별 성과 분석</p>
+      <h2>D2C 채널 매출 대시보드</h2>
+      <p id="s2-period-label">Direct-to-Consumer 채널 성과 분석 · 2025년 1월</p>
     </div>
   </div>
 
@@ -927,8 +929,8 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:var(--amber-lt)">🏷️</div>
     <div>
-      <h2>자사몰 카테고리별 상세 현황</h2>
-      <p id="s3-period-label">카테고리 식단별 심층 분석</p>
+      <h2>자사몰 카테고리별 대시보드</h2>
+      <p id="s3-period-label">카테고리 · 상품 · 정기결제 심층 분석 · 2025년 1월</p>
     </div>
   </div>
 
@@ -1059,8 +1061,199 @@ body {
 
 </div><!-- slide end -->
 
+<!-- ─── SLIDE 4 : 이벤트 성과 ─── -->
+<div class="slide" id="slide-event">
+  <div class="section-title">
+    <div class="section-icon" style="background:#FFF7ED">🎯</div>
+    <div>
+      <h2>이벤트 성과 대시보드</h2>
+      <p id="s4-period-label">이벤트별 매출 성과 분석</p>
+    </div>
+  </div>
+
+  <!-- ── 이벤트 선택 + 추가 바 ── -->
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+    <div id="evtTabWrap" style="display:flex;gap:6px;flex-wrap:wrap;flex:1;"></div>
+    <button onclick="openAddEventModal()" style="
+      display:flex;align-items:center;gap:6px;padding:7px 14px;
+      border-radius:8px;border:1.5px dashed var(--blue);
+      background:var(--blue-lt);color:var(--blue);
+      font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;
+      white-space:nowrap;flex-shrink:0;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      이벤트 추가
+    </button>
+  </div>
+
+  <!-- ── 이벤트 정보 카드 ── -->
+  <div id="evtInfoCard" class="chart-card" style="margin-bottom:12px;display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:200px;">
+        <div id="evtTitle" style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:4px;">–</div>
+        <div id="evtDate"  style="font-size:12px;color:var(--muted);margin-bottom:8px;">–</div>
+        <div id="evtDesc"  style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">–</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0;">
+        <button onclick="openEditEventModal()" style="
+          padding:6px 12px;border-radius:7px;border:1px solid var(--border);
+          background:var(--surface);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--text2);">
+          ✏️ 수정
+        </button>
+        <button onclick="deleteCurrentEvent()" style="
+          padding:6px 12px;border-radius:7px;border:1px solid var(--red-lt);
+          background:var(--red-lt);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--red);">
+          🗑 삭제
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 이벤트 없을 때 빈 상태 ── -->
+  <div id="evtEmpty" style="text-align:center;padding:60px 20px;color:var(--muted);">
+    <div style="font-size:40px;margin-bottom:12px;">🎯</div>
+    <div style="font-size:15px;font-weight:700;margin-bottom:6px;">등록된 이벤트가 없습니다</div>
+    <div style="font-size:12px;">상단 [이벤트 추가] 버튼을 눌러 이벤트를 등록하세요</div>
+  </div>
+
+  <!-- ── 이벤트 데이터 업로드 영역 ── -->
+  <div id="evtDataSection" style="display:none;">
+
+    <!-- 엑셀 업로드 -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:12px 16px;background:var(--blue-lt);border-radius:10px;border:1px solid rgba(37,99,235,0.15);flex-wrap:wrap;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" style="width:18px;height:18px;flex-shrink:0"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="3"/></svg>
+      <span style="font-size:12px;font-weight:700;color:var(--blue);flex:1;">이벤트 성과 데이터 업로드</span>
+      <button onclick="downloadEvtTemplate()" style="padding:5px 12px;border-radius:7px;border:1px solid var(--blue);background:#fff;color:var(--blue);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">
+        📥 양식 다운로드
+      </button>
+      <button onclick="document.getElementById('evtFileInput').click()" style="padding:5px 12px;border-radius:7px;border:none;background:var(--blue);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">
+        📂 엑셀 업로드
+      </button>
+      <input type="file" id="evtFileInput" accept=".xlsx,.xls" style="display:none" onchange="handleEvtFile(event)">
+      <span id="evtUploadStatus" style="font-size:11px;color:var(--muted);">데이터 없음</span>
+    </div>
+
+    <!-- KPI 카드 4개 -->
+    <div class="grid-4" style="margin-bottom:12px;">
+      <div class="stat-card c-blue">
+        <div class="stat-label">총 매출액</div>
+        <div class="stat-value krw" id="ev-total">–</div>
+        <div class="stat-sub"><span id="ev-yoy" class="tag-up">–</span> 전년대비</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">주문건수</div>
+        <div class="stat-value" id="ev-orders">–</div>
+        <div class="stat-sub"><span id="ev-orders-yoy" class="tag-up">–</span> 전년대비</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">평균 주문금액</div>
+        <div class="stat-value krw" id="ev-aov">–</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">이벤트 기간</div>
+        <div class="stat-value sm" id="ev-period">–</div>
+        <div class="stat-sub" id="ev-days">–</div>
+      </div>
+    </div>
+
+    <!-- 일자별 매출 차트 + 전년 비교 -->
+    <div class="grid-2 grid-stack" style="margin-bottom:12px;">
+      <div class="chart-card" style="margin-bottom:0">
+        <div class="chart-card-title">일자별 매출 현황</div>
+        <div style="height:200px"><canvas id="evtDailyChart"></canvas></div>
+      </div>
+      <div class="chart-card" style="margin-bottom:0">
+        <div class="chart-card-title">전년 동기 비교</div>
+        <div id="evtYoySection">
+          <div id="evtNoYoy" style="display:flex;align-items:center;justify-content:center;height:160px;color:var(--muted);font-size:13px;flex-direction:column;gap:8px;">
+            <span style="font-size:24px;">📋</span>
+            전년도 데이터 없음<br>
+            <span style="font-size:11px;">엑셀에 전년 데이터 입력 시 비교 표시</span>
+          </div>
+          <div id="evtYoyContent" style="display:none;">
+            <div class="grid-2" style="gap:8px;margin-bottom:10px;">
+              <div class="stat-card" style="padding:12px;">
+                <div class="stat-label">올해 매출</div>
+                <div class="stat-value krw" style="font-size:16px;" id="ev-this-total">–</div>
+              </div>
+              <div class="stat-card" style="padding:12px;">
+                <div class="stat-label">전년 매출</div>
+                <div class="stat-value krw" style="font-size:16px;" id="ev-prev-total">–</div>
+              </div>
+            </div>
+            <div style="height:120px"><canvas id="evtYoyChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 상품별 상세 현황 -->
+    <div class="chart-card">
+      <div class="chart-card-title">상품별 상세 현황</div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>상품명</th><th>매출액</th><th>비중</th>
+            <th>주문건수</th><th>전년 매출</th><th>증감</th>
+          </tr>
+        </thead>
+        <tbody id="evtProdBody"></tbody>
+      </table>
+    </div>
+
+  </div><!-- evtDataSection -->
+</div><!-- slide 4 end -->
+
 </div><!-- slides-track -->
 </div><!-- slides-wrapper -->
+
+<!-- ── 이벤트 추가/수정 모달 ── -->
+<div id="evtModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9000;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#fff;border-radius:16px;padding:28px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+    <div style="font-size:16px;font-weight:800;margin-bottom:20px;color:var(--text);" id="evtModalTitle">이벤트 추가</div>
+
+    <div style="margin-bottom:14px;">
+      <label style="font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:5px;">이벤트 타이틀 *</label>
+      <input id="evtInputTitle" type="text" placeholder="예: 1월 신년 맞이 기획전" style="
+        width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;
+        font-size:13px;font-family:inherit;box-sizing:border-box;outline:none;
+        transition:border-color 0.18s;">
+    </div>
+
+    <div style="margin-bottom:14px;">
+      <label style="font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:5px;">이벤트 기간 *</label>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input id="evtInputStart" type="date" style="
+          flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;
+          font-size:13px;font-family:inherit;box-sizing:border-box;outline:none;">
+        <span style="color:var(--muted);font-size:12px;">~</span>
+        <input id="evtInputEnd" type="date" style="
+          flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;
+          font-size:13px;font-family:inherit;box-sizing:border-box;outline:none;">
+      </div>
+    </div>
+
+    <div style="margin-bottom:22px;">
+      <label style="font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:5px;">상세 내용 (2~3줄)</label>
+      <textarea id="evtInputDesc" rows="3" placeholder="이벤트 내용, 할인율, 대상 상품 등을 입력하세요" style="
+        width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;
+        font-size:13px;font-family:inherit;box-sizing:border-box;outline:none;
+        resize:vertical;line-height:1.6;"></textarea>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button onclick="closeEvtModal()" style="
+        padding:9px 20px;border-radius:8px;border:1px solid var(--border);
+        background:var(--surface);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--text2);">
+        취소
+      </button>
+      <button onclick="saveEvtModal()" style="
+        padding:9px 20px;border-radius:8px;border:none;
+        background:var(--blue);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">
+        저장
+      </button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ─── Slide Nav ───
@@ -1077,13 +1270,13 @@ function goTo(i) {
   dots.forEach((d,j) => d.classList.toggle('active', j === current));
   tabs.forEach((t,j) => t.classList.toggle('active', j === current));
   prevBtn.disabled = current === 0;
-  nextBtn.disabled = current === 2;
+  nextBtn.disabled = current === 3;
   // 슬라이드 전환 후 차트 크기 재계산 (숨겨진 슬라이드에서 그리면 크기 오류 발생)
   setTimeout(() => {
     Object.values(charts).forEach(c => { try { c.resize(); } catch(e){} });
   }, 460); // transition 완료 후
 }
-function navigate(d) { goTo(Math.max(0, Math.min(2, current + d))); }
+function navigate(d) { goTo(Math.max(0, Math.min(3, current + d))); }
 
 // 창 크기 변경 시 모든 차트 크기 재계산
 window.addEventListener('resize', () => {
@@ -2123,6 +2316,383 @@ async function loadAllFromFirebase() {
 // ─── Init ───
 onPeriodChange();
 loadAllFromFirebase();
+
+// ═══════════════════════════════════════════════════
+// ─── SLIDE 4: 이벤트 성과 ───────────────────────────
+// ═══════════════════════════════════════════════════
+
+// ── 이벤트 데이터 구조 ──
+// EVT_LIST: [{id, title, startDate, endDate, desc}]
+// EVT_DATA: {[id]: {daily:[{date,sales,orders}], products:[{name,sales,orders,prevSales}], prevTotal, prevOrders}}
+let EVT_LIST = [];
+let EVT_DATA = {};
+let EVT_CUR  = null; // 현재 선택된 이벤트 id
+
+// ── Firebase에서 이벤트 로드 ──
+async function loadEventsFromFirebase() {
+  try {
+    const snap = await db.collection('events').get();
+    EVT_LIST = [];
+    EVT_DATA = {};
+    snap.forEach(doc => {
+      const d = doc.data();
+      if (d.type === 'info') {
+        EVT_LIST.push({ id: doc.id, title: d.title, startDate: d.startDate, endDate: d.endDate, desc: d.desc });
+      } else if (d.type === 'data') {
+        EVT_DATA[doc.id.replace('data_','')] = d.payload;
+      }
+    });
+    EVT_LIST.sort((a,b) => (b.startDate||'').localeCompare(a.startDate||''));
+    renderEvtTabs();
+  } catch(e) { console.error('이벤트 로드 실패', e); }
+}
+
+// ── 탭 렌더링 ──
+function renderEvtTabs() {
+  const wrap = document.getElementById('evtTabWrap');
+  if (!wrap) return;
+  const colors = ['#2563EB','#0891B2','#059669','#7C3AED','#EA580C','#D97706','#DB2777'];
+  wrap.innerHTML = '';
+  EVT_LIST.forEach((evt, i) => {
+    const color = colors[i % colors.length];
+    const btn = document.createElement('button');
+    btn.textContent = evt.title;
+    btn.style.cssText = `padding:6px 14px;border-radius:7px;border:1.5px solid ${EVT_CUR===evt.id?color:'var(--border)'};
+      background:${EVT_CUR===evt.id?color:'var(--surface)'};color:${EVT_CUR===evt.id?'#fff':'var(--text2)'};
+      font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.18s;white-space:nowrap;`;
+    btn.onclick = () => selectEvt(evt.id);
+    wrap.appendChild(btn);
+  });
+
+  if (!EVT_LIST.length) {
+    document.getElementById('evtEmpty').style.display = 'block';
+    document.getElementById('evtInfoCard').style.display = 'none';
+    document.getElementById('evtDataSection').style.display = 'none';
+  }
+}
+
+// ── 이벤트 선택 ──
+function selectEvt(id) {
+  EVT_CUR = id;
+  const evt = EVT_LIST.find(e => e.id === id);
+  if (!evt) return;
+
+  document.getElementById('evtEmpty').style.display    = 'none';
+  document.getElementById('evtInfoCard').style.display = 'block';
+  document.getElementById('evtDataSection').style.display = 'block';
+
+  // 정보 카드
+  document.getElementById('evtTitle').textContent = evt.title;
+  document.getElementById('evtDate').textContent  = `📅 ${evt.startDate||''} ~ ${evt.endDate||''}`;
+  document.getElementById('evtDesc').textContent  = evt.desc || '';
+
+  // 기간 계산
+  if (evt.startDate && evt.endDate) {
+    const days = Math.round((new Date(evt.endDate)-new Date(evt.startDate))/(86400000)) + 1;
+    set('ev-period', `${evt.startDate} ~ ${evt.endDate}`);
+    set('ev-days',   `총 ${days}일`);
+  }
+
+  // 탭 재렌더 (선택 상태 반영)
+  renderEvtTabs();
+
+  // 데이터 렌더
+  renderEvtDashboard(id);
+}
+
+// ── 이벤트 대시보드 렌더 ──
+function renderEvtDashboard(id) {
+  const raw = EVT_DATA[id];
+
+  if (!raw || !raw.daily || !raw.daily.length) {
+    // 데이터 없음 상태
+    ['ev-total','ev-yoy','ev-orders','ev-orders-yoy','ev-aov'].forEach(i => set(i,'–'));
+    document.getElementById('evtUploadStatus').textContent = '데이터 없음 — 엑셀을 업로드해주세요';
+    document.getElementById('evtNoYoy').style.display   = 'flex';
+    document.getElementById('evtYoyContent').style.display = 'none';
+    ['evtDailyChart','evtYoyChart'].forEach(k => destroyChart(k));
+    document.getElementById('evtProdBody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">이벤트 엑셀 파일을 업로드하면 데이터가 표시됩니다</td></tr>';
+    return;
+  }
+
+  const daily    = raw.daily;
+  const products = raw.products || [];
+  const prevTot  = raw.prevTotal  || 0;
+  const prevOrd  = raw.prevOrders || 0;
+  const thisTot  = daily.reduce((s,r)=>s+(r.sales||0),0);
+  const thisOrd  = daily.reduce((s,r)=>s+(r.orders||0),0);
+  const aov      = thisOrd > 0 ? thisTot / thisOrd : 0;
+
+  // KPI
+  set('ev-total',  fmtKRW(thisTot));
+  set('ev-orders', fmtNum(thisOrd) + '건');
+  set('ev-aov',    fmtKRW(Math.round(aov)));
+  document.getElementById('evtUploadStatus').textContent = `✅ 데이터 연동됨 (${daily.length}일)`;
+
+  // YoY KPI
+  const yoyEl = document.getElementById('ev-yoy');
+  if (prevTot > 0) {
+    const yoyPct = ((thisTot - prevTot) / prevTot * 100);
+    yoyEl.textContent = (yoyPct>=0?'+':'')+yoyPct.toFixed(1)+'%';
+    yoyEl.className   = yoyPct>=0?'tag-up':'tag-down';
+  } else {
+    yoyEl.textContent = '–'; yoyEl.className = 'tag-up';
+  }
+  const yoyOrdEl = document.getElementById('ev-orders-yoy');
+  if (prevOrd > 0) {
+    const p = ((thisOrd-prevOrd)/prevOrd*100);
+    yoyOrdEl.textContent = (p>=0?'+':'')+p.toFixed(1)+'%';
+    yoyOrdEl.className   = p>=0?'tag-up':'tag-down';
+  } else {
+    yoyOrdEl.textContent = '–'; yoyOrdEl.className='tag-up';
+  }
+
+  // 일자별 차트
+  destroyChart('evtDailyChart');
+  charts['evtDailyChart'] = new Chart(document.getElementById('evtDailyChart'), {
+    type:'bar',
+    data:{
+      labels: daily.map(r => (r.date||'').slice(5).replace('-','/')),
+      datasets:[
+        { label:'매출액', data:daily.map(r=>r.sales||0), backgroundColor:'rgba(37,99,235,0.7)', borderRadius:3, yAxisID:'y', order:2 },
+        { label:'주문건수', data:daily.map(r=>r.orders||0), type:'line', borderColor:'#F59E0B', backgroundColor:'transparent', borderWidth:2, tension:0.4, pointRadius:3, yAxisID:'y2', order:1 }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:true,position:'top',labels:{boxWidth:10,font:{size:10}}},
+        tooltip:{callbacks:{
+          label: ctx => ctx.dataset.label==='매출액' ? fmtKRW(ctx.raw) : fmtNum(ctx.raw)+'건'
+        }}
+      },
+      scales:{
+        x: {ticks:{font:{size:10},maxRotation:45}},
+        y: {ticks:{callback:v=>Math.round(v/10000)+'만',font:{size:10}}, position:'left'},
+        y2:{ticks:{font:{size:10}}, position:'right', grid:{display:false}}
+      }
+    }
+  });
+
+  // 전년 비교
+  if (prevTot > 0) {
+    document.getElementById('evtNoYoy').style.display    = 'none';
+    document.getElementById('evtYoyContent').style.display = 'block';
+    set('ev-this-total', fmtKRW(thisTot));
+    set('ev-prev-total', fmtKRW(prevTot));
+    destroyChart('evtYoyChart');
+    charts['evtYoyChart'] = new Chart(document.getElementById('evtYoyChart'), {
+      type:'bar',
+      data:{
+        labels:['매출액','주문건수'],
+        datasets:[
+          { label:'올해', data:[thisTot, thisOrd], backgroundColor:'rgba(37,99,235,0.75)', borderRadius:4 },
+          { label:'전년', data:[prevTot,  prevOrd], backgroundColor:'rgba(148,163,184,0.5)', borderRadius:4 }
+        ]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{display:true,position:'top',labels:{boxWidth:10,font:{size:10}}},
+          tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+(ctx.dataIndex===0?fmtKRW(ctx.raw):fmtNum(ctx.raw)+'건')}}
+        },
+        scales:{
+          y:{ticks:{callback:v=>v>999?Math.round(v/10000)+'만':v,font:{size:10}}}
+        }
+      }
+    });
+  } else {
+    document.getElementById('evtNoYoy').style.display    = 'flex';
+    document.getElementById('evtYoyContent').style.display = 'none';
+  }
+
+  // 상품별 테이블
+  const tbody = document.getElementById('evtProdBody');
+  tbody.innerHTML = '';
+  if (!products.length) {
+    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">상품 데이터 없음</td></tr>';
+  } else {
+    const sorted = [...products].sort((a,b)=>(b.sales||0)-(a.sales||0));
+    sorted.forEach(p => {
+      const pct  = thisTot>0 ? (p.sales/thisTot*100).toFixed(1) : '0.0';
+      const diff = p.prevSales > 0 ? ((p.sales-p.prevSales)/p.prevSales*100) : null;
+      const diffHtml = diff!==null
+        ? `<span class="${diff>=0?'tag-up':'tag-down'}">${diff>=0?'+':''}${diff.toFixed(1)}%</span>`
+        : '<span style="color:var(--muted)">–</span>';
+      tbody.innerHTML += `<tr>
+        <td style="font-weight:600">${p.name||'–'}</td>
+        <td style="font-weight:700">${fmtKRW(p.sales||0)}</td>
+        <td><div class="mini-bar-wrap"><div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${pct}%;background:var(--blue)"></div></div><span style="font-size:11px;font-weight:700;min-width:36px">${pct}%</span></div></td>
+        <td style="font-weight:700">${fmtNum(p.orders||0)}건</td>
+        <td style="color:var(--muted)">${p.prevSales>0?fmtKRW(p.prevSales):'–'}</td>
+        <td>${diffHtml}</td>
+      </tr>`;
+    });
+  }
+}
+
+// ── 이벤트 엑셀 업로드 ──
+function handleEvtFile(e) {
+  const file = e.target.files[0];
+  if (!file || !EVT_CUR) { showToast('⚠️ 먼저 이벤트를 선택해주세요'); return; }
+  const reader = new FileReader();
+  reader.onload = evt => {
+    try {
+      const wb   = XLSX.read(evt.target.result, { type:'array', cellDates:true });
+      const ws   = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header:1, defval:'' });
+
+      // 파싱: 시트 구조
+      // [섹션1] 일자별: 날짜 | 매출액 | 주문건수 (헤더 포함)
+      // [섹션2] 상품별: 상품명 | 매출액 | 주문건수 | 전년매출 (헤더 포함)
+      // [섹션3] 전년합계: "전년합계" | 매출액 | 주문건수
+      let section = 0;
+      const daily=[], products=[];
+      let prevTotal=0, prevOrders=0;
+
+      for (let i=0; i<rows.length; i++) {
+        const r = rows[i];
+        const first = String(r[0]||'').trim();
+        if (first === '[일자별]')   { section=1; i++; continue; }
+        if (first === '[상품별]')   { section=2; i++; continue; }
+        if (first === '[전년합계]') { prevTotal=Number(r[1])||0; prevOrders=Number(r[2])||0; continue; }
+        if (!first) continue;
+
+        if (section===1) {
+          const dateVal = r[0];
+          let dateStr = '';
+          if (dateVal instanceof Date) dateStr = dateVal.toISOString().slice(0,10);
+          else { const d=new Date(dateVal); dateStr=isNaN(d)?String(dateVal).slice(0,10):d.toISOString().slice(0,10); }
+          const sales=Number(r[1])||0, orders=Number(r[2])||0;
+          if (dateStr) daily.push({date:dateStr, sales, orders});
+        } else if (section===2) {
+          const name=String(r[0]).trim();
+          if (name) products.push({ name, sales:Number(r[1])||0, orders:Number(r[2])||0, prevSales:Number(r[3])||0 });
+        }
+      }
+
+      EVT_DATA[EVT_CUR] = { daily, products, prevTotal, prevOrders };
+      renderEvtDashboard(EVT_CUR);
+      showToast('✅ 이벤트 데이터 업로드 완료!');
+
+      // Firebase 저장
+      db.collection('events').doc('data_'+EVT_CUR).set({
+        type:'data', payload:{ daily, products, prevTotal, prevOrders }
+      }).catch(e=>console.error(e));
+
+    } catch(err) { showToast('❌ 파일 오류: '+err.message); console.error(err); }
+  };
+  reader.readAsArrayBuffer(file);
+  e.target.value = '';
+}
+
+// ── 엑셀 양식 다운로드 ──
+function downloadEvtTemplate() {
+  const wb = XLSX.utils.book_new();
+  const data = [
+    ['[일자별]','',''],
+    ['날짜','매출액','주문건수'],
+    ['2026-01-10',1500000,12],
+    ['2026-01-11',2300000,18],
+    ['2026-01-12',1800000,14],
+    ['','',''],
+    ['[상품별]','','',''],
+    ['상품명','매출액','주문건수','전년매출(없으면0)'],
+    ['상품A',800000,8,750000],
+    ['상품B',600000,5,0],
+    ['','','',''],
+    ['[전년합계]',3500000,30],
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  ws['!cols'] = [{wch:20},{wch:15},{wch:12},{wch:18}];
+  XLSX.utils.book_append_sheet(wb, ws, '이벤트성과');
+  XLSX.writeFile(wb, '이벤트성과_양식.xlsx');
+}
+
+// ── 모달: 추가 ──
+let _evtEditId = null;
+function openAddEventModal() {
+  _evtEditId = null;
+  document.getElementById('evtModalTitle').textContent = '이벤트 추가';
+  document.getElementById('evtInputTitle').value = '';
+  document.getElementById('evtInputStart').value = '';
+  document.getElementById('evtInputEnd').value   = '';
+  document.getElementById('evtInputDesc').value  = '';
+  document.getElementById('evtModal').style.display = 'flex';
+}
+
+function openEditEventModal() {
+  const evt = EVT_LIST.find(e => e.id === EVT_CUR);
+  if (!evt) return;
+  _evtEditId = evt.id;
+  document.getElementById('evtModalTitle').textContent = '이벤트 수정';
+  document.getElementById('evtInputTitle').value = evt.title   || '';
+  document.getElementById('evtInputStart').value = evt.startDate || '';
+  document.getElementById('evtInputEnd').value   = evt.endDate   || '';
+  document.getElementById('evtInputDesc').value  = evt.desc     || '';
+  document.getElementById('evtModal').style.display = 'flex';
+}
+
+function closeEvtModal() {
+  document.getElementById('evtModal').style.display = 'none';
+}
+
+async function saveEvtModal() {
+  const title = document.getElementById('evtInputTitle').value.trim();
+  const start = document.getElementById('evtInputStart').value.trim();
+  const end   = document.getElementById('evtInputEnd').value.trim();
+  const desc  = document.getElementById('evtInputDesc').value.trim();
+  if (!title) { showToast('⚠️ 이벤트 타이틀을 입력해주세요'); return; }
+
+  const id   = _evtEditId || 'evt_' + Date.now();
+  const info = { type:'info', title, startDate:start, endDate:end, desc };
+
+  try {
+    await db.collection('events').doc(id).set(info);
+    if (_evtEditId) {
+      const idx = EVT_LIST.findIndex(e=>e.id===id);
+      if (idx>=0) EVT_LIST[idx] = { id, title, startDate:start, endDate:end, desc };
+    } else {
+      EVT_LIST.unshift({ id, title, startDate:start, endDate:end, desc });
+    }
+    closeEvtModal();
+    EVT_CUR = id;
+    renderEvtTabs();
+    selectEvt(id);
+    showToast('✅ 이벤트가 저장되었습니다');
+  } catch(e) { showToast('❌ 저장 실패: '+e.message); }
+}
+
+async function deleteCurrentEvent() {
+  if (!EVT_CUR) return;
+  if (!confirm('이 이벤트를 삭제하시겠습니까?')) return;
+  try {
+    await db.collection('events').doc(EVT_CUR).delete();
+    await db.collection('events').doc('data_'+EVT_CUR).delete().catch(()=>{});
+    delete EVT_DATA[EVT_CUR];
+    EVT_LIST = EVT_LIST.filter(e=>e.id!==EVT_CUR);
+    EVT_CUR  = EVT_LIST.length ? EVT_LIST[0].id : null;
+    renderEvtTabs();
+    if (EVT_CUR) selectEvt(EVT_CUR);
+    else {
+      document.getElementById('evtInfoCard').style.display   = 'none';
+      document.getElementById('evtDataSection').style.display = 'none';
+      document.getElementById('evtEmpty').style.display      = 'block';
+    }
+    showToast('🗑 이벤트가 삭제되었습니다');
+  } catch(e) { showToast('❌ 삭제 실패: '+e.message); }
+}
+
+// 모달 외부 클릭 닫기
+document.getElementById('evtModal').addEventListener('click', function(e){
+  if (e.target === this) closeEvtModal();
+});
+
+// ─── Init ───
+onPeriodChange();
+loadAllFromFirebase();
+loadEventsFromFirebase();
 </script>
 </body>
 </html>
