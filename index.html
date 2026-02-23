@@ -5,7 +5,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OMNI - Sales dashboard</title>
+<title>OMNI - Sales Dashboard</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -577,7 +577,7 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:var(--blue-lt)">📊</div>
     <div>
-      <h2>OMNI 매출 대시보드</h2>
+      <h2>OMNI - 월별 매출 대시보드</h2>
       <p id="s1-period-label">전체 채널 통합 매출 현황</p>
     </div>
   </div>
@@ -820,8 +820,8 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:var(--green-lt)">🛒</div>
     <div>
-      <h2>D2C 채널 매출 대시보드</h2>
-      <p id="s2-period-label">Direct-to-Consumer 채널 성과 분석</p>
+      <h2>D2C - 월별 매출 대시보드</h2>
+      <p id="s2-period-label">자사몰/네이버/기타 채널별 성과 분석</p>
     </div>
   </div>
 
@@ -927,8 +927,8 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:var(--amber-lt)">🏷️</div>
     <div>
-      <h2>자사몰 카테고리별 대시보드</h2>
-      <p id="s3-period-label">카테고리 · 상품 · 정기결제 심층 분석</p>
+      <h2>자사몰 카테고리별 상세 현황</h2>
+      <p id="s3-period-label">카테고리 식단별 심층 분석</p>
     </div>
   </div>
 
@@ -983,7 +983,7 @@ body {
       <!-- 카테고리 탭 -->
       <div id="catTabBar" style="display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap;"></div>
       <!-- 카테고리별 캔버스 (JS로 show/hide) -->
-      <div id="catChartWrap" style="height:185px;position:relative;">
+      <div id="catChartWrap" style="height:220px;position:relative;">
         <canvas id="catBarChart-0" style="position:absolute;inset:0"></canvas>
         <canvas id="catBarChart-1" style="position:absolute;inset:0;display:none"></canvas>
         <canvas id="catBarChart-2" style="position:absolute;inset:0;display:none"></canvas>
@@ -1808,25 +1808,68 @@ catT.forEach((cat, i) => {
 });
 
 // 카테고리별 차트 렌더링
+// 가장 많은 상품 수 기준으로 캔버스 높이 동적 조정
+const maxProdsCount = catT.reduce((max, c) => {
+  const cnt = products.filter(p => p.category === c.label).length;
+  return Math.max(max, Math.min(cnt, 8));
+}, 0);
+const chartH = Math.max(180, maxProdsCount * 32 + 40);
+const wrap = document.getElementById('catChartWrap');
+if (wrap) wrap.style.height = chartH + 'px';
+
 catT.forEach((c, i) => {
   const key = 'catBarChart-' + i;
   destroyChart(key);
+  const catTotal = c.total || 1;
   const prods = products
     .filter(p => p.category === c.label)
     .sort((a,b) => b.sales - a.sales)
     .slice(0, 8);
   if (!prods.length) return;
+
+  // 매출 비중 계산
+  const pcts = prods.map(p => catTotal > 0 ? (p.sales / catTotal * 100) : 0);
+
   charts[key] = new Chart(document.getElementById(key), {
     type: 'bar',
     data: { labels: prods.map(p => p.name), datasets: [{
       label: '매출액', data: prods.map(p => p.sales),
-      backgroundColor: c.color + 'B0', borderRadius: 3, borderSkipped: false
+      backgroundColor: c.color + 'CC', borderRadius: 3, borderSkipped: false
     }]},
-    options: { responsive:true, maintainAspectRatio:false, indexAxis:'y',
-      plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>fmtKRW(ctx.raw)}} },
-      scales:{ x:{ticks:{callback:v=>Math.round(v/10000)+'만',font:{size:10}}},
-               y:{ticks:{font:{size:10}}} }
-    }
+    options: {
+      responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+      layout: { padding: { right: 110 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => fmtKRW(ctx.raw) + '  (' + pcts[ctx.dataIndex].toFixed(1) + '%)' } },
+        // 막대 끝에 값 직접 표시 (custom inline plugin)
+        afterDraw: undefined
+      },
+      scales: {
+        x: { ticks: { callback: v => Math.round(v/10000)+'만', font:{size:10} }, grid: { display: true } },
+        y: { ticks: { font: { size: 10 } } }
+      }
+    },
+    plugins: [{
+      id: 'barLabel-'+i,
+      afterDatasetsDraw(chart) {
+        const { ctx, data, scales: { x, y } } = chart;
+        ctx.save();
+        data.datasets[0].data.forEach((val, idx) => {
+          const bar   = chart.getDatasetMeta(0).data[idx];
+          const xEnd  = x.getPixelForValue(val);
+          const yMid  = bar.y;
+          const pct   = pcts[idx];
+          const label = fmtKRW(val) + '  ' + pct.toFixed(1) + '%';
+          ctx.font         = 'bold 10px Pretendard, sans-serif';
+          ctx.fillStyle    = 'var(--text2)';
+          ctx.textAlign    = 'left';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(label, xEnd + 6, yMid);
+        });
+        ctx.restore();
+      }
+    }]
   });
 });
 
