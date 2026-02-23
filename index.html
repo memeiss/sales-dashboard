@@ -1168,41 +1168,57 @@ body {
       </div>
     </div>
 
-    <!-- 일자별 매출 차트 + 전년 비교 -->
-    <div class="grid-2 grid-stack" style="margin-bottom:12px;">
+    <!-- 일자별 매출 차트 + 전년 비교 / 상품 현황 -->
+
+    <!-- [레이아웃 A] 전년 데이터 없을 때: 차트(좌) + 상품테이블(우) -->
+    <div id="evtLayoutA" class="grid-2 grid-stack" style="margin-bottom:12px;display:none;">
       <div class="chart-card" style="margin-bottom:0">
         <div class="chart-card-title">일자별 매출 현황</div>
-        <div style="height:200px"><canvas id="evtDailyChart"></canvas></div>
+        <div style="height:240px"><canvas id="evtDailyChart"></canvas></div>
       </div>
-      <!-- 전년 비교: 데이터 있을 때만 표시 -->
-      <div class="chart-card" id="evtYoyCard" style="margin-bottom:0;display:none;">
-        <div class="chart-card-title">전년 동기 비교</div>
-        <div class="grid-2" style="gap:8px;margin-bottom:10px;">
-          <div class="stat-card" style="padding:12px;">
-            <div class="stat-label">올해 매출</div>
-            <div class="stat-value krw" style="font-size:16px;" id="ev-this-total">–</div>
-          </div>
-          <div class="stat-card" style="padding:12px;">
-            <div class="stat-label">전년 매출</div>
-            <div class="stat-value krw" style="font-size:16px;" id="ev-prev-total">–</div>
-          </div>
-        </div>
-        <div style="height:120px"><canvas id="evtYoyChart"></canvas></div>
+      <div class="chart-card" style="margin-bottom:0">
+        <div class="chart-card-title">상품별 상세 현황</div>
+        <table class="data-table" id="evtProdTableA">
+          <thead><tr id="evtProdHeadA">
+            <th>상품명</th><th>매출액</th><th>비중</th><th>주문건수</th>
+          </tr></thead>
+          <tbody id="evtProdBodyA"></tbody>
+        </table>
       </div>
     </div>
 
-    <!-- 상품별 상세 현황 -->
-    <div class="chart-card">
-      <div class="chart-card-title">상품별 상세 현황</div>
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>상품명</th><th>매출액</th><th>비중</th>
-            <th>주문건수</th><th>전년 매출</th><th>증감</th>
-          </tr>
-        </thead>
-        <tbody id="evtProdBody"></tbody>
-      </table>
+    <!-- [레이아웃 B] 전년 데이터 있을 때: 차트(좌) + 전년비교(우) → 상품테이블 풀너비 -->
+    <div id="evtLayoutB" style="display:none;">
+      <div class="grid-2 grid-stack" style="margin-bottom:12px;">
+        <div class="chart-card" style="margin-bottom:0">
+          <div class="chart-card-title">일자별 매출 현황</div>
+          <div style="height:200px"><canvas id="evtDailyChartB"></canvas></div>
+        </div>
+        <div class="chart-card" id="evtYoyCard" style="margin-bottom:0;">
+          <div class="chart-card-title">전년 동기 비교</div>
+          <div class="grid-2" style="gap:8px;margin-bottom:10px;">
+            <div class="stat-card" style="padding:12px;">
+              <div class="stat-label">올해 매출</div>
+              <div class="stat-value krw" style="font-size:16px;" id="ev-this-total">–</div>
+            </div>
+            <div class="stat-card" style="padding:12px;">
+              <div class="stat-label">전년 매출</div>
+              <div class="stat-value krw" style="font-size:16px;" id="ev-prev-total">–</div>
+            </div>
+          </div>
+          <div style="height:120px"><canvas id="evtYoyChart"></canvas></div>
+        </div>
+      </div>
+      <div class="chart-card" style="margin-bottom:12px;">
+        <div class="chart-card-title">상품별 상세 현황</div>
+        <table class="data-table" id="evtProdTableB">
+          <thead><tr id="evtProdHeadB">
+            <th>상품명</th><th>매출액</th><th>비중</th><th>주문건수</th>
+            <th id="evtColPrev">전년 매출</th><th id="evtColDiff">증감</th>
+          </tr></thead>
+          <tbody id="evtProdBodyB"></tbody>
+        </table>
+      </div>
     </div>
 
   </div><!-- evtDataSection -->
@@ -2436,7 +2452,8 @@ async function loadEventsFromFirebase() {
     });
     EVT_LIST.sort((a,b) => (b.startDate||'').localeCompare(a.startDate||''));
     renderEvtTabs();
-   if (EVT_LIST.length > 0) selectEvt(EVT_LIST[0].id);
+    // 로드 후 첫 번째 이벤트 자동 선택 → 새로고침해도 내용 복원
+    if (EVT_LIST.length > 0) selectEvt(EVT_LIST[0].id);
   } catch(e) { console.error('이벤트 로드 실패', e); }
 }
 
@@ -2496,14 +2513,19 @@ function selectEvt(id) {
 // ── 이벤트 대시보드 렌더 ──
 function renderEvtDashboard(id) {
   const raw = EVT_DATA[id];
+  const layoutA = document.getElementById('evtLayoutA');
+  const layoutB = document.getElementById('evtLayoutB');
 
   if (!raw || !raw.daily || !raw.daily.length) {
-    // 데이터 없음 상태
     ['ev-total','ev-yoy','ev-orders','ev-orders-yoy','ev-aov'].forEach(i => set(i,'–'));
     document.getElementById('evtUploadStatus').textContent = '데이터 없음 — 엑셀을 업로드해주세요';
-    document.getElementById('evtYoyCard').style.display = 'none';
-    ['evtDailyChart','evtYoyChart'].forEach(k => destroyChart(k));
-    document.getElementById('evtProdBody').innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">이벤트 엑셀 파일을 업로드하면 데이터가 표시됩니다</td></tr>';
+    layoutA.style.display = 'none';
+    layoutB.style.display = 'none';
+    ['evtDailyChart','evtDailyChartB','evtYoyChart'].forEach(k => destroyChart(k));
+    document.getElementById('evtProdBodyA').innerHTML =
+      '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px">이벤트 엑셀 파일을 업로드하면 데이터가 표시됩니다</td></tr>';
+    document.getElementById('evtProdBodyB').innerHTML =
+      '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">이벤트 엑셀 파일을 업로드하면 데이터가 표시됩니다</td></tr>';
     return;
   }
 
@@ -2514,6 +2536,7 @@ function renderEvtDashboard(id) {
   const thisTot  = daily.reduce((s,r)=>s+(r.sales||0),0);
   const thisOrd  = daily.reduce((s,r)=>s+(r.orders||0),0);
   const aov      = thisOrd > 0 ? thisTot / thisOrd : 0;
+  const hasYoy   = prevTot > 0;
 
   // KPI
   set('ev-total',  fmtKRW(thisTot));
@@ -2521,33 +2544,29 @@ function renderEvtDashboard(id) {
   set('ev-aov',    fmtKRW(Math.round(aov)));
   document.getElementById('evtUploadStatus').textContent = `✅ 데이터 연동됨 (${daily.length}일)`;
 
-  // YoY KPI
+  // YoY KPI 뱃지
   const yoyEl = document.getElementById('ev-yoy');
-  if (prevTot > 0) {
-    const yoyPct = ((thisTot - prevTot) / prevTot * 100);
+  if (hasYoy) {
+    const yoyPct = ((thisTot-prevTot)/prevTot*100);
     yoyEl.textContent = (yoyPct>=0?'+':'')+yoyPct.toFixed(1)+'%';
     yoyEl.className   = yoyPct>=0?'tag-up':'tag-down';
-  } else {
-    yoyEl.textContent = '–'; yoyEl.className = 'tag-up';
-  }
+  } else { yoyEl.textContent='–'; yoyEl.className='tag-up'; }
   const yoyOrdEl = document.getElementById('ev-orders-yoy');
   if (prevOrd > 0) {
     const p = ((thisOrd-prevOrd)/prevOrd*100);
     yoyOrdEl.textContent = (p>=0?'+':'')+p.toFixed(1)+'%';
     yoyOrdEl.className   = p>=0?'tag-up':'tag-down';
-  } else {
-    yoyOrdEl.textContent = '–'; yoyOrdEl.className='tag-up';
-  }
+  } else { yoyOrdEl.textContent='–'; yoyOrdEl.className='tag-up'; }
 
-  // 일자별 차트
-  destroyChart('evtDailyChart');
-  charts['evtDailyChart'] = new Chart(document.getElementById('evtDailyChart'), {
+  // 차트 옵션 공통
+  const dailyChartOpts = (canvasId) => ({
     type:'bar',
     data:{
-      labels: daily.map(r => (r.date||'').slice(5).replace('-','/')),
+      labels: daily.map(r=>(r.date||'').slice(5).replace('-','/')),
       datasets:[
-        { label:'매출액', data:daily.map(r=>r.sales||0), backgroundColor:'rgba(37,99,235,0.7)', borderRadius:3, yAxisID:'y', order:2 },
-        { label:'주문건수', data:daily.map(r=>r.orders||0), type:'line', borderColor:'#F59E0B', backgroundColor:'transparent', borderWidth:2, tension:0.4, pointRadius:3, yAxisID:'y2', order:1 }
+        { label:'매출액',  data:daily.map(r=>r.sales||0),  backgroundColor:'rgba(37,99,235,0.7)', borderRadius:3, yAxisID:'y',  order:2 },
+        { label:'주문건수', data:daily.map(r=>r.orders||0), type:'line', borderColor:'#F59E0B',
+          backgroundColor:'transparent', borderWidth:2, tension:0.4, pointRadius:3, yAxisID:'y2', order:1 }
       ]
     },
     options:{
@@ -2555,22 +2574,67 @@ function renderEvtDashboard(id) {
       interaction:{mode:'index',intersect:false},
       plugins:{
         legend:{display:true,position:'top',labels:{boxWidth:10,font:{size:10}}},
-        tooltip:{callbacks:{
-          label: ctx => ctx.dataset.label==='매출액' ? fmtKRW(ctx.raw) : fmtNum(ctx.raw)+'건'
-        }}
+        tooltip:{callbacks:{label:ctx=>ctx.dataset.label==='매출액'?fmtKRW(ctx.raw):fmtNum(ctx.raw)+'건'}}
       },
       scales:{
-        x: {ticks:{font:{size:10},maxRotation:45}},
-        y: {ticks:{callback:v=>Math.round(v/10000)+'만',font:{size:10}}, position:'left'},
-        y2:{ticks:{font:{size:10}}, position:'right', grid:{display:false}}
+        x:{ticks:{font:{size:10},maxRotation:45}},
+        y:{ticks:{callback:v=>Math.round(v/10000)+'만',font:{size:10}},position:'left'},
+        y2:{ticks:{font:{size:10}},position:'right',grid:{display:false}}
       }
     }
   });
 
-  // 전년 비교 — 데이터 있을 때만 카드 표시
-  const yoyCard = document.getElementById('evtYoyCard');
-  if (prevTot > 0) {
-    yoyCard.style.display = 'block';
+  // 상품 행 생성 헬퍼
+  const prodRows = (includeYoy) => {
+    const sorted = [...products].sort((a,b)=>(b.sales||0)-(a.sales||0));
+    if (!sorted.length) {
+      const colspan = includeYoy ? 6 : 4;
+      return `<tr><td colspan="${colspan}" style="text-align:center;color:var(--muted);padding:20px">상품 데이터 없음</td></tr>`;
+    }
+    return sorted.map(p => {
+      const pct  = thisTot>0 ? (p.sales/thisTot*100).toFixed(1) : '0.0';
+      const bar  = `<div class="mini-bar-wrap"><div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${pct}%;background:var(--blue)"></div></div><span style="font-size:11px;font-weight:700;min-width:36px">${pct}%</span></div>`;
+      let extra = '';
+      if (includeYoy) {
+        const diff = p.prevSales > 0 ? ((p.sales-p.prevSales)/p.prevSales*100) : null;
+        const diffHtml = diff!==null
+          ? `<span class="${diff>=0?'tag-up':'tag-down'}">${diff>=0?'+':''}${diff.toFixed(1)}%</span>`
+          : '<span style="color:var(--muted)">–</span>';
+        extra = `<td style="color:var(--muted)">${p.prevSales>0?fmtKRW(p.prevSales):'–'}</td><td>${diffHtml}</td>`;
+      }
+      return `<tr>
+        <td style="font-weight:600">${p.name||'–'}</td>
+        <td style="font-weight:700">${fmtKRW(p.sales||0)}</td>
+        <td>${bar}</td>
+        <td style="font-weight:700">${fmtNum(p.orders||0)}건</td>
+        ${extra}
+      </tr>`;
+    }).join('');
+  };
+
+  if (!hasYoy) {
+    // ── 레이아웃 A: 전년 없음 → 차트(좌) + 상품(우) ──
+    layoutA.style.display = 'grid';
+    layoutB.style.display = 'none';
+    ['evtDailyChartB','evtYoyChart'].forEach(k => destroyChart(k));
+
+    destroyChart('evtDailyChart');
+    charts['evtDailyChart'] = new Chart(
+      document.getElementById('evtDailyChart'), dailyChartOpts('evtDailyChart')
+    );
+    document.getElementById('evtProdBodyA').innerHTML = prodRows(false);
+
+  } else {
+    // ── 레이아웃 B: 전년 있음 → 차트(좌)+전년비교(우) + 상품 풀너비 ──
+    layoutA.style.display = 'none';
+    layoutB.style.display = 'block';
+    destroyChart('evtDailyChart');
+
+    destroyChart('evtDailyChartB');
+    charts['evtDailyChartB'] = new Chart(
+      document.getElementById('evtDailyChartB'), dailyChartOpts('evtDailyChartB')
+    );
+
     set('ev-this-total', fmtKRW(thisTot));
     set('ev-prev-total', fmtKRW(prevTot));
     destroyChart('evtYoyChart');
@@ -2579,8 +2643,8 @@ function renderEvtDashboard(id) {
       data:{
         labels:['매출액','주문건수'],
         datasets:[
-          { label:'올해', data:[thisTot, thisOrd], backgroundColor:'rgba(37,99,235,0.75)', borderRadius:4 },
-          { label:'전년', data:[prevTot,  prevOrd], backgroundColor:'rgba(148,163,184,0.5)', borderRadius:4 }
+          { label:'올해', data:[thisTot,thisOrd], backgroundColor:'rgba(37,99,235,0.75)', borderRadius:4 },
+          { label:'전년', data:[prevTot,prevOrd],  backgroundColor:'rgba(148,163,184,0.5)', borderRadius:4 }
         ]
       },
       options:{
@@ -2589,38 +2653,11 @@ function renderEvtDashboard(id) {
           legend:{display:true,position:'top',labels:{boxWidth:10,font:{size:10}}},
           tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+(ctx.dataIndex===0?fmtKRW(ctx.raw):fmtNum(ctx.raw)+'건')}}
         },
-        scales:{
-          y:{ticks:{callback:v=>v>999?Math.round(v/10000)+'만':v,font:{size:10}}}
-        }
+        scales:{ y:{ticks:{callback:v=>v>999?Math.round(v/10000)+'만':v,font:{size:10}}} }
       }
     });
-  } else {
-    yoyCard.style.display = 'none';
-    destroyChart('evtYoyChart');
-  }
 
-  // 상품별 테이블
-  const tbody = document.getElementById('evtProdBody');
-  tbody.innerHTML = '';
-  if (!products.length) {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">상품 데이터 없음</td></tr>';
-  } else {
-    const sorted = [...products].sort((a,b)=>(b.sales||0)-(a.sales||0));
-    sorted.forEach(p => {
-      const pct  = thisTot>0 ? (p.sales/thisTot*100).toFixed(1) : '0.0';
-      const diff = p.prevSales > 0 ? ((p.sales-p.prevSales)/p.prevSales*100) : null;
-      const diffHtml = diff!==null
-        ? `<span class="${diff>=0?'tag-up':'tag-down'}">${diff>=0?'+':''}${diff.toFixed(1)}%</span>`
-        : '<span style="color:var(--muted)">–</span>';
-      tbody.innerHTML += `<tr>
-        <td style="font-weight:600">${p.name||'–'}</td>
-        <td style="font-weight:700">${fmtKRW(p.sales||0)}</td>
-        <td><div class="mini-bar-wrap"><div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${pct}%;background:var(--blue)"></div></div><span style="font-size:11px;font-weight:700;min-width:36px">${pct}%</span></div></td>
-        <td style="font-weight:700">${fmtNum(p.orders||0)}건</td>
-        <td style="color:var(--muted)">${p.prevSales>0?fmtKRW(p.prevSales):'–'}</td>
-        <td>${diffHtml}</td>
-      </tr>`;
-    });
+    document.getElementById('evtProdBodyB').innerHTML = prodRows(true);
   }
 }
 
