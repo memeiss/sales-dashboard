@@ -929,7 +929,7 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:var(--amber-lt)">🏷️</div>
     <div>
-      <h2>자사몰 식단별 상세 현황</h2>
+      <h2>자사몰 카테고리별 상세 현황</h2>
       <p id="s3-period-label">카테고리/식단별/정기결제 심층 분석</p>
     </div>
   </div>
@@ -1079,7 +1079,7 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:#FFF7ED">🎯</div>
     <div>
-      <h2>이벤트 성과 대시보드</h2>
+      <h2>월별 이벤트 성</h2>
       <p id="s4-period-label">이벤트별 매출 성과 분석</p>
     </div>
   </div>
@@ -2231,9 +2231,38 @@ function renderAnnualTable() {
   // 데이터가 있는 월만 감지
   const activeMths = [...Array(12).keys()].map(i=>i+1).filter(m => totalByMonth[m] > 0);
 
-  // 전월 비 계산 함수 (현재 선택 월 기준)
-  const mmNow  = MONTH;
-  const mmPrev = MONTH > 1 ? MONTH - 1 : null;
+  // 전월 비 계산 (1월이면 전년 12월과 비교)
+  const mmNow    = MONTH;
+  const mmPrev   = MONTH > 1 ? MONTH - 1 : 12;
+  const prevYear = MONTH > 1 ? YEAR : YEAR - 1;
+
+  // 전년도 데이터 트리 구성 (1월 선택 시 전년 12월 데이터용)
+  const prevProds = DATA.products.filter(p => p.year == prevYear);
+  const prevTree  = {};  // {cat: {name: {month: sales}}}
+  const prevTotalByMonth = {};
+  prevProds.forEach(p => {
+    const c = p.category || '기타', n = p.name || '–', m = Number(p.month);
+    if (!prevTree[c]) prevTree[c] = {};
+    if (!prevTree[c][n]) prevTree[c][n] = {};
+    prevTree[c][n][m] = (prevTree[c][n][m] || 0) + (p.sales || 0);
+    prevTotalByMonth[m] = (prevTotalByMonth[m] || 0) + (p.sales || 0);
+  });
+
+  // 전월 값 조회 헬퍼: 같은 연도면 tree에서, 전년도이면 prevTree에서
+  const getPrev = (treeNow, treePrev, cat, name) => {
+    if (MONTH > 1) return (treeNow[cat]?.[name]?.[mmPrev] || 0);
+    return (treePrev[cat]?.[name]?.[12] || 0);
+  };
+  const getCatPrev = (catMonthly, cat) => {
+    if (MONTH > 1) return catMonthly[mmPrev] || 0;
+    const pc = prevTree[cat];
+    if (!pc) return 0;
+    return Object.keys(pc).reduce((s, n) => s + (pc[n][12] || 0), 0);
+  };
+  const getTotPrev = () => {
+    if (MONTH > 1) return totalByMonth[mmPrev] || 0;
+    return prevTotalByMonth[12] || 0;
+  };
 
   const fmtCell = v => v > 0 ? Math.round(v).toLocaleString('ko-KR')+'만' : '';
   const momCell = (now, prev) => {
@@ -2246,8 +2275,8 @@ function renderAnnualTable() {
   let html = '';
 
   // 합계 행
-  const totNow  = totalByMonth[mmNow]  || 0;
-  const totPrev = mmPrev ? (totalByMonth[mmPrev] || 0) : 0;
+  const totNow  = totalByMonth[mmNow] || 0;
+  const totPrev = getTotPrev();
   html += `<tr style="font-weight:800;background:var(--bg);">
     <td style="position:sticky;left:0;background:var(--bg);padding:9px 12px;font-weight:800;">합계</td>
     <td style="font-weight:800;">${fmtCell(grandTotal)}</td>
@@ -2266,9 +2295,9 @@ function renderAnnualTable() {
     for (let m=1; m<=12; m++) {
       catMonthly[m] = prods.reduce((s, name) => s + (tree[cat][name][m] || 0), 0);
     }
-    const catTotal  = Object.values(catMonthly).reduce((s,v)=>s+v,0);
-    const catNow    = catMonthly[mmNow]  || 0;
-    const catPrev   = mmPrev ? (catMonthly[mmPrev] || 0) : 0;
+    const catTotal = Object.values(catMonthly).reduce((s,v)=>s+v,0);
+    const catNow   = catMonthly[mmNow] || 0;
+    const catPrev  = getCatPrev(catMonthly, cat);
     html += `<tr style="background:var(--bg);">
       <td style="position:sticky;left:0;background:var(--bg);padding:8px 12px;font-weight:800;color:${color};">${cat}</td>
       <td style="font-weight:700;">${fmtCell(catTotal)}</td>
@@ -2278,10 +2307,10 @@ function renderAnnualTable() {
 
     // 상품 행
     prods.forEach(name => {
-      const pm = tree[cat][name];
+      const pm    = tree[cat][name];
       const pTotal = Object.values(pm).reduce((s,v)=>s+v,0);
-      const pNow   = pm[mmNow]  || 0;
-      const pPrev  = mmPrev ? (pm[mmPrev] || 0) : 0;
+      const pNow   = pm[mmNow] || 0;
+      const pPrev  = getPrev(tree, prevTree, cat, name);
       html += `<tr>
         <td style="position:sticky;left:0;background:var(--surface);padding:7px 12px 7px 22px;color:var(--text2);">${name}</td>
         <td>${fmtCell(pTotal)}</td>
