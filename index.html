@@ -2124,7 +2124,77 @@ function switchCatTab(idx, catT) {
   });
 }
 
-// ─── 연간 카테고리별 매출 표 렌더링 ───────────────────────────
+
+
+// ── 정기결제 렌더링 ──
+const sub = DATA.sub || null;
+
+// 섹션① 매출 현황
+set('sub-total',      sub ? fmtKRW(sub.subTotal)          : '–');
+set('sub-total-cnt',  sub ? fmtNum(sub.totalCnt)  + '건'  : '–');
+set('sub-active-cnt', sub ? fmtNum(sub.activeCnt) + '건'  : '–');
+set('sub-cancel-cnt', sub ? fmtNum(sub.cancelCnt) + '건'  : '–');
+set('sub-ltr',        sub ? sub.ltr.toFixed(1)    + '%'   : '–');
+
+// 섹션② 상품별
+const subTotal2 = sub?.subTotal || 0;
+const subProds  = sub?.products || [];
+const tbody2 = document.getElementById('subProdBody');
+tbody2.innerHTML = '';
+if (!subProds.length) {
+  tbody2.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">엑셀 파일을 업로드하면 데이터가 표시됩니다</td></tr>';
+} else {
+  subProds.forEach(p => {
+    const pct    = subTotal2 > 0 ? (p.sales / subTotal2 * 100).toFixed(1) : '0.0';
+    const ltrVal = p.ltr ?? (p.active + p.cancel > 0 ? p.active / (p.active + p.cancel) * 100 : 0);
+    tbody2.innerHTML += `<tr>
+      <td style="font-weight:600">${p.name}</td>
+      <td style="color:var(--muted);font-size:12px">${p.category}</td>
+      <td style="font-weight:700">${fmtKRW(p.sales)}</td>
+      <td><div class="mini-bar-wrap"><div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${pct}%;background:var(--blue)"></div></div><span style="font-size:11px;font-weight:700;min-width:36px;text-align:right">${pct}%</span></div></td>
+      <td style="color:var(--green);font-weight:700">${fmtNum(p.active)}건</td>
+      <td style="color:var(--red);font-weight:700">${fmtNum(p.cancel)}건</td>
+      <td style="font-weight:700">${ltrVal.toFixed(1)}%</td>
+    </tr>`;
+  });
+}
+
+// 섹션③ 배송 횟수
+const delivery = sub?.delivery || [];
+const tbody3 = document.getElementById('deliveryBody');
+tbody3.innerHTML = '';
+if (!delivery.length) {
+  tbody3.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:20px">–</td></tr>';
+} else {
+  delivery.forEach(d => {
+    tbody3.innerHTML += `<tr>
+      <td style="font-weight:700">${d.label}</td>
+      <td style="font-weight:700">${fmtNum(d.cnt)}건</td>
+      <td style="font-weight:700">${d.ratio.toFixed(1)}%</td>
+    </tr>`;
+  });
+}
+
+destroyChart('deliveryChart');
+if (delivery.length) {
+  charts['deliveryChart'] = new Chart(document.getElementById('deliveryChart'), {
+    type: 'bar',
+    data: {
+      labels: delivery.map(d => d.label),
+      datasets: [{ label:'신청 건수', data: delivery.map(d => d.cnt),
+        backgroundColor:['#2563EB','#0891B2','#059669','#7C3AED'],
+        borderRadius:5, borderSkipped:false }]
+    },
+    options: { responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>fmtNum(ctx.raw)+'건 ('+delivery[ctx.dataIndex].ratio.toFixed(1)+'%)'}} },
+      scales:{ x:{ticks:{font:{size:12}}}, y:{beginAtZero:true, ticks:{font:{size:10}}} }
+    }
+  });
+} // deliveryChart if end
+} // renderS3 end
+
+// ─── 연간 카테고리별 매출 표 렌더링 (전역 함수) ──────────────
 function renderAnnualTable() {
   const tbody = document.getElementById('annualBody');
   if (!tbody) return;
@@ -2223,74 +2293,6 @@ function renderAnnualTable() {
 
   tbody.innerHTML = html;
 }
-
-// ── 정기결제 렌더링 ──
-const sub = DATA.sub || null;
-
-// 섹션① 매출 현황
-set('sub-total',      sub ? fmtKRW(sub.subTotal)          : '–');
-set('sub-total-cnt',  sub ? fmtNum(sub.totalCnt)  + '건'  : '–');
-set('sub-active-cnt', sub ? fmtNum(sub.activeCnt) + '건'  : '–');
-set('sub-cancel-cnt', sub ? fmtNum(sub.cancelCnt) + '건'  : '–');
-set('sub-ltr',        sub ? sub.ltr.toFixed(1)    + '%'   : '–');
-
-// 섹션② 상품별
-const subTotal2 = sub?.subTotal || 0;
-const subProds  = sub?.products || [];
-const tbody2 = document.getElementById('subProdBody');
-tbody2.innerHTML = '';
-if (!subProds.length) {
-  tbody2.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">엑셀 파일을 업로드하면 데이터가 표시됩니다</td></tr>';
-} else {
-  subProds.forEach(p => {
-    const pct    = subTotal2 > 0 ? (p.sales / subTotal2 * 100).toFixed(1) : '0.0';
-    const ltrVal = p.ltr ?? (p.active + p.cancel > 0 ? p.active / (p.active + p.cancel) * 100 : 0);
-    tbody2.innerHTML += `<tr>
-      <td style="font-weight:600">${p.name}</td>
-      <td style="color:var(--muted);font-size:12px">${p.category}</td>
-      <td style="font-weight:700">${fmtKRW(p.sales)}</td>
-      <td><div class="mini-bar-wrap"><div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${pct}%;background:var(--blue)"></div></div><span style="font-size:11px;font-weight:700;min-width:36px;text-align:right">${pct}%</span></div></td>
-      <td style="color:var(--green);font-weight:700">${fmtNum(p.active)}건</td>
-      <td style="color:var(--red);font-weight:700">${fmtNum(p.cancel)}건</td>
-      <td style="font-weight:700">${ltrVal.toFixed(1)}%</td>
-    </tr>`;
-  });
-}
-
-// 섹션③ 배송 횟수
-const delivery = sub?.delivery || [];
-const tbody3 = document.getElementById('deliveryBody');
-tbody3.innerHTML = '';
-if (!delivery.length) {
-  tbody3.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:20px">–</td></tr>';
-} else {
-  delivery.forEach(d => {
-    tbody3.innerHTML += `<tr>
-      <td style="font-weight:700">${d.label}</td>
-      <td style="font-weight:700">${fmtNum(d.cnt)}건</td>
-      <td style="font-weight:700">${d.ratio.toFixed(1)}%</td>
-    </tr>`;
-  });
-}
-
-destroyChart('deliveryChart');
-if (delivery.length) {
-  charts['deliveryChart'] = new Chart(document.getElementById('deliveryChart'), {
-    type: 'bar',
-    data: {
-      labels: delivery.map(d => d.label),
-      datasets: [{ label:'신청 건수', data: delivery.map(d => d.cnt),
-        backgroundColor:['#2563EB','#0891B2','#059669','#7C3AED'],
-        borderRadius:5, borderSkipped:false }]
-    },
-    options: { responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false},
-        tooltip:{callbacks:{label:ctx=>fmtNum(ctx.raw)+'건 ('+delivery[ctx.dataIndex].ratio.toFixed(1)+'%)'}} },
-      scales:{ x:{ticks:{font:{size:12}}}, y:{beginAtZero:true, ticks:{font:{size:10}}} }
-    }
-  });
-}
-} // renderS3 end
 
 // ─── 요일별 탭 전환 ───
 function applyWdTab(tab) {
