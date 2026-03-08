@@ -20,16 +20,24 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:14px;-webkit-font-smoothing:antialiased;}
 /* TOPBAR */
-.topbar{background:#fff;border-bottom:1px solid var(--border);padding:0 22px;height:52px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;box-shadow:0 1px 6px rgba(0,0,0,.06);}
-.lb{width:30px;height:30px;border-radius:7px;background:var(--blue);color:#fff;font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.topbar h1{font-size:13px;font-weight:800;}.topbar small{font-size:10px;color:var(--muted);}
-.tnav{display:flex;gap:2px;margin-left:12px;}
-.nb{padding:4px 11px;border-radius:6px;border:none;background:transparent;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:.13s;}
-.nb:hover{background:var(--bg);}.nb.on{background:var(--blue-lt);color:var(--blue);}
-.tr{margin-left:auto;display:flex;align-items:center;gap:6px;}
-.sw{display:flex;align-items:center;gap:4px;background:var(--bg);border-radius:7px;padding:4px 10px;}
-.sw label{font-size:9px;color:var(--muted);font-weight:700;}
-.sw select{border:none;background:transparent;font-family:inherit;font-size:11px;font-weight:700;color:var(--text);cursor:pointer;outline:none;}
+/* ── Header (index.html 동일 구조) ── */
+.header{display:flex;align-items:center;justify-content:space-between;padding:12px 28px;background:var(--surface);border-bottom:1px solid var(--border);box-shadow:var(--shadow);position:sticky;top:0;z-index:99;flex-wrap:wrap;gap:10px;}
+.header-left{display:flex;align-items:center;gap:12px;}
+.logo-badge{width:36px;height:36px;background:var(--blue);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;letter-spacing:-0.5px;}
+.header-title{font-size:15px;font-weight:800;color:var(--text);letter-spacing:-0.3px;}
+.header-meta{font-size:11px;color:var(--muted);margin-top:1px;}
+.header-right{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.period-selector{display:flex;align-items:center;gap:5px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:5px 11px;}
+.period-selector label{font-size:10px;color:var(--muted);font-weight:600;}
+.period-selector select{border:none;background:transparent;font-size:13px;font-weight:700;color:var(--blue);font-family:inherit;cursor:pointer;outline:none;padding:0 2px;}
+.period-sep{color:var(--border);}
+.period-badge{background:var(--blue);color:#fff;border-radius:6px;padding:4px 10px;font-size:11px;font-weight:700;letter-spacing:0.2px;white-space:nowrap;}
+.live-dot{width:7px;height:7px;background:#4ADE80;border-radius:50%;animation:pulse 2s infinite;}
+.page-link-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;transition:all .15s;cursor:pointer;border:none;font-family:inherit;}
+.page-link-btn.ghost{background:var(--surface2);color:var(--text2);border:1.5px solid var(--border);}
+.page-link-btn.ghost:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-lt);}
+.page-link-btn.active{background:var(--blue);color:#fff;}
+.page-link-btn.active:hover{background:#1d4ed8;}
 /* LAYOUT */
 .main{padding:14px 22px 40px;max-width:1520px;margin:0 auto;}
 .layout{display:grid;grid-template-columns:296px 1fr;gap:12px;align-items:start;}
@@ -232,24 +240,34 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 <!-- Toast -->
 <div class="toast" id="toast"></div>
 
-<div class="topbar">
-  <div class="lb">OD</div>
-  <div><h1>OMNI Sales Dashboard</h1><small>일자·주차별 상세 매출 분석</small></div>
-  <div class="tnav">
-    <button class="nb" onclick="location.href='index.html'">← 월간 요약</button>
-    <button class="nb on">📅 일자·주차 분석</button>
-  </div>
-  <div class="tr">
-    <div class="sw"><label>연도</label>
-      <select id="selYear" onchange="initDash()"><option value="2026" selected>2026</option><option value="2025">2025</option></select>
+<!-- Header (index.html 동일 UI) -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo-badge">OD</div>
+    <div>
+      <div class="header-title">OMNI Sales Dashboard</div>
+      <div class="header-meta">일자·주차별 상세 매출 분석</div>
     </div>
-    <div class="sw"><label>월</label>
+  </div>
+  <div class="header-right">
+    <div class="period-selector">
+      <label>연도</label>
+      <select id="selYear" onchange="initDash()">
+        <option value="2026" selected>2026</option>
+        <option value="2025">2025</option>
+      </select>
+      <span class="period-sep">·</span>
+      <label>월</label>
       <select id="selMonth" onchange="initDash()">
         <option value="1">1월</option><option value="2" selected>2월</option><option value="3">3월</option><option value="4">4월</option>
         <option value="5">5월</option><option value="6">6월</option><option value="7">7월</option><option value="8">8월</option>
         <option value="9">9월</option><option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
       </select>
     </div>
+    <div class="period-badge" id="periodBadge">02.01 – 02.28</div>
+    <a href="index.html" class="page-link-btn ghost">← 월간 요약</a>
+    <button class="page-link-btn active">📅 일자·주차 분석</button>
+    <div class="live-dot"></div>
   </div>
 </div>
 
@@ -1146,6 +1164,12 @@ initDash = function() {
   WKS   = buildWeeks(YEAR, MONTH, BASE_YEAR);
   selS  = null; selE = null; actWk = null; pick = false;
   document.getElementById('wkCmp').style.display = 'none';
+  // periodBadge 업데이트
+  const _days = new Date(YEAR, MONTH, 0).getDate();
+  const _mm   = String(MONTH).padStart(2,'0');
+  const _dd   = String(_days).padStart(2,'0');
+  const pb = document.getElementById('periodBadge');
+  if (pb) pb.textContent = `${_mm}.01 – ${_mm}.${_dd}`;
   renderCal(); renderOmniWk(); updateAll();
   loadFromFirebase();
 };
