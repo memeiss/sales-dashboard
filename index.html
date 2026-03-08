@@ -263,6 +263,55 @@ body {
 .tag-up   { color:var(--green); font-weight:700; font-size:11px; }
 .tag-down { color:var(--red);   font-weight:700; font-size:11px; }
 
+/* ── 리뷰 코멘트 박스 ── */
+.ch-label-wrap {
+  display:flex; align-items:center; gap:8px; margin-bottom:10px;
+}
+.ch-label-wrap .ch-label {
+  margin-bottom:0;
+}
+.ch-comment-toggle {
+  width:22px; height:22px; border-radius:50%; border:1.5px solid var(--blue);
+  background:var(--blue-lt); color:var(--blue); font-size:15px; font-weight:700;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; transition:all 0.15s; line-height:1; padding:0;
+  font-family:inherit;
+}
+.ch-comment-toggle:hover { background:var(--blue); color:#fff; }
+.ch-comment-toggle.open { background:var(--blue); color:#fff; transform:rotate(45deg); }
+.ch-comment-area {
+  background:#fff; border:1.5px solid var(--border); border-radius:10px;
+  padding:12px 14px; margin-bottom:12px; box-shadow:0 1px 4px rgba(0,0,0,0.04);
+  animation: fadeIn 0.18s ease;
+}
+@keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+.ch-comment-toolbar {
+  display:flex; align-items:center; gap:6px; margin-bottom:7px;
+}
+.comment-btn {
+  padding:3px 10px; border-radius:5px; border:1.5px solid var(--border);
+  background:var(--surface); color:var(--text2); font-size:11px; font-weight:700;
+  cursor:pointer; font-family:inherit; transition:all 0.15s; line-height:1.4;
+}
+.comment-btn:hover { border-color:var(--blue); color:var(--blue); background:var(--blue-lt); }
+.comment-save-btn {
+  margin-left:auto; padding:4px 14px; border-radius:6px;
+  border:none; background:var(--blue); color:#fff;
+  font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.15s;
+}
+.comment-save-btn:hover { background:#1d4ed8; }
+.comment-save-btn.saved { background:var(--green); }
+.comment-editor {
+  min-height:60px; border:1px solid var(--border); border-radius:8px;
+  padding:9px 12px; font-size:13px; color:var(--text); font-family:inherit;
+  line-height:1.6; outline:none; background:var(--surface);
+  transition:border-color 0.15s;
+}
+.comment-editor:focus { border-color:var(--blue); background:#fff; }
+.comment-editor:empty:before {
+  content:attr(data-placeholder); color:var(--muted); pointer-events:none;
+}
+
 /* ── Max/Min card layout ── */
 .daystat-card {
   background:var(--surface); border:1px solid var(--border);
@@ -579,13 +628,26 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:var(--blue-lt)">📊</div>
     <div>
-      <h2>OMNI - 월별 매출 대시보드</h2>
-      <p id="s1-period-label">전체 채널 통합 매출 현황</p>
+      <h2>OMNI 매출 대시보드</h2>
+      <p id="s1-period-label">전체 채널 통합 매출 현황 · 2025년 1월</p>
     </div>
   </div>
 
+
   <!-- 전체 KPI -->
-  <div class="ch-label">전체 매출 현황</div>
+  <div class="ch-label-wrap">
+    <div class="ch-label" style="flex:1;">전체 매출 현황</div>
+    <button class="ch-comment-toggle" id="toggle-s1-total" onclick="toggleComment('s1-total')" title="코멘트 추가">＋</button>
+  </div>
+  <div class="ch-comment-area" id="area-s1-total" style="display:none;">
+    <div class="ch-comment-toolbar">
+      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+      <button class="comment-save-btn" id="csave-s1-total" onclick="saveComment('s1-total')">저장</button>
+    </div>
+    <div class="comment-editor" id="ceditor-s1-total" contenteditable="true"
+      data-placeholder="전체 매출 현황에 대한 코멘트를 입력하세요..."></div>
+  </div>
   <div class="grid-4">
     <div class="stat-card c-blue">
       <div class="stat-label">총 매출액</div>
@@ -631,7 +693,19 @@ body {
   </div>
 
   <!-- 채널별 -->
-  <div class="ch-label">채널별 매출 현황</div>
+  <div class="ch-label-wrap">
+    <div class="ch-label" style="flex:1;">채널별 매출 현황</div>
+    <button class="ch-comment-toggle" id="toggle-s1-channel" onclick="toggleComment('s1-channel')" title="코멘트 추가">＋</button>
+  </div>
+  <div class="ch-comment-area" id="area-s1-channel" style="display:none;">
+    <div class="ch-comment-toolbar">
+      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+      <button class="comment-save-btn" id="csave-s1-channel" onclick="saveComment('s1-channel')">저장</button>
+    </div>
+    <div class="comment-editor" id="ceditor-s1-channel" contenteditable="true"
+      data-placeholder="채널별 매출 현황에 대한 코멘트를 입력하세요..."></div>
+  </div>
   <div class="grid-2 grid-stack" style="margin-bottom:12px;">
     <div class="chart-card" style="margin-bottom:0">
       <div class="chart-card-title" style="color:var(--blue)">🌐 온라인 채널</div>
@@ -690,26 +764,26 @@ body {
   </div>
 
   <!-- 차트 -->
-  <div class="grid-2 grid-stack">
-    <div class="chart-card" style="margin-bottom:0">
-      <div class="chart-card-title">일자별 매출 추이</div>
-      <div style="height:185px"><canvas id="dailyChart"></canvas></div>
-    </div>
-    <div class="chart-card" style="margin-bottom:0">
-      <div class="chart-card-title">채널별 매출 비중</div>
-      <div style="display:flex;align-items:center;gap:18px;height:185px;overflow:hidden;">
-        <div style="position:relative;width:min(160px,45vw);height:min(160px,45vw);flex-shrink:0;"><canvas id="channelDonut"></canvas></div>
-        <div class="donut-legend">
-          <div class="legend-item"><div class="legend-dot" style="background:var(--cat1)"></div><span>온라인</span><span class="legend-val" id="s1-donut-online">–</span></div>
-          <div class="legend-item"><div class="legend-dot" style="background:#F59E0B"></div><span>오프라인</span><span class="legend-val" id="s1-donut-offline">–</span></div>
-        </div>
-      </div>
-    </div>
+  <div class="chart-card">
+    <div class="chart-card-title">일자별 매출 추이</div>
+    <div style="height:185px"><canvas id="dailyChart"></canvas></div>
   </div>
 
   <!-- 요일별 -->
   <div style="height:12px"></div>
-  <div class="ch-label">요일별 평균 매출</div>
+  <div class="ch-label-wrap">
+    <div class="ch-label" style="flex:1;">요일별 평균 매출</div>
+    <button class="ch-comment-toggle" id="toggle-s1-weekday" onclick="toggleComment('s1-weekday')" title="코멘트 추가">＋</button>
+  </div>
+  <div class="ch-comment-area" id="area-s1-weekday" style="display:none;">
+    <div class="ch-comment-toolbar">
+      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+      <button class="comment-save-btn" id="csave-s1-weekday" onclick="saveComment('s1-weekday')">저장</button>
+    </div>
+    <div class="comment-editor" id="ceditor-s1-weekday" contenteditable="true"
+      data-placeholder="요일별 평균 매출에 대한 코멘트를 입력하세요..."></div>
+  </div>
 
   <!-- 탭 -->
   <div class="wd-tabs">
@@ -822,12 +896,25 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:var(--green-lt)">🛒</div>
     <div>
-      <h2>D2C - 월별 매출 대시보드</h2>
-      <p id="s2-period-label">자사몰/네이버/기타 채널별 성과 분석</p>
+      <h2>D2C 채널 매출 대시보드</h2>
+      <p id="s2-period-label">Direct-to-Consumer 채널 성과 분석 · 2025년 1월</p>
     </div>
   </div>
 
-  <div class="ch-label">D2C 전체 매출 현황</div>
+
+  <div class="ch-label-wrap">
+    <div class="ch-label" style="flex:1;">D2C 전체 매출 현황</div>
+    <button class="ch-comment-toggle" id="toggle-s2-total" onclick="toggleComment('s2-total')" title="코멘트 추가">＋</button>
+  </div>
+  <div class="ch-comment-area" id="area-s2-total" style="display:none;">
+    <div class="ch-comment-toolbar">
+      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+      <button class="comment-save-btn" id="csave-s2-total" onclick="saveComment('s2-total')">저장</button>
+    </div>
+    <div class="comment-editor" id="ceditor-s2-total" contenteditable="true"
+      data-placeholder="D2C 전체 매출 현황에 대한 코멘트를 입력하세요..."></div>
+  </div>
   <div class="grid-4">
     <div class="stat-card c-blue">
       <div class="stat-label">총 매출액</div>
@@ -868,7 +955,19 @@ body {
     </div>
   </div>
 
-  <div class="ch-label">D2C 채널별 매출</div>
+  <div class="ch-label-wrap">
+    <div class="ch-label" style="flex:1;">D2C 채널별 매출</div>
+    <button class="ch-comment-toggle" id="toggle-s2-channel" onclick="toggleComment('s2-channel')" title="코멘트 추가">＋</button>
+  </div>
+  <div class="ch-comment-area" id="area-s2-channel" style="display:none;">
+    <div class="ch-comment-toolbar">
+      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+      <button class="comment-save-btn" id="csave-s2-channel" onclick="saveComment('s2-channel')">저장</button>
+    </div>
+    <div class="comment-editor" id="ceditor-s2-channel" contenteditable="true"
+      data-placeholder="D2C 채널별 매출에 대한 코멘트를 입력하세요..."></div>
+  </div>
   <div class="chart-card">
     <div class="chart-card-title">자사몰 / 네이버스토어 / 기타 채널 비교</div>
     <table class="data-table">
@@ -904,7 +1003,19 @@ body {
     </table>
   </div>
 
-  <div class="ch-label">자사몰 유입 및 전환 통계</div>
+  <div class="ch-label-wrap">
+    <div class="ch-label" style="flex:1;">자사몰 유입 및 전환 통계</div>
+    <button class="ch-comment-toggle" id="toggle-s2-funnel" onclick="toggleComment('s2-funnel')" title="코멘트 추가">＋</button>
+  </div>
+  <div class="ch-comment-area" id="area-s2-funnel" style="display:none;">
+    <div class="ch-comment-toolbar">
+      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+      <button class="comment-save-btn" id="csave-s2-funnel" onclick="saveComment('s2-funnel')">저장</button>
+    </div>
+    <div class="comment-editor" id="ceditor-s2-funnel" contenteditable="true"
+      data-placeholder="자사몰 유입 및 전환 통계에 대한 코멘트를 입력하세요..."></div>
+  </div>
   <div class="grid-4">
     <div class="stat-card"><div class="stat-label">총 유입수</div><div class="stat-value sm" id="s2-total-uv">–</div></div>
     <div class="stat-card"><div class="stat-label">신규 유입</div><div class="stat-value sm" id="s2-new-uv">–</div><div class="stat-sub">신규 비율 <span id="s2-new-pct">–</span></div></div>
@@ -929,13 +1040,26 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:var(--amber-lt)">🏷️</div>
     <div>
-      <h2>자사몰 카테고리별 상세 현황</h2>
-      <p id="s3-period-label">카테고리/식단별/정기결제 심층 분석</p>
+      <h2>자사몰 카테고리별 대시보드</h2>
+      <p id="s3-period-label">카테고리 · 상품 · 정기결제 심층 분석 · 2025년 1월</p>
     </div>
   </div>
 
+
   <!-- 매출 통계 요약 -->
-  <div class="ch-label">매출 통계 요약</div>
+  <div class="ch-label-wrap">
+    <div class="ch-label" style="flex:1;">매출 통계 요약</div>
+    <button class="ch-comment-toggle" id="toggle-s3-summary" onclick="toggleComment('s3-summary')" title="코멘트 추가">＋</button>
+  </div>
+  <div class="ch-comment-area" id="area-s3-summary" style="display:none;">
+    <div class="ch-comment-toolbar">
+      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+      <button class="comment-save-btn" id="csave-s3-summary" onclick="saveComment('s3-summary')">저장</button>
+    </div>
+    <div class="comment-editor" id="ceditor-s3-summary" contenteditable="true"
+      data-placeholder="매출 통계 요약에 대한 코멘트를 입력하세요..."></div>
+  </div>
   <div class="grid-3">
     <div class="stat-card c-blue">
       <div class="stat-label">총 매출</div>
@@ -986,7 +1110,19 @@ body {
 
   <!-- ════ 연간 카테고리별 매출 현황 ════ -->
   <div style="height:16px"></div>
-  <div class="ch-label">연간 카테고리별 매출 현황</div>
+  <div class="ch-label-wrap">
+    <div class="ch-label" style="flex:1;">연간 카테고리별 매출 현황</div>
+    <button class="ch-comment-toggle" id="toggle-s3-annual" onclick="toggleComment('s3-annual')" title="코멘트 추가">＋</button>
+  </div>
+  <div class="ch-comment-area" id="area-s3-annual" style="display:none;">
+    <div class="ch-comment-toolbar">
+      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+      <button class="comment-save-btn" id="csave-s3-annual" onclick="saveComment('s3-annual')">저장</button>
+    </div>
+    <div class="comment-editor" id="ceditor-s3-annual" contenteditable="true"
+      data-placeholder="연간 카테고리별 매출 현황에 대한 코멘트를 입력하세요..."></div>
+  </div>
   <div class="chart-card" style="padding:0;overflow:auto;">
     <table class="data-table" id="annualTable" style="min-width:900px;font-size:11px;">
       <thead>
@@ -1016,7 +1152,19 @@ body {
   </div>
 
   <!-- ① 매출 현황 -->
-  <div class="ch-label">매출 현황</div>
+  <div class="ch-label-wrap">
+    <div class="ch-label" style="flex:1;">매출 현황</div>
+    <button class="ch-comment-toggle" id="toggle-s3-sub-sales" onclick="toggleComment('s3-sub-sales')" title="코멘트 추가">＋</button>
+  </div>
+  <div class="ch-comment-area" id="area-s3-sub-sales" style="display:none;">
+    <div class="ch-comment-toolbar">
+      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+      <button class="comment-save-btn" id="csave-s3-sub-sales" onclick="saveComment('s3-sub-sales')">저장</button>
+    </div>
+    <div class="comment-editor" id="ceditor-s3-sub-sales" contenteditable="true"
+      data-placeholder="매출 현황에 대한 코멘트를 입력하세요..."></div>
+  </div>
   <div class="sub-grid" style="grid-template-columns:repeat(5,1fr)">
     <div class="sub-card">
       <div class="sub-label">총 매출액</div>
@@ -1041,7 +1189,19 @@ body {
   </div>
 
   <!-- ② 상품(식단)별 현황 -->
-  <div class="ch-label">정기결제 상품별 현황</div>
+  <div class="ch-label-wrap">
+    <div class="ch-label" style="flex:1;">정기결제 상품별 현황</div>
+    <button class="ch-comment-toggle" id="toggle-s3-sub-prods" onclick="toggleComment('s3-sub-prods')" title="코멘트 추가">＋</button>
+  </div>
+  <div class="ch-comment-area" id="area-s3-sub-prods" style="display:none;">
+    <div class="ch-comment-toolbar">
+      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+      <button class="comment-save-btn" id="csave-s3-sub-prods" onclick="saveComment('s3-sub-prods')">저장</button>
+    </div>
+    <div class="comment-editor" id="ceditor-s3-sub-prods" contenteditable="true"
+      data-placeholder="정기결제 상품별 현황에 대한 코멘트를 입력하세요..."></div>
+  </div>
   <div class="chart-card">
     <div class="chart-card-title">식단별 매출 · 진행건수 · 해지건수 · 구독 유지율</div>
     <table class="data-table">
@@ -1057,7 +1217,19 @@ body {
   </div>
 
   <!-- ③ 배송 횟수 -->
-  <div class="ch-label">전체 배송 횟수 현황</div>
+  <div class="ch-label-wrap">
+    <div class="ch-label" style="flex:1;">전체 배송 횟수 현황</div>
+    <button class="ch-comment-toggle" id="toggle-s3-delivery" onclick="toggleComment('s3-delivery')" title="코멘트 추가">＋</button>
+  </div>
+  <div class="ch-comment-area" id="area-s3-delivery" style="display:none;">
+    <div class="ch-comment-toolbar">
+      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+      <button class="comment-save-btn" id="csave-s3-delivery" onclick="saveComment('s3-delivery')">저장</button>
+    </div>
+    <div class="comment-editor" id="ceditor-s3-delivery" contenteditable="true"
+      data-placeholder="전체 배송 횟수 현황에 대한 코멘트를 입력하세요..."></div>
+  </div>
   <div class="grid-2 grid-stack" style="margin-bottom:0">
     <div class="chart-card" style="margin-bottom:0">
       <div class="chart-card-title">배송 횟수별 신청 건수</div>
@@ -1079,7 +1251,7 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:#FFF7ED">🎯</div>
     <div>
-      <h2>월별 이벤트 운영 현황</h2>
+      <h2>이벤트 성과 대시보드</h2>
       <p id="s4-period-label">이벤트별 매출 성과 분석</p>
     </div>
   </div>
@@ -1372,6 +1544,7 @@ function onPeriodChange() {
   } else {
     renderAll([], [], [], []);
   }
+  loadComments();
 }
 
 // ─── File handling ───
@@ -1686,6 +1859,72 @@ function fmtDate(v) {
   return String(v);
 }
 
+// ─── 리뷰 코멘트 ───────────────────────────────────────────
+const ALL_COMMENT_IDS = [
+  's1-total','s1-channel','s1-weekday',
+  's2-total','s2-channel','s2-funnel',
+  's3-summary','s3-annual','s3-sub-sales','s3-sub-prods','s3-delivery'
+];
+
+function execCmd(cmd) {
+  document.execCommand(cmd, false, null);
+}
+
+function toggleComment(cid) {
+  const area   = document.getElementById('area-' + cid);
+  const toggle = document.getElementById('toggle-' + cid);
+  const isOpen = area.style.display !== 'none';
+  if (isOpen) {
+    area.style.display = 'none';
+    toggle.classList.remove('open');
+  } else {
+    area.style.display = 'block';
+    toggle.classList.add('open');
+    document.getElementById('ceditor-' + cid).focus();
+  }
+}
+
+function commentKey(cid) {
+  return `comment_${cid}_${YEAR}_${String(MONTH).padStart(2,'0')}`;
+}
+
+async function saveComment(cid) {
+  const editor = document.getElementById('ceditor-' + cid);
+  const btn    = document.getElementById('csave-' + cid);
+  const html   = editor.innerHTML;
+  const key    = commentKey(cid);
+  try {
+    await db.collection('comments').doc(key).set({ html, updatedAt: new Date().toISOString() });
+    btn.textContent = '✅ 저장됨';
+    btn.classList.add('saved');
+    setTimeout(() => { btn.textContent = '저장'; btn.classList.remove('saved'); }, 2000);
+  } catch(e) { showToast('❌ 코멘트 저장 실패: ' + e.message); }
+}
+
+async function loadComments() {
+  for (const cid of ALL_COMMENT_IDS) {
+    const key    = commentKey(cid);
+    const area   = document.getElementById('area-' + cid);
+    const toggle = document.getElementById('toggle-' + cid);
+    const editor = document.getElementById('ceditor-' + cid);
+    if (!editor) continue;
+    try {
+      const doc = await db.collection('comments').doc(key).get();
+      if (doc.exists && doc.data().html && doc.data().html !== '<br>') {
+        editor.innerHTML = doc.data().html;
+        // 내용 있으면 자동으로 열어서 표시
+        area.style.display   = 'block';
+        toggle.classList.add('open');
+      } else {
+        editor.innerHTML = '';
+        area.style.display   = 'none';
+        toggle.classList.remove('open');
+      }
+    } catch(e) { console.warn('코멘트 로드 실패', cid, e); }
+  }
+}
+// ────────────────────────────────────────────────────────────
+
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -1869,12 +2108,6 @@ function renderS1(rows) {
     }
   });
 
-  destroyChart('channelDonut');
-  charts['channelDonut'] = new Chart(document.getElementById('channelDonut'), {
-    type:'doughnut',
-    data:{ labels:['온라인','오프라인'], datasets:[{data:[parseFloat(onPct),parseFloat(offPct)], backgroundColor:['#2563EB','#F59E0B'], borderWidth:0, hoverOffset:3}] },
-    options:{ responsive:true, maintainAspectRatio:true, plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>ctx.label+': '+ctx.raw+'%'}} }, cutout:'72%' }
-  });
 }
 
 // ─── SLIDE 2 ───
@@ -2029,10 +2262,13 @@ function renderS3(cat, products) {
 
   // Bar
 // ✅ 변경 후 — 카테고리별 탭 + 각각 바차트
+// 매출 데이터 있는 카테고리만 필터링
+const activeCatT = catT.filter(c => c.total > 0);
+
 // 탭 버튼 생성
 const tabBar = document.getElementById('catTabBar');
 tabBar.innerHTML = '';
-catT.forEach((cat, i) => {
+activeCatT.forEach((cat, i) => {
   const btn = document.createElement('button');
   btn.textContent = cat.label;
   btn.dataset.idx = i;
@@ -2040,13 +2276,12 @@ catT.forEach((cat, i) => {
     font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;
     background:${i===0 ? cat.color : 'var(--surface)'};
     color:${i===0 ? '#fff' : 'var(--text2)'};transition:all 0.18s`;
-  btn.onclick = () => switchCatTab(i, catT);
+  btn.onclick = () => switchCatTab(i, activeCatT);
   tabBar.appendChild(btn);
 });
 
-// 카테고리별 차트 렌더링
-// 가장 많은 상품 수 기준으로 캔버스 높이 동적 조정
-const maxProdsCount = catT.reduce((max, c) => {
+// 카테고리별 차트 렌더링 (매출 있는 카테고리만)
+const maxProdsCount = activeCatT.reduce((max, c) => {
   const cnt = products.filter(p => p.category === c.label).length;
   return Math.max(max, Math.min(cnt, 8));
 }, 0);
@@ -2054,9 +2289,13 @@ const chartH = Math.max(180, maxProdsCount * 32 + 40);
 const wrap = document.getElementById('catChartWrap');
 if (wrap) wrap.style.height = chartH + 'px';
 
-catT.forEach((c, i) => {
+// 기존 캔버스 전부 초기화
+for (let i=0;i<5;i++) { destroyChart('catBarChart-'+i); const cv=document.getElementById('catBarChart-'+i); if(cv) cv.style.display='none'; }
+
+activeCatT.forEach((c, i) => {
   const key = 'catBarChart-' + i;
-  destroyChart(key);
+  const canvas = document.getElementById(key);
+  if (canvas) canvas.style.display = i===0 ? 'block' : 'none';
   const catTotal = c.total || 1;
   const prods = products
     .filter(p => p.category === c.label)
@@ -2264,7 +2503,7 @@ function renderAnnualTable() {
     return prevTotalByMonth[12] || 0;
   };
 
-  const fmtCell = v => v > 0 ? Math.round(v).toLocaleString('ko-KR')+'원' : '';
+  const fmtCell = v => v > 0 ? Math.round(v/10000).toLocaleString('ko-KR')+'만' : '';
   const momCell = (now, prev) => {
     if (!prev || prev === 0) return '';
     const pct = (now - prev) / prev * 100;
