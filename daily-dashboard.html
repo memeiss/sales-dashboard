@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -162,9 +163,74 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 .empty{text-align:center;padding:28px;color:var(--muted);}
 .empty .ei{font-size:22px;margin-bottom:6px;}.empty p{font-size:11px;}
 @media(max-width:1020px){.layout{grid-template-columns:1fr;}.krow{grid-template-columns:repeat(4,1fr);}.c2{grid-template-columns:1fr;}}
+
+/* ── Upload Banner (index.html 동일) ── */
+.upload-banner{background:var(--blue);position:relative;}
+.upload-banner::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(0,0,0,0.08) 0%,transparent 60%);pointer-events:none;}
+.upload-inner{display:flex;align-items:center;justify-content:space-between;padding:11px 28px;position:relative;z-index:1;gap:16px;flex-wrap:wrap;}
+.upload-left{display:flex;align-items:center;gap:12px;}
+.upload-icon{width:34px;height:34px;background:rgba(255,255,255,0.18);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.upload-text h3{color:#fff;font-size:13px;font-weight:700;}
+.upload-text p{color:rgba(255,255,255,0.72);font-size:11px;margin-top:1px;}
+.upload-right{display:flex;align-items:center;gap:10px;}
+.upload-btn{display:flex;align-items:center;gap:7px;background:#fff;color:var(--blue);border:none;padding:8px 16px;border-radius:7px;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;transition:all 0.18s;box-shadow:0 2px 6px rgba(0,0,0,0.14);}
+.upload-btn:hover{background:#EFF6FF;transform:translateY(-1px);}
+.upload-btn svg{width:14px;height:14px;}
+.upload-status{color:rgba(255,255,255,0.88);font-size:12px;display:flex;align-items:center;gap:6px;}
+.status-dot{width:7px;height:7px;border-radius:50%;background:#86EFAC;animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(1.4)}}
+#fileInput2{display:none;}
+.drop-overlay{display:none;position:fixed;inset:0;background:rgba(37,99,235,0.1);backdrop-filter:blur(4px);z-index:999;align-items:center;justify-content:center;}
+.drop-overlay.active{display:flex;}
+.drop-box{background:#fff;border:2px dashed var(--blue);border-radius:18px;padding:56px 72px;text-align:center;}
+.drop-box h2{font-size:20px;color:var(--blue);font-weight:800;margin-top:10px;}
+.drop-box p{color:var(--muted);margin-top:7px;font-size:13px;}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:#1E293B;color:#fff;padding:11px 22px;border-radius:9px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,0.18);transition:all 0.35s;z-index:9999;opacity:0;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;}
 </style>
 </head>
 <body>
+
+
+<!-- Upload Banner -->
+<div class="upload-banner">
+  <div class="upload-inner">
+    <div class="upload-left">
+      <div class="upload-icon">📂</div>
+      <div class="upload-text">
+        <h3>엑셀 데이터 연동</h3>
+        <p>제공된 엑셀 양식을 업로드하면 두 대시보드가 자동으로 업데이트됩니다</p>
+      </div>
+    </div>
+    <div class="upload-right">
+      <div class="upload-status">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">엑셀 파일을 업로드해주세요</span>
+      </div>
+      <button class="upload-btn" onclick="document.getElementById('fileInput2').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        엑셀 파일 업로드
+      </button>
+      <button class="upload-btn" id="saveBtn" onclick="saveDataToFirebase()" style="background:rgba(255,255,255,0.15);color:#fff;border:1.5px solid rgba(255,255,255,0.5);" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg>
+        서버에 저장
+      </button>
+      <input type="file" id="fileInput2" accept=".xlsx,.xls" onchange="handleFile(event)">
+    </div>
+  </div>
+</div>
+
+<!-- Drop Overlay -->
+<div class="drop-overlay" id="dropOverlay">
+  <div class="drop-box">
+    <div style="font-size:44px">📊</div>
+    <h2>파일을 여기에 놓으세요</h2>
+    <p>엑셀 파일(.xlsx)을 드래그 앤 드롭하여 업로드</p>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
 
 <div class="topbar">
   <div class="lb">OD</div>
@@ -200,6 +266,8 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
     <div class="kpi"><div class="kl">🏪 오프라인 매출</div><div class="kv" id="kv6">–</div><div class="ks" id="ks6">–</div></div>
     <div class="kpi"><div class="kl">🎯 진척율 (%)</div><div class="kv" id="kv7">–</div><div class="ks" id="ks7">월 목표 대비</div></div>
   </div>
+  <!-- Firebase 로드 상태 -->
+  <div id="firebaseStatus" style="font-size:11px;color:var(--muted);margin-bottom:6px;min-height:16px;"></div>
   <div id="rbann" class="rbann" style="display:none;">
     <strong id="br1">–</strong><span id="br2">–</span><span>·</span><span id="br3">–</span>
     <button class="rclr" onclick="clearSel()">✕ 초기화</button>
@@ -746,14 +814,242 @@ function renderPivot(wkNum) {
   document.getElementById('pvOuter').innerHTML = html;
 }
 
+
+/* ════════════════════════════════════════════════════════
+   엑셀 업로드 & Firebase 저장
+   index.html 과 동일한 parseWB 로직으로 파싱하여
+   Firebase에 저장 → 두 대시보드 모두 최신 데이터 사용
+   ════════════════════════════════════════════════════════ */
+
+// ─── 공유 DATA 객체 ───
+let DATA = { daily:[], d2c:[], cat:[], products:[], products_daily:{}, sub:null, targets:[], monthTargets:null };
+
+// ─── 셀 헬퍼 ───
+function cell(ws, r, c) { const a = XLSX.utils.encode_cell({r,c}); return ws[a]; }
+function cellV(ws, r, c, def=0) { const cel = cell(ws,r,c); if(!cel) return def; if(typeof cel.v==='number') return cel.v; const n=parseFloat(String(cel.v).replace(/,/g,'')); return isNaN(n)?def:n; }
+function cellS(ws, r, c) { const cel = cell(ws,r,c); if(!cel) return ''; return String(cel.v||'').trim(); }
+function fmtDate(v) {
+  if(!v) return null;
+  if(v instanceof Date) return `${v.getFullYear()}-${String(v.getMonth()+1).padStart(2,'0')}-${String(v.getDate()).padStart(2,'0')}`;
+  if(typeof v==='number') { const d=new Date(Math.round((v-25569)*86400000)); return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`; }
+  const s=String(v); if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
+  return null;
+}
+
+// ─── 시트 파싱 (index.html 동일) ───
+function parseDataRows(ws, rowMap) {
+  if (!ws) return [];
+  const rows = [];
+  for (let c = 2; ; c++) {
+    const dc = cell(ws, 4, c);
+    if (!dc || !dc.v) break;
+    const dateStr = fmtDate(dc.v);
+    if (!dateStr || dateStr === 'Invalid Date') break;
+    const row = { date: dateStr };
+    Object.entries(rowMap).forEach(([key, excelRow]) => { row[key] = cellV(ws, excelRow - 1, c); });
+    rows.push(row);
+  }
+  return rows;
+}
+
+function parseProdSheet(ws) {
+  if (!ws) return [];
+  const y = cellV(ws, 0, 0) || YEAR;
+  const m = cellV(ws, 0, 1) || MONTH;
+  const dateMap = {};
+  for (let c = 2; ; c++) {
+    const raw = cellV(ws, 1, c);
+    if (!raw) break;
+    const ds = fmtDate(raw);
+    if (!ds || ds === 'Invalid Date') break;
+    dateMap[c] = ds;
+  }
+  if (!Object.keys(dateMap).length) return [];
+  const prodRows = [];
+  for (let r = 2; ; r++) {
+    const nm = cellS(ws, r, 0);
+    if (!nm) break;
+    const cat = cellS(ws, r, 1) || '';
+    const dailySales = {};
+    Object.entries(dateMap).forEach(([c, ds]) => { dailySales[ds] = cellV(ws, r, +c) || 0; });
+    prodRows.push({ nm, cat, dailySales });
+  }
+  if (!prodRows.length) return [];
+  const dailyByDate = {};
+  prodRows.forEach(p => {
+    Object.entries(p.dailySales).forEach(([ds, val]) => {
+      if (!dailyByDate[ds]) dailyByDate[ds] = [];
+      dailyByDate[ds].push({ name: p.nm, category: p.cat, d2cSales: val });
+    });
+  });
+  DATA.products_daily = dailyByDate;
+  return prodRows.map(p => ({
+    year: y, month: m, name: p.nm, category: p.cat,
+    sales: Object.values(p.dailySales).reduce((s, v) => s + v, 0),
+    orders: 0, prevSales: 0,
+  }));
+}
+
+function parseSubSheet(ws) {
+  if (!ws) return null;
+  return {
+    year: cellV(ws,1,1), month: cellV(ws,1,2),
+    subTotal: cellV(ws,4,2), prevTotal: cellV(ws,4,3),
+    totalCnt: cellV(ws,5,2), activeCnt: cellV(ws,6,2),
+    cancelCnt: cellV(ws,7,2), ltr: cellV(ws,8,2), prevLtr: cellV(ws,8,3),
+    products: [], delivery: [],
+  };
+}
+
+function parseWB(wb) {
+  const ws1 = wb.Sheets['📅 일자별매출'];
+  const ws2 = wb.Sheets['🛒 D2C채널'];
+  const ws3 = wb.Sheets['🏷️ 카테고리매출'];
+  DATA.daily = parseDataRows(ws1, { online:7, offline:8, total:9, prevOnline:10, prevOffline:11, prevTotal:12 });
+  DATA.d2c   = parseDataRows(ws2, { ownSales:7, navSales:8, etcSales:9, ownUV:10, ownNewUV:11, ownRetUV:12, ownOrd:13, ownPrev:14, navPrev:15, etcPrev:16 });
+  DATA.cat   = parseDataRows(ws3, { skin:7, hair:8, body:9, sun:10, other:11 });
+  const newProds = parseProdSheet(wb.Sheets['📦 상품별매출']);
+  if (newProds.length) {
+    const nY = newProds[0].year, nM = newProds[0].month;
+    DATA.products = DATA.products.filter(p => !(p.year==nY && p.month==nM));
+    DATA.products = DATA.products.concat(newProds);
+  }
+  DATA.sub = parseSubSheet(wb.Sheets['🔄 정기결제']);
+  // 업로드 직후 일자별 대시보드 갱신
+  rebuildDailyDB();
+}
+
+// ─── 파싱된 DATA → 일자별 대시보드 DB 변환 ───
+function rebuildDailyDB() {
+  const pdRaw  = DATA.products_daily || {};
+  const d2cMap = {};
+  DATA.d2c.forEach(r => { if(r.date) d2cMap[r.date] = r; });
+  const dailyMap = {};
+  DATA.daily.forEach(r => { if(r.date) dailyMap[r.date] = r; });
+
+  const allDates = new Set([...Object.keys(pdRaw), ...Object.keys(dailyMap)]);
+  const db = {};
+  allDates.forEach(ds => {
+    const prodList = (pdRaw[ds]||[]).map(p => ({ nm: p.name, cat: p.category, d2c: p.d2cSales||0, off: 0 }));
+    const d2c  = d2cMap[ds] || {};
+    const tD   = prodList.reduce((s,p) => s+p.d2c, 0) || (d2c.ownSales||0);
+    const uv   = d2c.ownUV  || 0;
+    const ord  = d2c.ownOrd || 0;
+    const cvr  = uv > 0 ? parseFloat((ord/uv*100).toFixed(2)) : 0;
+    const daily= dailyMap[ds] || {};
+    const tO   = daily.offline || 0;
+    const tot  = daily.total   || (tD + tO);
+    db[ds] = { prods: prodList, tD, tO, tot, uv, cvr };
+  });
+  loadDailyData(db);
+}
+
+// ─── 파일 처리 ───
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+document.addEventListener('dragover', e => { e.preventDefault(); document.getElementById('dropOverlay').classList.add('active'); });
+document.addEventListener('dragleave', e => { if(!e.relatedTarget) document.getElementById('dropOverlay').classList.remove('active'); });
+document.addEventListener('drop', e => {
+  e.preventDefault();
+  document.getElementById('dropOverlay').classList.remove('active');
+  if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
+});
+function handleFile(e) { if (e.target.files[0]) processFile(e.target.files[0]); }
+
+function processFile(file) {
+  showToast('📂 파일을 읽는 중...');
+  const reader = new FileReader();
+  reader.onload = evt => {
+    try {
+      const wb = XLSX.read(evt.target.result, {type:'array', cellDates:true});
+      parseWB(wb);
+      document.getElementById('statusDot').style.background = '#FBBF24';
+      document.getElementById('statusDot').style.boxShadow = '0 0 0 3px rgba(251,191,36,0.3)';
+      document.getElementById('statusText').textContent = `📂 ${file.name} 로드됨 — [서버에 저장] 버튼을 눌러주세요`;
+      const saveBtn = document.getElementById('saveBtn');
+      saveBtn.disabled = false;
+      saveBtn.style.background = '#fff';
+      saveBtn.style.color = 'var(--blue)';
+      saveBtn.style.border = 'none';
+      showToast('✅ 파일 로드 완료! [서버에 저장] 버튼을 눌러주세요.');
+    } catch(err) { showToast('❌ 파일 오류: ' + err.message); console.error(err); }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ─── Firebase 저장 (index.html 과 동일 로직) ───
+async function saveDataToFirebase() {
+  const hasDaily = DATA.daily.length > 0;
+  const hasProds = DATA.products.length > 0;
+  if (!hasDaily && !hasProds) { showToast('⚠️ 먼저 엑셀 파일을 업로드해주세요.'); return; }
+  const saveBtn = document.getElementById('saveBtn');
+  saveBtn.innerHTML = '저장 중...'; saveBtn.disabled = true;
+  try {
+    const monthsSet = new Set();
+    DATA.daily.forEach(r => monthsSet.add(r.date.slice(0,7)));
+    DATA.products.forEach(p => { if(p.year&&p.month) monthsSet.add(`${p.year}-${String(p.month).padStart(2,'0')}`); });
+
+    for (const ym of monthsSet) {
+      const [y, m] = ym.split('-').map(Number);
+      const filterYM = r => r.date && r.date.startsWith(ym);
+      const pdYM = {};
+      Object.entries(DATA.products_daily||{}).forEach(([ds,arr]) => { if(ds.startsWith(ym)) pdYM[ds]=arr; });
+      const docRef  = dbF.collection('dashboard').doc(ym);
+      const existing = await docRef.get();
+      const prev    = existing.exists ? existing.data() : {};
+      const payload = {
+        daily:          DATA.daily.filter(filterYM).length ? DATA.daily.filter(filterYM) : (prev.daily||[]),
+        d2c:            DATA.d2c.filter(filterYM).length   ? DATA.d2c.filter(filterYM)   : (prev.d2c||[]),
+        cat:            DATA.cat.filter(filterYM).length   ? DATA.cat.filter(filterYM)   : (prev.cat||[]),
+        products:       DATA.products.filter(p=>p.year==y&&p.month==m).length ? DATA.products.filter(p=>p.year==y&&p.month==m) : (prev.products||[]),
+        products_daily: Object.keys(pdYM).length ? pdYM : (prev.products_daily||{}),
+        sub:            DATA.sub ? ((DATA.sub.year==y&&DATA.sub.month==m)?DATA.sub:prev.sub||null) : (prev.sub||null),
+        monthTargets:   DATA.monthTargets||prev.monthTargets||null,
+        updatedAt:      new Date().toISOString(),
+      };
+      await docRef.set(payload);
+    }
+    document.getElementById('statusDot').style.background = '#4ADE80';
+    document.getElementById('statusDot').style.boxShadow = '0 0 0 3px rgba(74,222,128,0.3)';
+    document.getElementById('statusText').textContent = '☁️ 서버 저장 완료 — 모든 기기에서 조회 가능';
+    saveBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px"><path d="M20 6L9 17l-5-5"/></svg> 저장 완료`;
+    saveBtn.style.background = 'rgba(74,222,128,0.25)'; saveBtn.style.color = '#fff'; saveBtn.style.border = '1.5px solid rgba(74,222,128,0.6)';
+    showToast('☁️ 서버 저장 완료! 다른 PC에서도 데이터가 표시됩니다.');
+    // 저장 후 Firebase에서 최신 데이터 다시 로드
+    await loadFromFirebase();
+  } catch(e) {
+    showToast('❌ 저장 실패: ' + e.message); console.error(e);
+    saveBtn.innerHTML = '서버에 저장'; saveBtn.disabled = false;
+  }
+}
+
 /* BOOT */
 initDash();
-  <!-- daily-dashboard.html 맨 아래, </body> 바로 위에 추가 -->
+/* ════════════════════════════════════════════════════════
+   FIREBASE 연동
+   index.html 에서 업로드·저장한 products_daily + d2c 데이터를
+   자동으로 읽어서 이 대시보드를 구동합니다.
+
+   사용법:
+   1. 아래 firebaseConfig 를 index.html 과 동일한 값으로 교체
+   2. GitHub Pages 에 배포하면 끝 — 별도 작업 불필요
+   ════════════════════════════════════════════════════════ */
+</script>
+
+<!-- XLSX 라이브러리 -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<!-- Firebase SDK (index.html 과 동일 버전) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
 <script>
-  // index.html과 완전히 동일한 값 사용
-  const firebaseConfig = {
+// ⚠️ index.html 의 firebaseConfig 와 완전히 동일한 값으로 교체하세요
+const firebaseConfig = {
   apiKey: "AIzaSyAm-Fnz1YKh7OKrPFKjAPO42BwTa3XPnOs",
   authDomain: "sales-dashboard-d4939.firebaseapp.com",
   projectId: "sales-dashboard-d4939",
@@ -761,38 +1057,101 @@ initDash();
   messagingSenderId: "996073785958",
   appId: "1:996073785958:web:62ef7dee215121f4ae3ba7"
 };
-  firebase.initializeApp(firebaseConfig);
-  const dbF = firebase.firestore();
 
-  // 연도·월 기준으로 Firebase에서 일자별 데이터 읽기
-  async function loadFromFirebase() {
-    const ym = `${YEAR}-${String(MONTH).padStart(2,'0')}`;
+firebase.initializeApp(firebaseConfig);
+const dbF = firebase.firestore();
+
+// ── Firebase에서 해당 연/월 데이터 로드 후 대시보드에 주입 ──
+async function loadFromFirebase() {
+  const ym = `${YEAR}-${String(MONTH).padStart(2,'0')}`;
+  try {
+    showLoadingState(true);
     const snap = await dbF.collection('dashboard').doc(ym).get();
-    if (!snap.exists) return;
+
+    if (!snap.exists) {
+      showLoadingState(false, '데이터 없음 — index.html에서 엑셀 업로드 후 저장하세요');
+      return;
+    }
 
     const raw = snap.data();
-    // raw.daily 배열을 daily-dashboard가 쓰는 DB 형태로 변환
-    const db = {};
-    (raw.daily || []).forEach(row => {
-      db[row.date] = {
-        prods: (row.products || []).map(p => ({
-          nm:  p.name,
-          cat: p.category,
-          d2c: p.d2cSales  || 0,
-          off: p.offSales   || 0,
-        })),
-        tD:  row.d2cTotal  || 0,
-        tO:  row.offTotal  || 0,
-        tot: row.total     || 0,
-        uv:  row.uv        || 0,
-        cvr: row.cvr       || 0,
-      };
-    });
-    loadDailyData(db); // daily-dashboard.html 안의 함수 호출
-  }
 
+    // products_daily: { 'YYYY-MM-DD': [{name, category, d2cSales}] }
+    const pdRaw = raw.products_daily || {};
+
+    // d2c: [{date, ownSales, ownUV, ownOrd, ...}]
+    const d2cRaw = raw.d2c || [];
+    const d2cMap = {};
+    d2cRaw.forEach(r => { if (r.date) d2cMap[r.date] = r; });
+
+    // daily: [{date, online, offline, total}]
+    const dailyRaw = raw.daily || [];
+    const dailyMap = {};
+    dailyRaw.forEach(r => { if (r.date) dailyMap[r.date] = r; });
+
+    // DB 형식으로 변환:
+    // { 'YYYY-MM-DD': { prods:[{nm,cat,d2c,off}], tD, tO, tot, uv, cvr } }
+    const db = {};
+
+    // 날짜 목록: products_daily 와 daily 의 합집합
+    const allDates = new Set([...Object.keys(pdRaw), ...Object.keys(dailyMap)]);
+
+    allDates.forEach(ds => {
+      // ① 상품별 데이터
+      const prodList = (pdRaw[ds] || []).map(p => ({
+        nm:  p.name,
+        cat: p.category,
+        d2c: p.d2cSales || 0,
+        off: 0,  // 오프라인 상품별 데이터는 현재 미지원
+      }));
+
+      // ② D2C 합계 (자사몰 매출, 유입수, 전환율)
+      const d2c  = d2cMap[ds] || {};
+      const tD   = prodList.reduce((s, p) => s + p.d2c, 0)
+                   || (d2c.ownSales || 0);
+      const uv   = d2c.ownUV  || 0;
+      const ord  = d2c.ownOrd || 0;
+      const cvr  = uv > 0 ? parseFloat((ord / uv * 100).toFixed(2)) : 0;
+
+      // ③ OMNI 합계
+      const daily = dailyMap[ds] || {};
+      const tO  = daily.offline || 0;
+      const tot = daily.total   || (tD + tO);
+
+      db[ds] = { prods: prodList, tD, tO, tot, uv, cvr };
+    });
+
+    loadDailyData(db);
+    showLoadingState(false, `☁️ ${ym} 데이터 로드 완료 (${Object.keys(db).length}일)`);
+
+  } catch(e) {
+    console.error('Firebase 로드 실패:', e);
+    showLoadingState(false, '❌ 데이터 로드 실패 — 콘솔 확인');
+  }
+}
+
+// ── 로딩 상태 표시 ──
+function showLoadingState(loading, msg) {
+  const el = document.getElementById('firebaseStatus');
+  if (!el) return;
+  el.textContent = loading ? '⏳ 데이터 불러오는 중...' : (msg || '');
+  el.style.color = loading ? 'var(--muted)' : (msg && msg.startsWith('❌') ? 'var(--red)' : 'var(--green)');
+}
+
+// 연/월 변경 시 자동 재로드
+const _origInitDash = initDash;
+initDash = function() {
+  YEAR  = +document.getElementById('selYear').value;
+  MONTH = +document.getElementById('selMonth').value;
+  DB    = {};
+  WKS   = buildWeeks(YEAR, MONTH, BASE_YEAR);
+  selS  = null; selE = null; actWk = null; pick = false;
+  document.getElementById('wkCmp').style.display = 'none';
+  renderCal(); renderOmniWk(); updateAll();
   loadFromFirebase();
-</script>
-</script>
+};
+
+// 최초 로드
+loadFromFirebase();
+
 </body>
 </html>
