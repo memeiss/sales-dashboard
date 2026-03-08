@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>일자·주차별 매출 분석</title>
+<link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root{
+  --blue:#2563EB;--blue-lt:#EFF6FF;--blue-mid:#DBEAFE;
+  --green:#16A34A;--green-lt:#F0FDF4;--green-mid:#BBF7D0;
+  --red:#DC2626;--red-lt:#FEF2F2;
+  --amber:#D97706;--amber-lt:#FFFBEB;
+  --text:#1E293B;--text2:#475569;--muted:#94A3B8;
+  --bg:#F1F5F9;--border:#E2E8F0;
+  --sh:0 1px 3px rgba(0,0,0,.07),0 1px 2px rgba(0,0,0,.04);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);color:var(--text);font-size:14px;-webkit-font-smoothing:antialiased;}
+/* TOPBAR */
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:0 22px;height:52px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:100;box-shadow:0 1px 6px rgba(0,0,0,.06);}
+.lb{width:30px;height:30px;border-radius:7px;background:var(--blue);color:#fff;font-weight:800;font-size:11px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.topbar h1{font-size:13px;font-weight:800;}.topbar small{font-size:10px;color:var(--muted);}
+.tnav{display:flex;gap:2px;margin-left:12px;}
+.nb{padding:4px 11px;border-radius:6px;border:none;background:transparent;color:var(--text2);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:.13s;}
+.nb:hover{background:var(--bg);}.nb.on{background:var(--blue-lt);color:var(--blue);}
+.tr{margin-left:auto;display:flex;align-items:center;gap:6px;}
+.sw{display:flex;align-items:center;gap:4px;background:var(--bg);border-radius:7px;padding:4px 10px;}
+.sw label{font-size:9px;color:var(--muted);font-weight:700;}
+.sw select{border:none;background:transparent;font-family:inherit;font-size:11px;font-weight:700;color:var(--text);cursor:pointer;outline:none;}
+/* LAYOUT */
+.main{padding:14px 22px 40px;max-width:1520px;margin:0 auto;}
+.layout{display:grid;grid-template-columns:296px 1fr;gap:12px;align-items:start;}
+.rc{display:flex;flex-direction:column;gap:12px;}
+/* CARD */
+.card{background:#fff;border-radius:12px;border:1px solid var(--border);padding:14px 16px;box-shadow:var(--sh);}
+.ct{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;display:flex;align-items:center;gap:4px;}
+.ct em{color:var(--text);font-style:normal;}
+/* KPI */
+.krow{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:12px;}
+.kpi{background:#fff;border-radius:10px;border:1px solid var(--border);padding:11px 13px;box-shadow:var(--sh);}
+.kl{font-size:9px;color:var(--muted);font-weight:700;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.kv{font-size:13px;font-weight:800;letter-spacing:-.3px;line-height:1.25;word-break:keep-all;}
+.ks{font-size:9px;margin-top:2px;color:var(--muted);}
+.up{color:var(--green);font-weight:700;}.dn{color:var(--red);font-weight:700;}.neu{color:var(--muted);}
+/* BANNER */
+.rbann{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 12px;background:var(--blue-lt);border-radius:9px;border:1px solid var(--blue-mid);font-size:11px;margin-bottom:10px;}
+.rbann strong{font-weight:800;color:var(--blue);}
+.rclr{margin-left:auto;padding:2px 9px;border-radius:5px;border:1px solid var(--blue-mid);background:#fff;color:var(--blue);font-size:10px;font-weight:700;cursor:pointer;font-family:inherit;}
+/* SECTION DIVIDER */
+.sdv{display:flex;align-items:center;gap:6px;padding:7px 11px;border-radius:8px;font-size:11px;font-weight:800;margin:2px 0;}
+.sdv.o{background:linear-gradient(90deg,var(--blue-lt),#F8FAFC);border-left:3px solid var(--blue);color:var(--blue);}
+.sdv.d{background:linear-gradient(90deg,var(--green-lt),#F8FAFC);border-left:3px solid var(--green);color:var(--green);}
+.sdvr{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:7px;font-size:11px;font-weight:800;}
+.sdvr.o{background:var(--blue-lt);color:var(--blue);}
+.sdvr.d{background:var(--green-lt);color:var(--green);}
+/* CALENDAR */
+.ctop{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.cmon{font-size:13px;font-weight:800;}
+.rtog{display:flex;align-items:center;gap:4px;font-size:9px;color:var(--muted);font-weight:700;cursor:pointer;user-select:none;}
+.trk{width:27px;height:14px;border-radius:7px;background:var(--border);position:relative;transition:.2s;flex-shrink:0;}
+.trk.on{background:var(--blue);}
+.tth{width:10px;height:10px;border-radius:50%;background:#fff;position:absolute;top:2px;left:2px;transition:.2s;box-shadow:0 1px 2px rgba(0,0,0,.2);}
+.trk.on .tth{left:15px;}
+.dhdr{display:grid;grid-template-columns:repeat(7,1fr);margin-bottom:2px;}
+.dhc{text-align:center;font-size:8px;font-weight:700;color:var(--muted);padding:2px 0;}
+.dhc.sat{color:#3B82F6;}.dhc.sun{color:#EF4444;}
+.cgrd{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;}
+.day{aspect-ratio:1;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:1.5px solid transparent;transition:.1s;position:relative;padding:1px;min-height:33px;}
+.day:hover:not(.nd):not(.emp){background:var(--blue-lt);border-color:var(--blue-mid);}
+.day.emp{pointer-events:none;}.day.nd{cursor:default;}
+.day.sat .dn2{color:#3B82F6;}.day.sun .dn2{color:#EF4444;}
+.day.sel{background:var(--blue)!important;border-color:var(--blue)!important;}
+.day.sel .dn2,.day.sel .dv{color:#fff!important;}
+.day.rs{background:var(--blue);border-color:var(--blue);border-radius:6px 0 0 6px;}
+.day.re{background:var(--blue);border-color:var(--blue);border-radius:0 6px 6px 0;}
+.day.rs .dn2,.day.re .dn2,.day.rs .dv,.day.re .dv{color:#fff!important;}
+.day.ir{background:var(--blue-lt);border-color:var(--blue-mid);border-radius:0;}
+.dn2{font-size:10px;font-weight:700;line-height:1;}
+.dv{font-size:7px;color:var(--muted);font-weight:600;margin-top:1px;line-height:1;}
+.dbar{width:68%;height:2px;border-radius:2px;background:var(--green);opacity:.6;margin-top:1px;}
+.ddot{width:3px;height:3px;border-radius:50%;background:var(--green);position:absolute;bottom:2px;}
+.clgd{display:flex;align-items:center;gap:7px;margin-top:7px;flex-wrap:wrap;}
+.clgd span{font-size:8px;color:var(--muted);display:flex;align-items:center;gap:2px;}
+/* WEEK BTN */
+.wkbar{display:flex;flex-direction:column;gap:4px;}
+.wkb{display:flex;align-items:center;padding:7px 10px;border-radius:8px;border:1.5px solid var(--border);background:#fff;cursor:pointer;font-family:inherit;transition:.13s;gap:7px;width:100%;text-align:left;}
+.wkb:hover{border-color:var(--blue);background:var(--blue-lt);}
+.wkb.on{background:var(--blue);border-color:var(--blue);}
+.wkb.gon{background:var(--green);border-color:var(--green);}
+.wn{font-size:11px;font-weight:800;color:var(--text);min-width:30px;}
+.wkb.on .wn,.wkb.on .wr,.wkb.on .wa,.wkb.gon .wn,.wkb.gon .wr,.wkb.gon .wa{color:#fff;}
+.wr{font-size:8px;color:var(--muted);flex:1;line-height:1.3;}
+.wa{font-size:10px;font-weight:700;color:var(--text2);}
+.wtag{font-size:8px;font-weight:700;padding:1px 5px;border-radius:10px;}
+.wtag.up{background:var(--green-lt);color:var(--green);}.wtag.dn{background:var(--red-lt);color:var(--red);}.wtag.neu{background:var(--bg);color:var(--muted);}
+.wkb.on .wtag,.wkb.gon .wtag{background:rgba(255,255,255,.22);color:#fff;}
+/* WEEK COMPARE */
+.wcmp{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:8px;}
+.wsd{border-radius:8px;padding:9px 11px;}
+.wsd.prev{background:var(--bg);border:1px solid var(--border);}
+.wsd.curr{background:var(--blue-lt);border:1px solid var(--blue-mid);}
+.wsl{font-size:8px;font-weight:700;color:var(--muted);margin-bottom:2px;}
+.wsd.curr .wsl{color:var(--blue);}
+.wsv{font-size:12px;font-weight:800;}
+.wsd.curr .wsv{color:var(--blue);}
+.wsr{font-size:8px;color:var(--muted);margin-top:1px;}
+.wbg{display:flex;align-items:center;justify-content:center;gap:5px;padding:7px;border-radius:7px;}
+.wbg.up{background:var(--green-lt);}.wbg.dn{background:var(--red-lt);}.wbg.neu{background:var(--bg);}
+.wpct{font-size:17px;font-weight:800;}
+.wpct.up{color:var(--green);}.wpct.dn{color:var(--red);}.wpct.neu{color:var(--muted);}
+.wlbl{font-size:10px;color:var(--text2);font-weight:600;}
+/* DOW */
+.dmap{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
+.dcol{display:flex;flex-direction:column;align-items:center;gap:3px;}
+.dlbl{font-size:9px;font-weight:700;color:var(--muted);}
+.dlbl.sat{color:#3B82F6;}.dlbl.sun{color:#EF4444;}
+.dbw{width:100%;height:56px;background:var(--bg);border-radius:6px;display:flex;align-items:flex-end;overflow:hidden;}
+.dbf{width:100%;border-radius:5px;transition:.4s;}
+.dvl{font-size:8px;font-weight:700;color:var(--text2);text-align:center;}
+.dct{font-size:7px;color:var(--muted);}
+/* CAT */
+.cri{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+.cdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.cnm{font-size:10px;font-weight:600;color:var(--text2);min-width:60px;}
+.cbg{flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden;}
+.cbf{height:100%;border-radius:3px;transition:.4s;}
+.cvl{font-size:10px;font-weight:700;min-width:40px;text-align:right;}
+.cpct{font-size:9px;color:var(--muted);min-width:28px;text-align:right;}
+/* SEC HDR */
+.shd{display:flex;align-items:center;gap:7px;margin-bottom:10px;}
+.sico{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;}
+.shd h2{font-size:13px;font-weight:800;}.shd p{font-size:10px;color:var(--muted);}
+.c2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+/* PIVOT */
+.pvo{overflow:auto;border-radius:9px;border:1px solid var(--border);}
+.pvt{border-collapse:collapse;font-size:11px;width:max-content;min-width:100%;}
+
+/* thead row 1: week group headers */
+.pvt thead .rg th{background:var(--bg);padding:7px 10px;font-size:10px;font-weight:800;white-space:nowrap;border-bottom:1px solid var(--border);border-right:1px solid var(--border);text-align:center;}
+.pvt thead .rg th.tnm{position:sticky;left:0;z-index:3;background:var(--bg);text-align:left;border-right:2px solid var(--border);min-width:112px;vertical-align:middle;}
+.pvt thead .rg th.tprev{background:#F8FAFC;color:var(--text2);}
+.pvt thead .rg th.tcurr{background:var(--blue-lt);color:var(--blue);}
+.pvt thead .rg th.twow{background:var(--amber-lt);color:var(--amber);}
+/* thead row 2: col labels - sticky */
+.pvt thead .rl th{background:var(--bg);padding:5px 10px;font-size:9px;font-weight:700;color:var(--muted);white-space:nowrap;border-bottom:2px solid var(--border);border-right:1px solid var(--border);position:sticky;top:0;z-index:2;text-align:right;}
+.pvt thead .rl th.tnm{position:sticky;left:0;top:0;z-index:4;background:var(--bg);text-align:left;border-right:2px solid var(--border);}
+.pvt thead .rl th.tprev{background:#F8FAFC;}
+.pvt thead .rl th.tcurr{background:var(--blue-lt);}
+.pvt thead .rl th.twow{background:var(--amber-lt);text-align:center;}
+/* tbody */
+.pvt tbody tr.chd td{background:#F8FAFC;font-size:10px;font-weight:800;color:var(--text2);padding:5px 10px;border-bottom:1px solid var(--border);}
+.pvt tbody tr.chd td.tnm{position:sticky;left:0;z-index:1;background:#F8FAFC;border-right:2px solid var(--border);}
+.pvt tbody tr td{padding:6px 10px;border-bottom:1px solid #F1F5F9;border-right:1px solid #F8FAFC;white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums;}
+.pvt tbody tr td.tnm{position:sticky;left:0;z-index:1;background:#fff;text-align:left;font-weight:600;border-right:2px solid var(--border);}
+.pvt tbody tr td.cprev{color:var(--text2);background:#FAFAFA;}
+.pvt tbody tr td.ccurr{font-weight:700;background:var(--blue-lt);}
+.pvt tbody tr td.cwow{text-align:center;background:var(--amber-lt);font-weight:700;font-size:11px;}
+.pvt tbody tr td.cwow.up{color:var(--green);}.pvt tbody tr td.cwow.dn{color:var(--red);}.pvt tbody tr td.cwow.neu{color:var(--muted);}
+.pvt tbody tr:not(.chd):hover td{filter:brightness(.97);}
+.empty{text-align:center;padding:28px;color:var(--muted);}
+.empty .ei{font-size:22px;margin-bottom:6px;}.empty p{font-size:11px;}
+@media(max-width:1020px){.layout{grid-template-columns:1fr;}.krow{grid-template-columns:repeat(4,1fr);}.c2{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="lb">OD</div>
+  <div><h1>OMNI Sales Dashboard</h1><small>일자·주차별 상세 매출 분석</small></div>
+  <div class="tnav">
+    <button class="nb" onclick="location.href='index.html'">← 월간 요약</button>
+    <button class="nb on">📅 일자·주차 분석</button>
+  </div>
+  <div class="tr">
+    <div class="sw"><label>연도</label>
+      <select id="selYear" onchange="initDash()"><option value="2026" selected>2026</option><option value="2025">2025</option></select>
+    </div>
+    <div class="sw"><label>월</label>
+      <select id="selMonth" onchange="initDash()">
+        <option value="1">1월</option><option value="2" selected>2월</option><option value="3">3월</option><option value="4">4월</option>
+        <option value="5">5월</option><option value="6">6월</option><option value="7">7월</option><option value="8">8월</option>
+        <option value="9">9월</option><option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <!-- KPI 7개 -->
+  <!-- OMNI 섹션 타이틀 (KPI 위) -->
+  <div class="sdvr o" style="margin-bottom:8px;">📊 OMNI — 주차별 매출 현황</div>
+  <div class="krow">
+    <div class="kpi"><div class="kl">📦 선택 기간 매출</div><div class="kv" id="kv1">–</div><div class="ks" id="ks1">기간 선택</div></div>
+    <div class="kpi"><div class="kl">📅 일 평균 매출</div><div class="kv" id="kv2">–</div><div class="ks" id="ks2">–</div></div>
+    <div class="kpi"><div class="kl">🏆 최고 매출일</div><div class="kv" id="kv3">–</div><div class="ks" id="ks3">–</div></div>
+    <div class="kpi"><div class="kl">📈 전주 대비 (WoW)</div><div class="kv" id="kv4">–</div><div class="ks" id="ks4">주차 선택</div></div>
+    <div class="kpi"><div class="kl">🛒 D2C (자사몰) 매출</div><div class="kv" id="kv5">–</div><div class="ks" id="ks5">–</div></div>
+    <div class="kpi"><div class="kl">🏪 오프라인 매출</div><div class="kv" id="kv6">–</div><div class="ks" id="ks6">–</div></div>
+    <div class="kpi"><div class="kl">🎯 진척율 (%)</div><div class="kv" id="kv7">–</div><div class="ks" id="ks7">월 목표 대비</div></div>
+  </div>
+  <div id="rbann" class="rbann" style="display:none;">
+    <strong id="br1">–</strong><span id="br2">–</span><span>·</span><span id="br3">–</span>
+    <button class="rclr" onclick="clearSel()">✕ 초기화</button>
+  </div>
+
+  <div class="layout">
+    <!-- LEFT -->
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <!-- CALENDAR -->
+      <div class="card">
+        <div class="ctop">
+          <div class="cmon" id="calTitle">2026년 2월</div>
+          <div class="rtog" onclick="toggleRange()">범위<div class="trk" id="rtk"><div class="tth"></div></div></div>
+        </div>
+        <div class="dhdr">
+          <div class="dhc">월</div><div class="dhc">화</div><div class="dhc">수</div>
+          <div class="dhc">목</div><div class="dhc">금</div>
+          <div class="dhc sat">토</div><div class="dhc sun">일</div>
+        </div>
+        <div class="cgrd" id="calGrid"></div>
+        <div class="clgd">
+          <span><div style="width:5px;height:5px;border-radius:50%;background:var(--green);"></div>데이터</span>
+          <span><div style="width:5px;height:5px;border-radius:2px;background:var(--blue);"></div>선택</span>
+          <span><div style="width:5px;height:5px;border-radius:2px;background:var(--blue-lt);border:1px solid var(--blue-mid);"></div>범위</span>
+          <button onclick="clearSel()" style="margin-left:auto;padding:1px 7px;border-radius:4px;border:1px solid var(--border);background:var(--bg);color:var(--text2);font-size:8px;font-weight:700;cursor:pointer;font-family:inherit;">초기화</button>
+        </div>
+      </div>
+      <!-- OMNI 주차 -->
+      <div class="card" style="padding:12px 14px;">
+        <div class="ct">🗓️ 주차 선택 <em id="wkSub"></em></div>
+        <div class="wkbar" id="omniWk"></div>
+      </div>
+      <!-- WK COMPARE -->
+      <div class="card" id="wkCmp" style="display:none;padding:12px 14px;">
+        <div class="ct">⚡ 전주 대비 (OMNI)</div>
+        <div class="wcmp">
+          <div class="wsd prev"><div class="wsl" id="wp-l">전주</div><div class="wsv" id="wp-v">–</div><div class="wsr" id="wp-r">–</div></div>
+          <div class="wsd curr"><div class="wsl" id="wc-l">이번주</div><div class="wsv" id="wc-v">–</div><div class="wsr" id="wc-r">–</div></div>
+        </div>
+        <div class="wbg neu" id="wbg"><div class="wpct neu" id="wpct">–</div><div class="wlbl" id="wlbl">–</div></div>
+        <div style="height:88px;margin-top:9px;"><canvas id="wkLine"></canvas></div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="rc">
+      <div class="sdvr d">🛒 자사몰 — 주차별 매출 현황</div>
+      <!-- 주차바 + 카테고리 -->
+      <div class="c2">
+        <div class="card">
+          <div class="ct">📊 주차별 OMNI 매출 <em id="wkBL"></em></div>
+          <div style="height:168px;"><canvas id="wkBar"></canvas></div>
+        </div>
+        <div class="card">
+          <div class="ct">🏷️ 카테고리별 매출 <em id="catL"></em></div>
+          <div id="catC" style="padding-top:2px;"></div>
+        </div>
+      </div>
+      <!-- 자사몰 일자별 매출 추이 및 전환율 -->
+      <div class="card">
+        <div class="shd">
+          <div class="sico" style="background:var(--green-lt);">📈</div>
+          <div><h2>자사몰 일자별 매출 추이 및 전환율</h2><p id="trendSub">자사몰 매출 · 전체 유입수 · 전환율(%)</p></div>
+        </div>
+        <div style="height:200px;"><canvas id="trendC"></canvas></div>
+      </div>
+      <!-- 요일별 히트맵 (월→일) -->
+      <div class="card">
+        <div class="ct">📅 요일별 평균 매출 히트맵 <em id="dowL">(월 → 일 기준)</em></div>
+        <div class="dmap" id="dowMap"></div>
+      </div>
+      <!-- 피벗 -->
+      <div class="card">
+        <div class="shd">
+          <div class="sico" style="background:var(--amber-lt);">🛍️</div>
+          <div><h2>상품별 주차 매출 피벗 (전주 대비 증감)</h2><p id="pvSub">좌측에서 주차를 선택하면 전주 대비 피벗이 표시됩니다</p></div>
+        </div>
+        <div class="pvo" id="pvOuter">
+          <div class="empty"><div class="ei">📅</div><p>좌측에서 주차(WK)를 선택하세요</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════════
+   주차 기준: 2026년 1월 1일(목) 포함 월요일 주 = WK01
+   → WK01 시작: 2025-12-29(월)
+   ════════════════════════════════════════════════════════ */
+const BASE_YEAR = 2026;
+
+function getWk1Start(baseYear) {
+  const jan1 = new Date(baseYear, 0, 1);
+  const dow = jan1.getDay(); // 0=Sun
+  const dToMon = dow === 0 ? -6 : 1 - dow;
+  const s = new Date(jan1);
+  s.setDate(jan1.getDate() + dToMon);
+  return s; // always Monday
+}
+
+function dateToWk(date, baseYear) {
+  const wk1 = getWk1Start(baseYear);
+  return Math.floor((date - wk1) / (7 * 86400000)) + 1;
+}
+
+function wkToStart(wkNum, baseYear) {
+  const wk1 = getWk1Start(baseYear);
+  return new Date(+wk1 + (wkNum - 1) * 7 * 86400000);
+}
+
+function buildWeeks(year, month, baseYear) {
+  const days = new Date(year, month, 0).getDate();
+  const seen = new Set(), weeks = [];
+  for (let d = 1; d <= days; d++) {
+    const wkNum = dateToWk(new Date(year, month - 1, d), baseYear);
+    if (!seen.has(wkNum)) {
+      seen.add(wkNum);
+      const fs = wkToStart(wkNum, baseYear);
+      const fe = new Date(+fs + 6 * 86400000);
+      // clamp start: first d in this month belonging to this week
+      let cs = d;
+      // clamp end: last d in this month belonging to this week
+      let ce = d;
+      while (ce < days && dateToWk(new Date(year, month - 1, ce + 1), baseYear) === wkNum) ce++;
+      weeks.push({
+        wk: wkNum, clampS: cs, clampE: ce,
+        fS: { y: fs.getFullYear(), m: fs.getMonth() + 1, d: fs.getDate() },
+        fE: { y: fe.getFullYear(), m: fe.getMonth() + 1, d: fe.getDate() }
+      });
+      d = ce;
+    }
+  }
+  return weeks;
+}
+
+/* ════════════════════════════════════════════════════════
+   카테고리 설정 & 월 목표
+   DB 구조: {
+     'YYYY-MM-DD': {
+       prods: [{ nm, cat, d2c, off }],
+       tD: number,   // 자사몰 합계
+       tO: number,   // 오프라인 합계
+       tot: number,  // OMNI 합계
+       uv: number,   // 자사몰 유입수
+       cvr: number   // 전환율(%)
+     }, ...
+   }
+   index.html의 Firebase 데이터를 로드한 뒤
+   loadDailyData(db) 를 호출하여 주입하세요.
+   ════════════════════════════════════════════════════════ */
+const CCAT = { '새벽배송':'#2563EB','건강케어':'#0891B2','질환케어':'#059669','보충케어':'#7C3AED','이벤트/기타':'#EA580C' };
+const CORD = ['새벽배송','건강케어','질환케어','보충케어','이벤트/기타'];
+const TARGET = 350000000; // 월 목표 (연동 시 교체)
+
+/* 외부에서 실제 데이터 주입 시 호출 */
+function loadDailyData(db) {
+  DB = db;
+  WKS = buildWeeks(YEAR, MONTH, BASE_YEAR);
+  renderCal(); renderOmniWk(); updateAll();
+}
+
+/* STATE */
+let YEAR = 2026, MONTH = 2;
+let DB = {}; // 실제 데이터 연동 전 빈 상태
+let WKS = buildWeeks(YEAR, MONTH, BASE_YEAR);
+let selS = null, selE = null, rmOn = false, pick = false, actWk = null;
+let CH = {};
+
+/* HELPERS */
+function p2(n) { return String(n).padStart(2, '0'); }
+function fmtD(d) { return `${YEAR}-${p2(MONTH)}-${p2(d)}`; }
+function fmtW(v) { if (!v && v !== 0) return '–'; return Math.round(v).toLocaleString('ko-KR') + '원'; }
+function fmtK(v) { if (!v) return '–'; if (v >= 100000000) return (v / 100000000).toFixed(1) + '억'; if (v >= 10000) return Math.round(v / 10000).toLocaleString() + '만'; return v.toLocaleString(); }
+function pct(a, b) { if (!b) return null; return ((a - b) / b * 100).toFixed(1); }
+function fmtR(w) { const f = o => `${String(o.y).slice(2)}.${p2(o.m)}.${p2(o.d)}`; return `${f(w.fS)}–${f(w.fE)}`; }
+
+/* INIT */
+function initDash() {
+  YEAR = +document.getElementById('selYear').value;
+  MONTH = +document.getElementById('selMonth').value;
+  DB = {}; // 실제 연동 시 loadDailyData(db) 로 주입
+  WKS = buildWeeks(YEAR, MONTH, BASE_YEAR);
+  selS = null; selE = null; actWk = null; pick = false;
+  document.getElementById('wkCmp').style.display = 'none';
+  renderCal(); renderOmniWk(); updateAll();
+}
+
+/* CALENDAR (월요일 시작) */
+function renderCal() {
+  const days = new Date(YEAR, MONTH, 0).getDate();
+  const fd = new Date(YEAR, MONTH - 1, 1).getDay();
+  const off = fd === 0 ? 6 : fd - 1; // Mon=0
+  document.getElementById('calTitle').textContent = `${YEAR}년 ${MONTH}월`;
+  let mx = 0; for (let d = 1; d <= days; d++) { const v = DB[fmtD(d)]?.tot || 0; if (v > mx) mx = v; }
+  const g = document.getElementById('calGrid'); g.innerHTML = '';
+  for (let i = 0; i < off; i++) { const e = document.createElement('div'); e.className = 'day emp'; g.appendChild(e); }
+  for (let d = 1; d <= days; d++) {
+    const dt = fmtD(d), dow = new Date(dt).getDay(), has = !!(DB[dt]?.tot);
+    const el = document.createElement('div');
+    let cls = 'day';
+    if (!has) cls += ' nd';
+    if (dow === 6) cls += ' sat'; if (dow === 0) cls += ' sun';
+    const lo = selS && selE ? Math.min(selS, selE) : selS;
+    const hi = selS && selE ? Math.max(selS, selE) : selS;
+    if (selS && !selE && d === selS) cls += ' sel';
+    if (selS && selE) {
+      if (d === lo && lo !== hi) cls += ' rs';
+      else if (d === hi && lo !== hi) cls += ' re';
+      else if (d === lo && lo === hi) cls += ' sel';
+      else if (d > lo && d < hi) cls += ' ir';
+    }
+    el.className = cls;
+    const pp = mx > 0 ? (DB[dt]?.tot || 0) / mx * 100 : 0;
+    el.innerHTML = `<div class="dn2">${d}</div>` +
+      (has ? `<div class="dv">${fmtK(DB[dt].tot)}</div><div class="dbar" style="width:${Math.max(20, pp)}%;"></div><div class="ddot"></div>`
+           : `<div style="width:3px;height:3px;border-radius:50%;background:var(--border);margin-top:1px;"></div>`);
+    el.onclick = () => onDay(d);
+    g.appendChild(el);
+  }
+}
+
+function onDay(d) {
+  if (!DB[fmtD(d)]) return;
+  if (!rmOn) { selS = (selS === d && !selE) ? null : d; selE = null; }
+  else { if (!pick) { selS = d; selE = null; pick = true; } else { if (d < selS) { selE = selS; selS = d; } else selE = d; pick = false; } }
+  actWk = null;
+  document.querySelectorAll('.wkb').forEach(b => { b.classList.remove('on', 'gon'); });
+  renderCal(); updateAll();
+}
+function toggleRange() { rmOn = !rmOn; document.getElementById('rtk').classList.toggle('on', rmOn); clearSel(); }
+function clearSel() {
+  selS = null; selE = null; pick = false; actWk = null;
+  document.querySelectorAll('.wkb').forEach(b => { b.classList.remove('on', 'gon'); });
+  document.getElementById('wkCmp').style.display = 'none';
+  renderCal(); updateAll();
+}
+
+/* WEEK SUM */
+function swk(w, key = 'tot') { let t = 0; for (let d = w.clampS; d <= w.clampE; d++) t += DB[fmtD(d)]?.[key] || 0; return t; }
+
+/* OMNI WK BAR */
+function renderOmniWk() {
+  const bar = document.getElementById('omniWk'); bar.innerHTML = '';
+  WKS.forEach((w, i) => {
+    const wT = swk(w), pT = i > 0 ? swk(WKS[i - 1]) : null;
+    const p = pT !== null ? pct(wT, pT) : null, up = p !== null ? parseFloat(p) >= 0 : null;
+    const btn = document.createElement('button');
+    btn.className = 'wkb' + (actWk === w.wk ? ' on' : '');
+    btn.innerHTML = `<span class="wn">WK${p2(w.wk)}</span><span class="wr">${fmtR(w)}</span><span class="wa">${fmtK(wT)}</span><span class="wtag ${p !== null ? (up ? 'up' : 'dn') : 'neu'}">${p !== null ? (up ? '▲' : '▼') + Math.abs(p) + '%' : '–'}</span>`;
+    btn.onclick = () => selWk(w.wk);
+    bar.appendChild(btn);
+  });
+  document.getElementById('wkSub').textContent = WKS.length ? `(WK${p2(WKS[0].wk)}~WK${p2(WKS[WKS.length - 1].wk)})` : '';
+}
+
+/* D2C WK BAR */
+function renderD2cWk() {
+  const bar = document.getElementById('d2cWk'); bar.innerHTML = '';
+  WKS.forEach((w, i) => {
+    const wT = swk(w, 'tD'), pT = i > 0 ? swk(WKS[i - 1], 'tD') : null;
+    const p = pT !== null ? pct(wT, pT) : null, up = p !== null ? parseFloat(p) >= 0 : null;
+    const btn = document.createElement('button');
+    btn.className = 'wkb' + (actWk === w.wk ? ' gon' : '');
+    btn.innerHTML = `<span class="wn">WK${p2(w.wk)}</span><span class="wr">${fmtR(w)}</span><span class="wa">${fmtK(wT)}</span><span class="wtag ${p !== null ? (up ? 'up' : 'dn') : 'neu'}">${p !== null ? (up ? '▲' : '▼') + Math.abs(p) + '%' : '–'}</span>`;
+    btn.onclick = () => selWk(w.wk);
+    bar.appendChild(btn);
+  });
+}
+
+function selWk(wkNum) {
+  actWk = wkNum;
+  const w = WKS.find(x => x.wk === wkNum);
+  selS = w.clampS; selE = w.clampE;
+  document.querySelectorAll('#omniWk .wkb').forEach((b, i) => b.classList.toggle('on', WKS[i]?.wk === wkNum));
+  renderCal(); updateAll(); renderWkCompare(wkNum);
+}
+
+function renderWkCompare(wkNum) {
+  document.getElementById('wkCmp').style.display = 'block';
+  const curr = WKS.find(w => w.wk === wkNum), prev = WKS.find(w => w.wk === wkNum - 1);
+  const cT = swk(curr), pT = prev ? swk(prev) : 0;
+  const p = prev ? pct(cT, pT) : null, up = p !== null ? parseFloat(p) >= 0 : null;
+  document.getElementById('wc-l').textContent = `WK${p2(wkNum)} 이번주`;
+  document.getElementById('wc-v').textContent = fmtW(cT);
+  document.getElementById('wc-r').textContent = fmtR(curr);
+  if (prev) {
+    document.getElementById('wp-l').textContent = `WK${p2(wkNum - 1)} 전주`;
+    document.getElementById('wp-v').textContent = fmtW(pT);
+    document.getElementById('wp-r').textContent = fmtR(prev);
+    document.getElementById('wbg').className = `wbg ${up ? 'up' : 'dn'}`;
+    document.getElementById('wpct').className = `wpct ${up ? 'up' : 'dn'}`;
+    document.getElementById('wpct').textContent = `${up ? '+' : ''}${p}%`;
+    document.getElementById('wlbl').textContent = `전주 대비 ${up ? '증가 ▲' : '감소 ▼'}`;
+    document.getElementById('kv4').innerHTML = `<span class="${up ? 'up' : 'dn'}">${up ? '+' : ''}${p}%</span>`;
+    document.getElementById('ks4').innerHTML = `<span class="${up ? 'up' : 'dn'}">WK${p2(wkNum - 1)}→WK${p2(wkNum)}</span>`;
+  } else {
+    document.getElementById('wp-l').textContent = '전주';
+    document.getElementById('wp-v').textContent = '–';
+    document.getElementById('wp-r').textContent = '첫째 주';
+    document.getElementById('wbg').className = 'wbg neu';
+    document.getElementById('wpct').className = 'wpct neu'; document.getElementById('wpct').textContent = '–';
+    document.getElementById('wlbl').textContent = '첫째 주 — 비교 없음';
+    document.getElementById('kv4').textContent = '–'; document.getElementById('ks4').textContent = '첫째 주';
+  }
+  renderWkLine(curr, prev);
+}
+
+function renderWkLine(curr, prev) {
+  if (CH.wl) CH.wl.destroy();
+  const len = Math.max(curr.clampE - curr.clampS + 1, prev ? prev.clampE - prev.clampS + 1 : 0);
+  const lbs = Array.from({ length: len }, (_, i) => `${i + 1}일`);
+  const cV = Array.from({ length: len }, (_, i) => { const d = curr.clampS + i; return d <= curr.clampE ? DB[fmtD(d)]?.tot || 0 : null; });
+  const pV = prev ? Array.from({ length: len }, (_, i) => { const d = prev.clampS + i; return d <= prev.clampE ? DB[fmtD(d)]?.tot || 0 : null; }) : null;
+  const ds = [{ label: `WK${p2(curr.wk)}`, data: cV, borderColor: '#2563EB', borderWidth: 2, tension: .4, pointRadius: 3, fill: false }];
+  if (pV) ds.push({ label: `WK${p2(curr.wk - 1)}`, data: pV, borderColor: '#94A3B8', borderWidth: 1.5, tension: .4, pointRadius: 2, fill: false, borderDash: [4, 3] });
+  CH.wl = new Chart(document.getElementById('wkLine'), {
+    type: 'line', data: { labels: lbs, datasets: ds },
+    options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+      plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 7, font: { size: 8 } } }, tooltip: { callbacks: { label: c => c.dataset.label + ': ' + fmtW(c.raw || 0) } } },
+      scales: { x: { ticks: { font: { size: 7 } } }, y: { ticks: { callback: v => Math.round(v / 10000) + '만', font: { size: 7 } }, grid: { color: '#F1F5F9' } } } }
+  });
+}
+
+/* DATES */
+function getDates() {
+  const days = new Date(YEAR, MONTH, 0).getDate();
+  if (!selS) { const a = []; for (let d = 1; d <= days; d++) if (DB[fmtD(d)]) a.push(fmtD(d)); return a; }
+  const lo = Math.min(selS, selE || selS), hi = Math.max(selS, selE || selS);
+  const a = []; for (let d = lo; d <= hi; d++) if (DB[fmtD(d)]) a.push(fmtD(d)); return a;
+}
+
+/* UPDATE ALL */
+function updateAll() {
+  const dates = getDates();
+  updBanner(dates); updKPI(dates);
+  renderTrend(dates); renderWkBarChart(); renderOmniWk();
+  renderCat(dates); renderDow(dates);
+  if (actWk) renderPivot(actWk); else renderPivotEmpty();
+}
+
+function updBanner(dates) {
+  const b = document.getElementById('rbann');
+  if (!selS) { b.style.display = 'none'; return; }
+  b.style.display = 'flex';
+  const lo = Math.min(selS, selE || selS), hi = Math.max(selS, selE || selS);
+  document.getElementById('br1').textContent = lo === hi ? `${MONTH}월 ${lo}일` : `${MONTH}월 ${lo}일 – ${hi}일`;
+  document.getElementById('br2').textContent = `${dates.length}일간`;
+  document.getElementById('br3').textContent = fmtW(dates.reduce((s, dt) => s + (DB[dt]?.tot || 0), 0));
+}
+
+function updKPI(dates) {
+  let tot = 0, d2c = 0, off = 0, best = 0, bestD = '';
+  dates.forEach(dt => { const v = DB[dt]?.tot || 0, vd = DB[dt]?.tD || 0, vo = DB[dt]?.tO || 0; tot += v; d2c += vd; off += vo; if (v > best) { best = v; bestD = parseInt(dt.slice(8)) + '일'; } });
+  const avg = dates.length ? Math.round(tot / dates.length) : 0;
+  const prog = TARGET > 0 ? (tot / TARGET * 100).toFixed(1) : 0;
+  document.getElementById('kv1').textContent = fmtW(tot) || '–';
+  document.getElementById('ks1').textContent = `${dates.length}일 합계`;
+  document.getElementById('kv2').textContent = fmtW(avg) || '–'; // 원 단위
+  document.getElementById('ks2').textContent = '일 평균';
+  document.getElementById('kv3').textContent = bestD || '–';
+  document.getElementById('ks3').innerHTML = `<span class="up">${fmtW(best)}</span>`;
+  document.getElementById('kv5').textContent = fmtW(d2c) || '–';
+  document.getElementById('ks5').textContent = '자사몰 합계';
+  document.getElementById('kv6').textContent = fmtW(off) || '–';
+  document.getElementById('ks6').textContent = '오프라인 합계';
+  document.getElementById('kv7').innerHTML = `<span style="color:${parseFloat(prog) >= 100 ? 'var(--green)' : 'var(--blue)'}">${prog}%</span>`;
+  document.getElementById('ks7').textContent = `목표 ${(TARGET / 100000000).toFixed(1)}억`;
+  if (!actWk) { document.getElementById('kv4').textContent = '–'; document.getElementById('ks4').textContent = '주차 선택 필요'; }
+}
+
+/* TREND (자사몰 매출 + 유입수 + 전환율) */
+function renderTrend(dates) {
+  if (CH.tr) CH.tr.destroy();
+  const cmp = dates.length > 18;
+  document.getElementById('trendSub').textContent = selS
+    ? `${MONTH}월 ${Math.min(selS, selE || selS)}일 ~ ${Math.max(selS, selE || selS)}일`
+    : `${MONTH}월 전체`;
+  CH.tr = new Chart(document.getElementById('trendC'), {
+    type: 'bar',
+    data: {
+      labels: dates.map(d => parseInt(d.slice(8)) + '일'),
+      datasets: [
+        { type: 'bar',  label: '자사몰 매출', data: dates.map(d => DB[d]?.tD || 0),  backgroundColor: 'rgba(8,145,178,.38)', borderRadius: 3, yAxisID: 'y',  order: 2 },
+        { type: 'bar',  label: '전체 유입수', data: dates.map(d => DB[d]?.uv || 0),  backgroundColor: 'rgba(124,58,237,.2)', borderRadius: 3, yAxisID: 'y2', order: 3 },
+        { type: 'line', label: '전환율(%)',   data: dates.map(d => DB[d]?.cvr || 0), borderColor: '#D97706', backgroundColor: 'rgba(217,119,6,.07)', borderWidth: 2.5, tension: .4, fill: false, pointRadius: cmp ? 0 : 3, yAxisID: 'y3', order: 1 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: true, position: 'top', labels: { boxWidth: 9, font: { size: 10 } } },
+        tooltip: { callbacks: { label: c => { if (c.dataset.label === '자사몰 매출') return '자사몰: ' + fmtW(c.raw); if (c.dataset.label === '전체 유입수') return '유입: ' + (c.raw || 0).toLocaleString() + '명'; return '전환율: ' + (c.raw || 0).toFixed(2) + '%'; } } }
+      },
+      scales: {
+        x:  { ticks: { font: { size: 9 }, maxTicksLimit: cmp ? 8 : dates.length } },
+        y:  { position: 'left',  ticks: { callback: v => Math.round(v / 10000) + '만', font: { size: 8 } }, grid: { color: '#F1F5F9' }, title: { display: true, text: '매출', font: { size: 8 }, color: 'var(--muted)' } },
+        y2: { position: 'right', ticks: { callback: v => (v / 1000).toFixed(0) + 'K', font: { size: 8 } }, grid: { display: false }, title: { display: true, text: '유입수', font: { size: 8 }, color: 'var(--muted)' } },
+        y3: { position: 'right', ticks: { callback: v => v.toFixed(1) + '%', font: { size: 8 } }, grid: { display: false }, title: { display: true, text: '전환율', font: { size: 8 }, color: '#D97706' }, offset: true }
+      }
+    }
+  });
+}
+
+/* WK BAR CHART */
+function renderWkBarChart() {
+  if (CH.wb) CH.wb.destroy();
+  const vals = WKS.map(w => swk(w));
+  document.getElementById('wkBL').textContent = actWk ? `(WK${p2(actWk)} 선택)` : '';
+  CH.wb = new Chart(document.getElementById('wkBar'), {
+    type: 'bar',
+    data: { labels: WKS.map(w => `WK${p2(w.wk)}`), datasets: [{ label: 'OMNI 매출', data: vals, backgroundColor: vals.map((_, i) => WKS[i].wk === actWk ? '#2563EB' : 'rgba(37,99,235,.22)'), borderRadius: 5, borderSkipped: false }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => fmtW(c.raw) } } }, scales: { x: { ticks: { font: { size: 10 } } }, y: { ticks: { callback: v => Math.round(v / 10000) + '만', font: { size: 9 } }, grid: { color: '#F1F5F9' } } } }
+  });
+}
+
+/* CAT PANEL */
+function renderCat(dates) {
+  const ct = {}; let grand = 0;
+  dates.forEach(dt => { (DB[dt]?.prods || []).forEach(p => { const v = p.d2c + p.off; ct[p.cat] = (ct[p.cat] || 0) + v; grand += v; }); });
+  document.getElementById('catL').textContent = selS ? `(${Math.min(selS, selE || selS)}~${Math.max(selS, selE || selS)}일)` : '(전체)';
+  const wrap = document.getElementById('catC'); wrap.innerHTML = '';
+  CORD.forEach(cat => {
+    const v = ct[cat] || 0; if (!v) return;
+    const pp = grand > 0 ? (v / grand * 100) : 0, col = CCAT[cat] || '#64748B';
+    wrap.innerHTML += `<div class="cri"><div class="cdot" style="background:${col};"></div><div class="cnm">${cat}</div><div class="cbg"><div class="cbf" style="width:${pp}%;background:${col};"></div></div><div class="cvl">${fmtK(v)}</div><div class="cpct">${pp.toFixed(1)}%</div></div>`;
+  });
+  if (!wrap.innerHTML) wrap.innerHTML = '<div style="padding:14px;text-align:center;color:var(--muted);font-size:11px;">데이터 없음</div>';
+}
+
+/* DOW HEATMAP (월→일) */
+function renderDow(dates) {
+  const LBLS = ['월','화','수','목','금','토','일'];
+  const sum = Array(7).fill(0), cnt = Array(7).fill(0);
+  dates.forEach(dt => {
+    const dow = new Date(dt).getDay(); // 0=Sun
+    const idx = dow === 0 ? 6 : dow - 1; // Mon=0…Sun=6
+    sum[idx] += DB[dt]?.tot || 0; cnt[idx]++;
+  });
+  const avgs = sum.map((s, i) => cnt[i] > 0 ? Math.round(s / cnt[i]) : 0);
+  const mxA = Math.max(...avgs) || 1;
+  document.getElementById('dowL').textContent = selS ? `(${Math.min(selS, selE || selS)}~${Math.max(selS, selE || selS)}일)` : '(전체)';
+  const wrap = document.getElementById('dowMap'); wrap.innerHTML = '';
+  LBLS.forEach((lb, i) => {
+    const v = avgs[i], pp = v / mxA;
+    const isSat = i === 5, isSun = i === 6;
+    const col = isSun ? '#EF4444' : isSat ? '#3B82F6' : '#2563EB';
+    const el = document.createElement('div'); el.className = 'dcol';
+    el.innerHTML = `<div class="dlbl${isSun ? ' sun' : isSat ? ' sat' : ''}">${lb}</div>
+      <div class="dbw"><div class="dbf" style="height:${Math.max(4, pp * 100)}%;background:${col};opacity:${0.2 + pp * 0.8};"></div></div>
+      <div class="dvl">${fmtK(v)}</div><div class="dct">${cnt[i]}일</div>`;
+    wrap.appendChild(el);
+  });
+}
+
+/* PIVOT (주차별: 전주 vs 이번주 + WoW, 원 단위) */
+function renderPivotEmpty() {
+  document.getElementById('pvOuter').innerHTML = '<div class="empty"><div class="ei">📅</div><p>좌측에서 주차(WK)를 선택하세요</p></div>';
+  document.getElementById('pvSub').textContent = '주차를 선택하면 전주 대비 증감율 피벗이 표시됩니다';
+}
+
+function renderPivot(wkNum) {
+  const curr = WKS.find(w => w.wk === wkNum);
+  const prev = WKS.find(w => w.wk === wkNum - 1);
+  document.getElementById('pvSub').textContent =
+    `WK${p2(wkNum)} ${fmtR(curr)}${prev ? '  vs  WK' + p2(wkNum - 1) + ' ' + fmtR(prev) : '  (전주 없음)'}`;
+
+  // 집계
+  const pd = {}; // {cat: {prod: {curr, prev}}}
+  const col2 = (w, key) => {
+    for (let d = w.clampS; d <= w.clampE; d++) {
+      const dt = fmtD(d);
+      (DB[dt]?.prods || []).forEach(p => {
+        if (!pd[p.cat]) pd[p.cat] = {};
+        if (!pd[p.cat][p.nm]) pd[p.cat][p.nm] = { curr: 0, prev: 0 };
+        pd[p.cat][p.nm][key] += (p.d2c + p.off);
+      });
+    }
+  };
+  col2(curr, 'curr');
+  if (prev) col2(prev, 'prev');
+
+  const catS = {};
+  CORD.forEach(cat => {
+    if (!pd[cat]) return;
+    let cC = 0, cP = 0;
+    Object.values(pd[cat]).forEach(v => { cC += v.curr; cP += v.prev; });
+    catS[cat] = { curr: cC, prev: cP };
+  });
+
+  let html = `<table class="pvt">
+  <thead>
+    <tr class="rg">
+      <th class="tnm" rowspan="2">상품명</th>
+      ${prev ? `<th class="tprev">WK${p2(wkNum - 1)} 전주</th>` : ''}
+      <th class="tcurr">WK${p2(wkNum)} 이번주</th>
+      ${prev ? `<th class="twow">전주 대비 (WoW)</th>` : ''}
+    </tr>
+    <tr class="rl">
+      ${prev ? `<th class="tprev">매출 (원)</th>` : ''}
+      <th class="tcurr">매출 (원)</th>
+      ${prev ? `<th class="twow">증감율</th>` : ''}
+    </tr>
+  </thead><tbody>`;
+
+  CORD.forEach(cat => {
+    if (!pd[cat]) return;
+    const col = CCAT[cat] || '#64748B';
+    const cs = catS[cat];
+    const cp = cs.prev > 0 ? parseFloat(pct(cs.curr, cs.prev)) : null;
+    const cup = cp !== null ? cp >= 0 : null;
+
+    html += `<tr class="chd">
+      <td class="tnm">
+        <span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:${col};margin-right:5px;vertical-align:middle;"></span>${cat}
+        <span style="margin-left:8px;font-size:10px;font-weight:700;color:${cp === null ? 'var(--muted)' : cup ? 'var(--green)' : 'var(--red)'};">${cp !== null ? (cup ? '▲+' : '▼') + Math.abs(cp).toFixed(1) + '%' : '–'}</span>
+        <span style="color:var(--muted);font-weight:500;margin-left:6px;">${fmtW(cs.curr)}</span>
+      </td>
+      ${prev ? `<td class="cprev">${fmtW(cs.prev)}</td>` : ''}
+      <td class="ccurr">${fmtW(cs.curr)}</td>
+      ${prev ? `<td class="cwow ${cp === null ? 'neu' : cup ? 'up' : 'dn'}">${cp !== null ? (cup ? '▲+' : '▼') + Math.abs(cp).toFixed(1) + '%' : '신규'}</td>` : ''}
+    </tr>`;
+
+    Object.keys(pd[cat])
+      .map(nm => ({ nm, ...pd[cat][nm] }))
+      .sort((a, b) => b.curr - a.curr)
+      .forEach(({ nm, curr, prev: pv }) => {
+        if (!curr && !pv) return;
+        const p2v = pv > 0 ? parseFloat(pct(curr, pv)) : null;
+        const up = p2v !== null ? p2v >= 0 : null;
+        const wt = p2v !== null ? `${up ? '▲+' : '▼'}${Math.abs(p2v).toFixed(1)}%` : '신규';
+        const wc = p2v === null ? 'neu' : up ? 'up' : 'dn';
+        html += `<tr>
+          <td class="tnm" style="padding-left:22px;">${nm}</td>
+          ${prev ? `<td class="cprev">${pv > 0 ? fmtW(pv) : '–'}</td>` : ''}
+          <td class="ccurr">${curr > 0 ? fmtW(curr) : '–'}</td>
+          ${prev ? `<td class="cwow ${wc}">${wt}</td>` : ''}
+        </tr>`;
+      });
+  });
+
+  html += `</tbody></table>`;
+  document.getElementById('pvOuter').innerHTML = html;
+}
+
+/* BOOT */
+initDash();
+</script>
+</body>
+</html>
