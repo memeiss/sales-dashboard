@@ -748,6 +748,51 @@ function renderPivot(wkNum) {
 
 /* BOOT */
 initDash();
+  <!-- daily-dashboard.html 맨 아래, </body> 바로 위에 추가 -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script>
+  // index.html과 완전히 동일한 값 사용
+  const firebaseConfig = {
+  apiKey: "AIzaSyAm-Fnz1YKh7OKrPFKjAPO42BwTa3XPnOs",
+  authDomain: "sales-dashboard-d4939.firebaseapp.com",
+  projectId: "sales-dashboard-d4939",
+  storageBucket: "sales-dashboard-d4939.firebasestorage.app",
+  messagingSenderId: "996073785958",
+  appId: "1:996073785958:web:62ef7dee215121f4ae3ba7"
+};
+  firebase.initializeApp(firebaseConfig);
+  const dbF = firebase.firestore();
+
+  // 연도·월 기준으로 Firebase에서 일자별 데이터 읽기
+  async function loadFromFirebase() {
+    const ym = `${YEAR}-${String(MONTH).padStart(2,'0')}`;
+    const snap = await dbF.collection('dashboard').doc(ym).get();
+    if (!snap.exists) return;
+
+    const raw = snap.data();
+    // raw.daily 배열을 daily-dashboard가 쓰는 DB 형태로 변환
+    const db = {};
+    (raw.daily || []).forEach(row => {
+      db[row.date] = {
+        prods: (row.products || []).map(p => ({
+          nm:  p.name,
+          cat: p.category,
+          d2c: p.d2cSales  || 0,
+          off: p.offSales   || 0,
+        })),
+        tD:  row.d2cTotal  || 0,
+        tO:  row.offTotal  || 0,
+        tot: row.total     || 0,
+        uv:  row.uv        || 0,
+        cvr: row.cvr       || 0,
+      };
+    });
+    loadDailyData(db); // daily-dashboard.html 안의 함수 호출
+  }
+
+  loadFromFirebase();
+</script>
 </script>
 </body>
 </html>
