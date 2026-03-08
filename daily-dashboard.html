@@ -7,6 +7,9 @@
 <title>일자·주차별 매출 분석</title>
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
 :root{
   --blue:#2563EB;--blue-lt:#EFF6FF;--blue-mid:#DBEAFE;
@@ -835,6 +838,15 @@ function renderPivot(wkNum) {
 
 /* ════════════════════════════════════════════════════════
    엑셀 업로드 & Firebase 저장
+   dbF는 두 번째 script 블록에서 초기화됨
+   getDB()로 안전하게 참조
+   ════════════════════════════════════════════════════════ */
+function getDB() {
+  if (typeof dbF !== 'undefined') return dbF;
+  throw new Error('Firebase가 아직 초기화되지 않았습니다. firebaseConfig를 설정해주세요.');
+}
+
+/*
    index.html 과 동일한 parseWB 로직으로 파싱하여
    Firebase에 저장 → 두 대시보드 모두 최신 데이터 사용
    ════════════════════════════════════════════════════════ */
@@ -1016,7 +1028,7 @@ async function saveDataToFirebase() {
       const filterYM = r => r.date && r.date.startsWith(ym);
       const pdYM = {};
       Object.entries(DATA.products_daily||{}).forEach(([ds,arr]) => { if(ds.startsWith(ym)) pdYM[ds]=arr; });
-      const docRef  = dbF.collection('dashboard').doc(ym);
+      const docRef  = getDB().collection('dashboard').doc(ym);
       const existing = await docRef.get();
       const prev    = existing.exists ? existing.data() : {};
       const payload = {
@@ -1058,13 +1070,7 @@ initDash();
    ════════════════════════════════════════════════════════ */
 </script>
 
-<!-- XLSX 라이브러리 -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-
-<!-- Firebase SDK (index.html 과 동일 버전) -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-
+<!-- Firebase 설정 + loadFromFirebase -->
 <script>
 // ⚠️ index.html 의 firebaseConfig 와 완전히 동일한 값으로 교체하세요
 const firebaseConfig = {
@@ -1171,11 +1177,11 @@ initDash = function() {
   const pb = document.getElementById('periodBadge');
   if (pb) pb.textContent = `${_mm}.01 – ${_mm}.${_dd}`;
   renderCal(); renderOmniWk(); updateAll();
-  loadFromFirebase();
+  if (typeof loadFromFirebase === "function") loadFromFirebase();
 };
 
 // 최초 로드
-loadFromFirebase();
+if (typeof loadFromFirebase === "function") loadFromFirebase();
 
 </body>
 </html>
