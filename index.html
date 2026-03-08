@@ -1251,8 +1251,8 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:#FFF7ED">🎯</div>
     <div>
-      <h2>이벤트 성과 대시보드</h2>
-      <p id="s4-period-label">이벤트별 매출 성과 분석</p>
+      <h2>프로모션 성과 대시보드</h2>
+      <p id="s4-period-label">프로젝트 이벤트 성과 분석</p>
     </div>
   </div>
 
@@ -2261,9 +2261,10 @@ function renderS3(cat, products) {
   if(!sorted.length) tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">데이터 없음</td></tr>';
 
   // Bar
-// ✅ 변경 후 — 카테고리별 탭 + 각각 바차트
-// 매출 데이터 있는 카테고리만 필터링
-const activeCatT = catT.filter(c => c.total > 0);
+// 카테고리별 탭 + 바차트 — products 기준으로 매출 있는 카테고리만 표시
+const activeCatT = catT.filter(c =>
+  products.some(p => p.category === c.label && (p.sales || 0) > 0)
+);
 
 // 탭 버튼 생성
 const tabBar = document.getElementById('catTabBar');
