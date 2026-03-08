@@ -1681,7 +1681,8 @@ function cellV(ws, r, c, def=0) {
   const cl = cell(ws, r, c);
   if (!cl) return def;
   if (typeof cl.v === 'number') return cl.v;
-  if (typeof cl.v === 'string') return parseFloat(cl.v) || def;
+  if (typeof cl.v === 'string') { const n = parseFloat(cl.v.replace(/,/g,'')); return isNaN(n) ? def : n; }
+  // Date 객체인 경우 엑셀 시리얼로 변환하지 않고 def 반환 (날짜셀은 fmtDate로 처리)
   return def;
 }
 function cellS(ws, r, c, def='') {
@@ -1694,26 +1695,26 @@ function parseWB(wb) {
   // Row7=온라인, Row8=오프라인, Row9=전체(formula), Row10=전년온라인, Row11=전년오프라인, Row12=전년전체
   // 월목표: C2=온라인목표, D2=오프라인목표
   const ws1 = wb.Sheets['📅 일자별매출'];
-  const onlTgt = ws1 ? cellV(ws1, 1, 2) : 0;  // C2 (r=1,c=2)
-  const offTgt = ws1 ? cellV(ws1, 1, 3) : 0;  // D2
+  const onlTgt = ws1 ? cellV(ws1, 1, 1) : 0;  // B2 온라인목표 (r=1,c=1)
+  const offTgt = ws1 ? cellV(ws1, 1, 2) : 0;  // C2 오프라인목표 (r=1,c=2)
 
   // 🛒 D2C채널
   // Row7=자사몰, Row8=네이버, Row9=기타, Row10=자사몰UV, Row11=자사몰주문, Row12=전년자사몰, Row13=전년네이버, Row14=전년기타
   // 월목표: C2=자사몰, D2=네이버, E2=기타
   const ws2 = wb.Sheets['🛒 D2C채널'];
-  const ownTgt = ws2 ? cellV(ws2, 1, 2) : 0;
-  const navTgt = ws2 ? cellV(ws2, 1, 3) : 0;
-  const etcTgt = ws2 ? cellV(ws2, 1, 4) : 0;
+  const ownTgt = ws2 ? cellV(ws2, 1, 1) : 0;  // B2 자사몰목표
+  const navTgt = ws2 ? cellV(ws2, 1, 2) : 0;  // C2 네이버목표
+  const etcTgt = ws2 ? cellV(ws2, 1, 3) : 0;  // D2 기타목표
 
   // 🏷️ 카테고리매출
   // Row7~11=스킨/헤어/바디/선/기타, Row12=합계(formula), Row13~17=전년
   // 월목표: C2~G2
   const ws3 = wb.Sheets['🏷️ 카테고리매출'];
-  const skinTgt = ws3 ? cellV(ws3, 1, 2) : 0;
-  const hairTgt = ws3 ? cellV(ws3, 1, 3) : 0;
-  const bodyTgt = ws3 ? cellV(ws3, 1, 4) : 0;
-  const sunTgt  = ws3 ? cellV(ws3, 1, 5) : 0;
-  const othTgt  = ws3 ? cellV(ws3, 1, 6) : 0;
+  const skinTgt = ws3 ? cellV(ws3, 1, 1) : 0;  // B2 새벽배송목표
+  const hairTgt = ws3 ? cellV(ws3, 1, 2) : 0;  // C2 건강케어목표
+  const bodyTgt = ws3 ? cellV(ws3, 1, 3) : 0;  // D2 질환케어목표
+  const sunTgt  = ws3 ? cellV(ws3, 1, 4) : 0;  // E2 보충케어목표
+  const othTgt  = ws3 ? cellV(ws3, 1, 5) : 0;  // F2 이벤트/기타목표
 
   // 날짜 목록은 Row5(r=4)에서 읽기 (C열부터 = c=2)
   DATA.daily = parseDataRows(ws1, {
@@ -1814,9 +1815,11 @@ function parseDataRows(ws, rowMap) {
   const rows = [];
   for (let c = 2; ; c++) {  // C열부터 (0-indexed c=2)
     const dc = cell(ws, 4, c);  // Row5 (r=4) = 날짜행
-    if (!dc || !dc.v) break;
-    const dateStr = fmtDate(dc.v);
-    if (!dateStr || dateStr === 'Invalid Date') break;
+    if (!dc || (dc.v === undefined && dc.v === null)) break;
+    const raw = dc.t === 'd' ? dc.v : (dc.w || dc.v);  // 날짜타입 우선, 포맷문자열 차선
+    if (!raw) break;
+    const dateStr = fmtDate(raw instanceof Date ? raw : dc.v);
+    if (!dateStr) break;
     const row = { date: dateStr };
     Object.entries(rowMap).forEach(([key, excelRow]) => {
       row[key] = cellV(ws, excelRow - 1, c);  // excelRow는 1-indexed → r=excelRow-1
@@ -1842,22 +1845,22 @@ function parseProdSheet(ws) {
   const y = cellV(ws, 0, 0) || YEAR;   // A1: 연도
   const m = cellV(ws, 0, 1) || MONTH;  // B1: 월
 
-  // Row2 (r=1): 날짜 헤더 — C열(c=2)부터
+  // Row3 (r=2): 날짜 헤더 — C열(c=2)부터 (Row2는 안내 텍스트)
   const dateMap = {};
   for (let c = 2; ; c++) {
-    const raw = cellV(ws, 1, c);
-    if (!raw) break;
-    const ds = fmtDate(raw);
-    if (!ds || ds === 'Invalid Date') break;
+    const dc = cell(ws, 2, c);   // r=2 = Row3
+    if (!dc || dc.v === undefined || dc.v === null) break;
+    const ds = fmtDate(dc.v instanceof Date ? dc.v : dc.v);
+    if (!ds) break;
     dateMap[c] = ds;
   }
   if (!Object.keys(dateMap).length) return [];
 
-  // Row3부터(r=2): 상품 데이터 행
+  // Row4부터(r=3): 상품 데이터 행 (Row3=헤더, Row2=안내)
   const prodRows = [];
-  for (let r = 2; ; r++) {
+  for (let r = 3; ; r++) {
     const nm = cellS(ws, r, 0);
-    if (!nm) break;
+    if (!nm || nm === '상품명') break;  // 헤더 행 건너뜀
     const cat = cellS(ws, r, 1) || '';
     const dailySales = {};
     Object.entries(dateMap).forEach(([c, ds]) => {
@@ -1903,10 +1906,27 @@ function getTargets() {
 }
 
 function fmtDate(v) {
-  if (v instanceof Date) return v.toISOString().slice(0,10);
-  if (typeof v === 'string') return v.slice(0,10);
-  if (typeof v === 'number') return new Date((v-25569)*86400*1000).toISOString().slice(0,10);
-  return String(v);
+  if (!v && v !== 0) return null;
+  if (v instanceof Date) {
+    // UTC 기준으로 변환 (타임존 오프셋 문제 방지)
+    const y = v.getUTCFullYear(), mo = v.getUTCMonth()+1, d = v.getUTCDate();
+    return `${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  }
+  if (typeof v === 'string') {
+    const s = v.trim();
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
+    // "2026/02/01" 형식 지원
+    const m = s.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})/);
+    if (m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+    return null;
+  }
+  if (typeof v === 'number' && v > 0) {
+    // 엑셀 시리얼 날짜 (UTC 기준)
+    const d = new Date(Math.round((v - 25569) * 86400 * 1000));
+    const y = d.getUTCFullYear(), mo = d.getUTCMonth()+1, dd = d.getUTCDate();
+    return `${y}-${String(mo).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
+  }
+  return null;
 }
 
 // ─── 리뷰 코멘트 ───────────────────────────────────────────
