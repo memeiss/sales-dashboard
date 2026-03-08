@@ -5,7 +5,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OMNI - Sales Dashboard</title>
+<title>매출 대시보드</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -587,6 +587,7 @@ body {
       </select>
     </div>
     <div class="period-badge" id="periodBadge">01.01 – 01.31</div>
+    <a href="daily-dashboard.html" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--blue);color:#fff;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;transition:all .15s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='var(--blue)'">📅 일자·주차 분석</a>
     <div class="live-dot"></div>
   </div>
 </div>
@@ -628,8 +629,8 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:var(--blue-lt)">📊</div>
     <div>
-      <h2>OMNI - 월별 매출 대시보드</h2>
-      <p id="s1-period-label">전체 채널 통합 매출 현황</p>
+      <h2>OMNI 매출 대시보드</h2>
+      <p id="s1-period-label">전체 채널 통합 매출 현황 · 2025년 1월</p>
     </div>
   </div>
 
@@ -896,8 +897,8 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:var(--green-lt)">🛒</div>
     <div>
-      <h2>D2C - 월별 매출 대시보드</h2>
-      <p id="s2-period-label">자사몰/네이버/기타 채널별 성과 분석</p>
+      <h2>D2C 채널 매출 대시보드</h2>
+      <p id="s2-period-label">Direct-to-Consumer 채널 성과 분석 · 2025년 1월</p>
     </div>
   </div>
 
@@ -1040,8 +1041,8 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:var(--amber-lt)">🏷️</div>
     <div>
-      <h2>자사몰 카테고리별 상세 현황</h2>
-      <p id="s3-period-label">카테고리/식단별/정기결제 심층 분석</p>
+      <h2>자사몰 카테고리별 대시보드</h2>
+      <p id="s3-period-label">카테고리 · 상품 · 정기결제 심층 분석 · 2025년 1월</p>
     </div>
   </div>
 
@@ -1251,8 +1252,8 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:#FFF7ED">🎯</div>
     <div>
-      <h2>프로모션 성과 대시보드</h2>
-      <p id="s4-period-label">프로젝트 이벤트 성과 분석</p>
+      <h2>이벤트 성과 대시보드</h2>
+      <p id="s4-period-label">이벤트별 매출 성과 분석</p>
     </div>
   </div>
 
