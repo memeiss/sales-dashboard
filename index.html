@@ -5,7 +5,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OMNI - Sales Dashboard</title>
+<title>매출 대시보드</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -629,8 +629,8 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:var(--blue-lt)">📊</div>
     <div>
-      <h2>OMNI - 월별 매출 대시보드</h2>
-      <p id="s1-period-label">전체 채널 통합 매출 현황</p>
+      <h2>OMNI 매출 대시보드</h2>
+      <p id="s1-period-label">전체 채널 통합 매출 현황 · 2025년 1월</p>
     </div>
   </div>
 
@@ -897,8 +897,8 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:var(--green-lt)">🛒</div>
     <div>
-      <h2>D2C - 월별 매출 대시보드</h2>
-      <p id="s2-period-label">자사몰/네이버/기타 채널별 성과 분석</p>
+      <h2>D2C 채널 매출 대시보드</h2>
+      <p id="s2-period-label">Direct-to-Consumer 채널 성과 분석 · 2025년 1월</p>
     </div>
   </div>
 
@@ -1041,8 +1041,8 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:var(--amber-lt)">🏷️</div>
     <div>
-      <h2>자사몰 카테고리별 상세 현황</h2>
-      <p id="s3-period-label">카테고리/식단별/정기결제 심층 분석</p>
+      <h2>자사몰 카테고리별 대시보드</h2>
+      <p id="s3-period-label">카테고리 · 상품 · 정기결제 심층 분석 · 2025년 1월</p>
     </div>
   </div>
 
@@ -1517,7 +1517,7 @@ function fmtDateLabel(dateStr) {
 }
 
 // ─── State ───
-let DATA = { daily:[], d2c:[], cat:[], products:[], targets:[] };
+let DATA = { daily:[], d2c:[], cat:[], products:[], products_daily:{}, sub:null, targets:[], monthTargets:null };
 let YEAR = 2025, MONTH = 1;
 let charts = {};
 
@@ -1608,24 +1608,33 @@ async function saveDataToFirebase() {
       const existing = await docRef.get();
       const prev    = existing.exists ? existing.data() : {};
 
+      // products_daily: 해당 월의 일자별 데이터만 필터
+      const pdYM = {};
+      Object.entries(DATA.products_daily || {}).forEach(([ds, arr]) => {
+        if (ds.startsWith(ym)) pdYM[ds] = arr;
+      });
+
       const payload = {
-        daily:        DATA.daily.filter(filterYM).length
-                        ? DATA.daily.filter(filterYM)
-                        : (prev.daily || []),
-        d2c:          DATA.d2c.filter(filterYM).length
-                        ? DATA.d2c.filter(filterYM)
-                        : (prev.d2c || []),
-        cat:          DATA.cat.filter(filterYM).length
-                        ? DATA.cat.filter(filterYM)
-                        : (prev.cat || []),
-        products:     DATA.products.filter(p => p.year==y && p.month==m).length
-                        ? DATA.products.filter(p => p.year==y && p.month==m)
-                        : (prev.products || []),
-        sub:          DATA.sub
-                        ? ((DATA.sub.year==y && DATA.sub.month==m) ? DATA.sub : prev.sub || null)
-                        : (prev.sub || null),
-        monthTargets: DATA.monthTargets || prev.monthTargets || null,
-        updatedAt:    new Date().toISOString(),
+        daily:          DATA.daily.filter(filterYM).length
+                          ? DATA.daily.filter(filterYM)
+                          : (prev.daily || []),
+        d2c:            DATA.d2c.filter(filterYM).length
+                          ? DATA.d2c.filter(filterYM)
+                          : (prev.d2c || []),
+        cat:            DATA.cat.filter(filterYM).length
+                          ? DATA.cat.filter(filterYM)
+                          : (prev.cat || []),
+        products:       DATA.products.filter(p => p.year==y && p.month==m).length
+                          ? DATA.products.filter(p => p.year==y && p.month==m)
+                          : (prev.products || []),
+        products_daily: Object.keys(pdYM).length
+                          ? pdYM
+                          : (prev.products_daily || {}),
+        sub:            DATA.sub
+                          ? ((DATA.sub.year==y && DATA.sub.month==m) ? DATA.sub : prev.sub || null)
+                          : (prev.sub || null),
+        monthTargets:   DATA.monthTargets || prev.monthTargets || null,
+        updatedAt:      new Date().toISOString(),
       };
       await docRef.set(payload);
     }
@@ -1817,26 +1826,66 @@ function parseDataRows(ws, rowMap) {
   return rows;
 }
 
-// 상품별매출: 행 방향
-// B2=연도, C2=월, Row4부터 데이터
+// ─── 상품별매출 시트 파싱 (새 구조: 일자별 열 방향) ──────────
+// Row1 : A=연도, B=월
+// Row2 : A=상품명, B=카테고리, C이후=날짜(YYYY-MM-DD 또는 엑셀 날짜값)
+// Row3~: 각 상품의 일자별 자사몰 매출
+// Row(상품 끝+1): A="주문수", B=카테고리, C이후=일자별 주문건수 (선택)
+// 예시:
+//        A          B       C(2026-02-01)  D(2026-02-02) ...
+// Row1:  2026       2
+// Row2:  상품명     카테고리  2026-02-01     2026-02-02
+// Row3:  신장톤톤   질환케어   1200000        980000
+// Row4:  고단백20   건강케어    450000         380000
 function parseProdSheet(ws) {
   if (!ws) return [];
-  const y = cellV(ws, 1, 1, YEAR);   // B2
-  const m = cellV(ws, 1, 2, MONTH);  // C2
-  const rows = [];
-  for (let r = 3; ; r++) {  // Row4부터 (0-indexed r=3)
+  const y = cellV(ws, 0, 0) || YEAR;   // A1: 연도
+  const m = cellV(ws, 0, 1) || MONTH;  // B1: 월
+
+  // Row2 (r=1): 날짜 헤더 — C열(c=2)부터
+  const dateMap = {};
+  for (let c = 2; ; c++) {
+    const raw = cellV(ws, 1, c);
+    if (!raw) break;
+    const ds = fmtDate(raw);
+    if (!ds || ds === 'Invalid Date') break;
+    dateMap[c] = ds;
+  }
+  if (!Object.keys(dateMap).length) return [];
+
+  // Row3부터(r=2): 상품 데이터 행
+  const prodRows = [];
+  for (let r = 2; ; r++) {
     const nm = cellS(ws, r, 0);
     if (!nm) break;
-    rows.push({
-      year: y, month: m,
-      name:      nm,
-      category:  cellS(ws, r, 1),
-      sales:     cellV(ws, r, 2),
-      orders:    cellV(ws, r, 3),
-      prevSales: cellV(ws, r, 4),
+    const cat = cellS(ws, r, 1) || '';
+    const dailySales = {};
+    Object.entries(dateMap).forEach(([c, ds]) => {
+      dailySales[ds] = cellV(ws, r, +c) || 0;
     });
+    prodRows.push({ nm, cat, dailySales });
   }
-  return rows;
+  if (!prodRows.length) return [];
+
+  // products_daily 구축: { 'YYYY-MM-DD': [{name, category, d2cSales}] }
+  const dailyByDate = {};
+  prodRows.forEach(p => {
+    Object.entries(p.dailySales).forEach(([ds, val]) => {
+      if (!dailyByDate[ds]) dailyByDate[ds] = [];
+      dailyByDate[ds].push({ name: p.nm, category: p.cat, d2cSales: val });
+    });
+  });
+  DATA.products_daily = dailyByDate;
+
+  // 기존 products 배열 형식 (월 집계 — 월간 요약 슬라이드 호환)
+  return prodRows.map(p => ({
+    year: y, month: m,
+    name:      p.nm,
+    category:  p.cat,
+    sales:     Object.values(p.dailySales).reduce((s, v) => s + v, 0),
+    orders:    0,
+    prevSales: 0,
+  }));
 }
 
 // 해당 월의 목표 가져오기 (renderS1/S2 호환 형식으로 반환)
@@ -2712,6 +2761,7 @@ async function loadAllFromFirebase() {
       if (d.d2c)      DATA.d2c      = DATA.d2c.concat(d.d2c);
       if (d.cat)      DATA.cat      = DATA.cat.concat(d.cat);
       if (d.products) DATA.products = DATA.products.concat(d.products);
+      if (d.products_daily) Object.assign(DATA.products_daily, d.products_daily);
       if (d.sub)      DATA.sub      = d.sub;
       if (d.monthTargets) DATA.monthTargets = d.monthTargets;
     });
