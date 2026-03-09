@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Day-Weekly Dashboard</title>
+<title>일자·주차별 매출 분석</title>
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -273,15 +273,14 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 </div>
 
 <div class="main">
-  <!-- KPI 7개 -->
-  <!-- OMNI 섹션 타이틀 (KPI 위) -->
+  <!-- ═══ OMNI 섹션 ═══ -->
   <div class="sdvr o" style="margin-bottom:8px;">📊 OMNI — 주차별 매출 현황</div>
   <div class="krow">
     <div class="kpi"><div class="kl">📦 선택 기간 매출</div><div class="kv" id="kv1">–</div><div class="ks" id="ks1">기간 선택</div></div>
     <div class="kpi"><div class="kl">📅 일 평균 매출</div><div class="kv" id="kv2">–</div><div class="ks" id="ks2">–</div></div>
     <div class="kpi"><div class="kl">🏆 최고 매출일</div><div class="kv" id="kv3">–</div><div class="ks" id="ks3">–</div></div>
     <div class="kpi"><div class="kl">📈 전주 대비 (WoW)</div><div class="kv" id="kv4">–</div><div class="ks" id="ks4">주차 선택</div></div>
-    <div class="kpi"><div class="kl">🛒 D2C (자사몰) 매출</div><div class="kv" id="kv5">–</div><div class="ks" id="ks5">–</div></div>
+    <div class="kpi"><div class="kl">🌐 온라인 매출</div><div class="kv" id="kv5">–</div><div class="ks" id="ks5">–</div></div>
     <div class="kpi"><div class="kl">🏪 오프라인 매출</div><div class="kv" id="kv6">–</div><div class="ks" id="ks6">–</div></div>
     <div class="kpi"><div class="kl">🎯 진척율 (%)</div><div class="kv" id="kv7">–</div><div class="ks" id="ks7">월 목표 대비</div></div>
   </div>
@@ -319,7 +318,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
         <div class="ct">🗓️ 주차 선택 <em id="wkSub"></em></div>
         <div class="wkbar" id="omniWk"></div>
       </div>
-      <!-- WK COMPARE -->
+      <!-- OMNI WK COMPARE -->
       <div class="card" id="wkCmp" style="display:none;padding:12px 14px;">
         <div class="ct">⚡ 전주 대비 (OMNI)</div>
         <div class="wcmp">
@@ -329,6 +328,20 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
         <div class="wbg neu" id="wbg"><div class="wpct neu" id="wpct">–</div><div class="wlbl" id="wlbl">–</div></div>
         <div style="height:88px;margin-top:9px;"><canvas id="wkLine"></canvas></div>
       </div>
+      <!-- D2C 주차 + 전주대비 -->
+      <div class="card" style="padding:12px 14px;">
+        <div class="ct">🛒 자사몰 주차 <em id="d2cWkSub"></em></div>
+        <div class="wkbar" id="d2cWk"></div>
+      </div>
+      <div class="card" id="d2cWkCmp" style="display:none;padding:12px 14px;">
+        <div class="ct">⚡ 전주 대비 (자사몰)</div>
+        <div class="wcmp">
+          <div class="wsd prev"><div class="wsl" id="d2c-wp-l">전주</div><div class="wsv" id="d2c-wp-v">–</div><div class="wsr" id="d2c-wp-r">–</div></div>
+          <div class="wsd curr"><div class="wsl" id="d2c-wc-l">이번주</div><div class="wsv" id="d2c-wc-v">–</div><div class="wsr" id="d2c-wc-r">–</div></div>
+        </div>
+        <div class="wbg neu" id="d2c-wbg"><div class="wpct neu" id="d2c-wpct">–</div><div class="wlbl" id="d2c-wlbl">–</div></div>
+        <div style="height:88px;margin-top:9px;"><canvas id="d2cWkLine"></canvas></div>
+      </div>
     </div>
 
     <!-- RIGHT -->
@@ -337,7 +350,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
       <!-- 주차바 + 카테고리 -->
       <div class="c2">
         <div class="card">
-          <div class="ct">📊 주차별 OMNI 매출 <em id="wkBL"></em></div>
+          <div class="ct">📊 주차별 자사몰 매출 <em id="wkBL"></em></div>
           <div style="height:168px;"><canvas id="wkBar"></canvas></div>
         </div>
         <div class="card">
@@ -481,7 +494,7 @@ let YEAR = 2026, MONTH = 2;
 let DB = {}; // 실제 데이터 연동 전 빈 상태
 let WKS = buildWeeks(YEAR, MONTH, BASE_YEAR);
 let selS = null, selE = null, rmOn = false, pick = false, actWk = null;
-let CH = {};
+let CH = {}; // Chart instances: wb, tr, wl, d2cl
 
 /* HELPERS */
 function p2(n) { return String(n).padStart(2, '0'); }
@@ -586,6 +599,8 @@ function clearSel() {
   selS = null; selE = null; pick = false; actWk = null;
   document.querySelectorAll('.wkb').forEach(b => { b.classList.remove('on', 'gon'); });
   document.getElementById('wkCmp').style.display = 'none';
+  const d2cEl = document.getElementById('d2cWkCmp');
+  if (d2cEl) d2cEl.style.display = 'none';
   renderCal(); updateAll();
 }
 
@@ -633,7 +648,8 @@ function renderOmniWk() {
 
 /* D2C WK BAR */
 function renderD2cWk() {
-  const bar = document.getElementById('d2cWk'); bar.innerHTML = '';
+  const bar = document.getElementById('d2cWk'); if (!bar) return;
+  bar.innerHTML = '';
   WKS.forEach((w, i) => {
     const wT = swk(w, 'tD'), pT = i > 0 ? swk(WKS[i - 1], 'tD') : null;
     const p = pT !== null ? pct(wT, pT) : null, up = p !== null ? parseFloat(p) >= 0 : null;
@@ -643,14 +659,17 @@ function renderD2cWk() {
     btn.onclick = () => selWk(w.wk);
     bar.appendChild(btn);
   });
+  const sub = document.getElementById('d2cWkSub');
+  if (sub) sub.textContent = WKS.length ? `(WK${p2(WKS[0].wk)}~WK${p2(WKS[WKS.length-1].wk)})` : '';
 }
 
 function selWk(wkNum) {
   actWk = wkNum;
   const w = WKS.find(x => x.wk === wkNum);
-  selS = w.clampS; selE = w.clampE; // 이제 YYYY-MM-DD 문자열
-  document.querySelectorAll('#omniWk .wkb').forEach((b, i) => b.classList.toggle('on', WKS[i]?.wk === wkNum));
-  renderCal(); updateAll(); renderWkCompare(wkNum);
+  selS = w.clampS; selE = w.clampE;
+  document.querySelectorAll('#omniWk .wkb').forEach((b, i) => b.classList.toggle('on',  WKS[i]?.wk === wkNum));
+  document.querySelectorAll('#d2cWk .wkb').forEach((b, i)  => b.classList.toggle('gon', WKS[i]?.wk === wkNum));
+  renderCal(); updateAll(); renderWkCompare(wkNum); renderD2cWkCompare(wkNum);
 }
 
 function renderWkCompare(wkNum) {
@@ -683,6 +702,60 @@ function renderWkCompare(wkNum) {
     document.getElementById('kv4').textContent = '–'; document.getElementById('ks4').textContent = '첫째 주';
   }
   renderWkLine(curr, prevHasData ? prev : null);
+}
+
+/* ─── 자사몰 전주 대비 카드 ─── */
+function renderD2cWkCompare(wkNum) {
+  const curr = getWkObj(wkNum), prev = getWkObj(wkNum - 1);
+  const prevHasData = dateRange(prev.clampS, prev.clampE).some(dt => DB[dt]?.tD);
+  const cT = swk(curr, 'tD'), pT = prevHasData ? swk(prev, 'tD') : 0;
+  const p  = prevHasData ? pct(cT, pT) : null, up = p !== null ? parseFloat(p) >= 0 : null;
+  const el = document.getElementById('d2cWkCmp');
+  if (!el) return;
+  el.style.display = 'block';
+  document.getElementById('d2c-wc-l').textContent = `WK${p2(wkNum)} 이번주`;
+  document.getElementById('d2c-wc-v').textContent = fmtW(cT);
+  document.getElementById('d2c-wc-r').textContent = fmtR(curr);
+  if (prevHasData) {
+    document.getElementById('d2c-wp-l').textContent = `WK${p2(wkNum-1)} 전주`;
+    document.getElementById('d2c-wp-v').textContent = fmtW(pT);
+    document.getElementById('d2c-wp-r').textContent = fmtR(prev);
+    document.getElementById('d2c-wbg').className  = `wbg ${up ? 'up' : 'dn'}`;
+    document.getElementById('d2c-wpct').className = `wpct ${up ? 'up' : 'dn'}`;
+    document.getElementById('d2c-wpct').textContent = `${up ? '+' : ''}${p}%`;
+    document.getElementById('d2c-wlbl').textContent = `전주 대비 ${up ? '증가 ▲' : '감소 ▼'}`;
+  } else {
+    document.getElementById('d2c-wp-l').textContent = '전주';
+    document.getElementById('d2c-wp-v').textContent = '–';
+    document.getElementById('d2c-wp-r').textContent = '첫째 주';
+    document.getElementById('d2c-wbg').className  = 'wbg neu';
+    document.getElementById('d2c-wpct').className = 'wpct neu';
+    document.getElementById('d2c-wpct').textContent = '–';
+    document.getElementById('d2c-wlbl').textContent = '첫째 주 — 비교 없음';
+  }
+  renderD2cWkLine(curr, prevHasData ? prev : null);
+}
+
+function renderD2cWkLine(curr, prev) {
+  if (CH.d2cl) CH.d2cl.destroy();
+  const cDates = dateRange(curr.clampS, curr.clampE);
+  const pDates = prev ? dateRange(prev.clampS, prev.clampE) : [];
+  const len = Math.max(cDates.length, pDates.length);
+  const lbs = Array.from({ length: len }, (_, i) => {
+    const dt = cDates[i] || pDates[i];
+    if (!dt) return `${i+1}일`;
+    const p = dt.split('-'); return `${parseInt(p[1])}/${parseInt(p[2])}`;
+  });
+  const cV = cDates.map(dt => DB[dt]?.tD || 0);
+  while (cV.length < len) cV.push(null);
+  const pV = prev ? pDates.map(dt => DB[dt]?.tD || 0) : null;
+  if (pV) while (pV.length < len) pV.push(null);
+  const ds = [{ label: `WK${p2(curr.wk)}`, data: cV, borderColor: '#0891B2', borderWidth: 2, tension: .4, pointRadius: 3, fill: false }];
+  if (pV) ds.push({ label: `WK${p2(curr.wk-1)}`, data: pV, borderColor: '#94A3B8', borderWidth: 1.5, tension: .4, pointRadius: 2, fill: false, borderDash: [4,3] });
+  CH.d2cl = new Chart(document.getElementById('d2cWkLine'), {
+    type: 'line', data: { labels: lbs, datasets: ds },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 8, font: { size: 9 } } }, tooltip: { callbacks: { label: c => `WK${p2(c.datasetIndex === 0 ? curr.wk : curr.wk-1)}: ${fmtW(c.raw||0)}` } } }, scales: { x: { ticks: { font: { size: 8 } } }, y: { ticks: { callback: v => Math.round(v/10000)+'만', font: { size: 8 } }, grid: { color: '#F1F5F9' } } } }
+  });
 }
 
 function renderWkLine(curr, prev) {
@@ -728,7 +801,7 @@ function getDates() {
 function updateAll() {
   const dates = getDates();
   updBanner(dates); updKPI(dates);
-  renderTrend(dates); renderWkBarChart(); renderOmniWk();
+  renderTrend(dates); renderWkBarChart(); renderOmniWk(); renderD2cWk();
   renderCat(dates); renderDow(dates);
   if (actWk) renderPivot(actWk); else renderPivotEmpty();
 }
@@ -747,20 +820,22 @@ function updBanner(dates) {
 }
 
 function updKPI(dates) {
-  let tot = 0, d2c = 0, off = 0, best = 0, bestD = '';
-  dates.forEach(dt => { const v = DB[dt]?.tot || 0, vd = DB[dt]?.tD || 0, vo = DB[dt]?.tO || 0; tot += v; d2c += vd; off += vo;
+  let tot = 0, online = 0, off = 0, best = 0, bestD = '';
+  dates.forEach(dt => {
+    const v = DB[dt]?.tot || 0, vo = DB[dt]?.tO || 0;
+    tot += v; off += vo; online += (v - vo); // 온라인 = OMNI - 오프라인
     if (v > best) { best = v; const p = dt.split('-'); bestD = `${parseInt(p[1])}/${parseInt(p[2])}`; }
   });
-  const avg = dates.length ? Math.round(tot / dates.length) : 0;
+  const avg  = dates.length ? Math.round(tot / dates.length) : 0;
   const prog = TARGET > 0 ? (tot / TARGET * 100).toFixed(1) : 0;
   document.getElementById('kv1').textContent = fmtW(tot) || '–';
   document.getElementById('ks1').textContent = `${dates.length}일 합계`;
-  document.getElementById('kv2').textContent = fmtW(avg) || '–'; // 원 단위
+  document.getElementById('kv2').textContent = fmtW(avg) || '–';
   document.getElementById('ks2').textContent = '일 평균';
   document.getElementById('kv3').textContent = bestD || '–';
   document.getElementById('ks3').innerHTML = `<span class="up">${fmtW(best)}</span>`;
-  document.getElementById('kv5').textContent = fmtW(d2c) || '–';
-  document.getElementById('ks5').textContent = '자사몰 합계';
+  document.getElementById('kv5').textContent = fmtW(online) || '–';
+  document.getElementById('ks5').textContent = '온라인 합계';
   document.getElementById('kv6').textContent = fmtW(off) || '–';
   document.getElementById('ks6').textContent = '오프라인 합계';
   document.getElementById('kv7').innerHTML = `<span style="color:${parseFloat(prog) >= 100 ? 'var(--green)' : 'var(--blue)'}">${prog}%</span>`;
@@ -803,22 +878,22 @@ function renderTrend(dates) {
   });
 }
 
-/* WK BAR CHART */
+/* WK BAR CHART (자사몰 tD 기준) */
 function renderWkBarChart() {
   if (CH.wb) CH.wb.destroy();
-  const vals = WKS.map(w => swk(w));
+  const vals = WKS.map(w => swk(w, 'tD'));  // 자사몰 기준
   document.getElementById('wkBL').textContent = actWk ? `(WK${p2(actWk)} 선택)` : '';
   CH.wb = new Chart(document.getElementById('wkBar'), {
     type: 'bar',
-    data: { labels: WKS.map(w => `WK${p2(w.wk)}`), datasets: [{ label: 'OMNI 매출', data: vals, backgroundColor: vals.map((_, i) => WKS[i].wk === actWk ? '#2563EB' : 'rgba(37,99,235,.22)'), borderRadius: 5, borderSkipped: false }] },
+    data: { labels: WKS.map(w => `WK${p2(w.wk)}`), datasets: [{ label: '자사몰 매출', data: vals, backgroundColor: vals.map((_, i) => WKS[i].wk === actWk ? '#0891B2' : 'rgba(8,145,178,.22)'), borderRadius: 5, borderSkipped: false }] },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => fmtW(c.raw) } } }, scales: { x: { ticks: { font: { size: 10 } } }, y: { ticks: { callback: v => Math.round(v / 10000) + '만', font: { size: 9 } }, grid: { color: '#F1F5F9' } } } }
   });
 }
 
-/* CAT PANEL */
+/* CAT PANEL (자사몰 d2c 기준) */
 function renderCat(dates) {
   const ct = {}; let grand = 0;
-  dates.forEach(dt => { (DB[dt]?.prods || []).forEach(p => { const v = p.d2c + p.off; ct[p.cat] = (ct[p.cat] || 0) + v; grand += v; }); });
+  dates.forEach(dt => { (DB[dt]?.prods || []).forEach(p => { const v = p.d2c; ct[p.cat] = (ct[p.cat] || 0) + v; grand += v; }); });
   const _fmtM = ds => { const p = ds.split('-'); return `${parseInt(p[1])}/${parseInt(p[2])}`; };
   const _lo2 = selS && selE ? (selS<=selE?selS:selE) : selS;
   const _hi2 = selS && selE ? (selS>=selE?selS:selE) : selS;
@@ -839,7 +914,7 @@ function renderDow(dates) {
   dates.forEach(dt => {
     const dow = new Date(dt).getDay(); // 0=Sun
     const idx = dow === 0 ? 6 : dow - 1; // Mon=0…Sun=6
-    sum[idx] += DB[dt]?.tot || 0; cnt[idx]++;
+    sum[idx] += DB[dt]?.tD || 0; cnt[idx]++;  // 자사몰 기준
   });
   const avgs = sum.map((s, i) => cnt[i] > 0 ? Math.round(s / cnt[i]) : 0);
   const mxA = Math.max(...avgs) || 1;
@@ -880,7 +955,7 @@ function renderPivot(wkNum) {
       (DB[dt]?.prods || []).forEach(p => {
         if (!pd[p.cat]) pd[p.cat] = {};
         if (!pd[p.cat][p.nm]) pd[p.cat][p.nm] = { curr: 0, prev: 0 };
-        pd[p.cat][p.nm][key] += (p.d2c + p.off);
+        pd[p.cat][p.nm][key] += p.d2c;  // 자사몰 기준
       });
     });
   };
