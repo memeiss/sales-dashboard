@@ -596,6 +596,26 @@ function swk(w, key = 'tot') {
   return t;
 }
 
+// WKS에 없는 주차도 DB 전체에서 직접 범위 계산
+// wkNum-1 이전 주가 다른 달에 있어도 정확히 찾아줌
+function getWkObj(wkNum) {
+  // 먼저 WKS에서 찾기
+  const inWks = WKS.find(w => w.wk === wkNum);
+  if (inWks) return inWks;
+  // 없으면 wkToStart/fS/fE 로 직접 생성
+  const fs = wkToStart(wkNum, BASE_YEAR);
+  const fe = new Date(+fs + 6 * 86400000);
+  const p2l = n => String(n).padStart(2,'0');
+  const ds  = dt => `${dt.getFullYear()}-${p2l(dt.getMonth()+1)}-${p2l(dt.getDate())}`;
+  return {
+    wk: wkNum,
+    clampS: ds(fs),
+    clampE: ds(fe),
+    fS: { y: fs.getFullYear(), m: fs.getMonth()+1, d: fs.getDate() },
+    fE: { y: fe.getFullYear(), m: fe.getMonth()+1, d: fe.getDate() }
+  };
+}
+
 /* OMNI WK BAR */
 function renderOmniWk() {
   const bar = document.getElementById('omniWk'); bar.innerHTML = '';
@@ -635,13 +655,15 @@ function selWk(wkNum) {
 
 function renderWkCompare(wkNum) {
   document.getElementById('wkCmp').style.display = 'block';
-  const curr = WKS.find(w => w.wk === wkNum), prev = WKS.find(w => w.wk === wkNum - 1);
-  const cT = swk(curr), pT = prev ? swk(prev) : 0;
-  const p = prev ? pct(cT, pT) : null, up = p !== null ? parseFloat(p) >= 0 : null;
+  const curr = getWkObj(wkNum), prev = getWkObj(wkNum - 1);
+  // 전주 데이터가 DB에 실제로 있는지 확인
+  const prevHasData = dateRange(prev.clampS, prev.clampE).some(dt => DB[dt]?.tot);
+  const cT = swk(curr), pT = prevHasData ? swk(prev) : 0;
+  const p = prevHasData ? pct(cT, pT) : null, up = p !== null ? parseFloat(p) >= 0 : null;
   document.getElementById('wc-l').textContent = `WK${p2(wkNum)} 이번주`;
   document.getElementById('wc-v').textContent = fmtW(cT);
   document.getElementById('wc-r').textContent = fmtR(curr);
-  if (prev) {
+  if (prevHasData) {
     document.getElementById('wp-l').textContent = `WK${p2(wkNum - 1)} 전주`;
     document.getElementById('wp-v').textContent = fmtW(pT);
     document.getElementById('wp-r').textContent = fmtR(prev);
@@ -660,7 +682,7 @@ function renderWkCompare(wkNum) {
     document.getElementById('wlbl').textContent = '첫째 주 — 비교 없음';
     document.getElementById('kv4').textContent = '–'; document.getElementById('ks4').textContent = '첫째 주';
   }
-  renderWkLine(curr, prev);
+  renderWkLine(curr, prevHasData ? prev : null);
 }
 
 function renderWkLine(curr, prev) {
@@ -845,10 +867,11 @@ function renderPivotEmpty() {
 }
 
 function renderPivot(wkNum) {
-  const curr = WKS.find(w => w.wk === wkNum);
-  const prev = WKS.find(w => w.wk === wkNum - 1);
+  const curr = getWkObj(wkNum);
+  const prev = getWkObj(wkNum - 1);
+  const prevHasData2 = dateRange(prev.clampS, prev.clampE).some(dt => DB[dt]?.tot || (DB[dt]?.prods||[]).length > 0);
   document.getElementById('pvSub').textContent =
-    `WK${p2(wkNum)} ${fmtR(curr)}${prev ? '  vs  WK' + p2(wkNum - 1) + ' ' + fmtR(prev) : '  (전주 없음)'}`;
+    `WK${p2(wkNum)} ${fmtR(curr)}${prevHasData2 ? '  vs  WK' + p2(wkNum-1) + ' ' + fmtR(prev) : '  (전주 없음)'}`;
 
   // 집계
   const pd = {}; // {cat: {prod: {curr, prev}}}
@@ -862,7 +885,7 @@ function renderPivot(wkNum) {
     });
   };
   col2(curr, 'curr');
-  if (prev) col2(prev, 'prev');
+  if (prevHasData2) col2(prev, 'prev');
 
   const catS = {};
   CORD.forEach(cat => {
@@ -876,14 +899,14 @@ function renderPivot(wkNum) {
   <thead>
     <tr class="rg">
       <th class="tnm" rowspan="2">상품명</th>
-      ${prev ? `<th class="tprev">WK${p2(wkNum - 1)} 전주</th>` : ''}
+      ${prevHasData2 ? `<th class="tprev">WK${p2(wkNum - 1)} 전주</th>` : ''}
       <th class="tcurr">WK${p2(wkNum)} 이번주</th>
-      ${prev ? `<th class="twow">전주 대비 (WoW)</th>` : ''}
+      ${prevHasData2 ? `<th class="twow">전주 대비 (WoW)</th>` : ''}
     </tr>
     <tr class="rl">
-      ${prev ? `<th class="tprev">매출 (원)</th>` : ''}
+      ${prevHasData2 ? `<th class="tprev">매출 (원)</th>` : ''}
       <th class="tcurr">매출 (원)</th>
-      ${prev ? `<th class="twow">증감율</th>` : ''}
+      ${prevHasData2 ? `<th class="twow">증감율</th>` : ''}
     </tr>
   </thead><tbody>`;
 
@@ -900,9 +923,9 @@ function renderPivot(wkNum) {
         <span style="margin-left:8px;font-size:10px;font-weight:700;color:${cp === null ? 'var(--muted)' : cup ? 'var(--green)' : 'var(--red)'};">${cp !== null ? (cup ? '▲+' : '▼') + Math.abs(cp).toFixed(1) + '%' : '–'}</span>
         <span style="color:var(--muted);font-weight:500;margin-left:6px;">${fmtW(cs.curr)}</span>
       </td>
-      ${prev ? `<td class="cprev">${fmtW(cs.prev)}</td>` : ''}
+      ${prevHasData2 ? `<td class="cprev">${fmtW(cs.prev)}</td>` : ''}
       <td class="ccurr">${fmtW(cs.curr)}</td>
-      ${prev ? `<td class="cwow ${cp === null ? 'neu' : cup ? 'up' : 'dn'}">${cp !== null ? (cup ? '▲+' : '▼') + Math.abs(cp).toFixed(1) + '%' : '신규'}</td>` : ''}
+      ${prevHasData2 ? `<td class="cwow ${cp === null ? 'neu' : cup ? 'up' : 'dn'}">${cp !== null ? (cup ? '▲+' : '▼') + Math.abs(cp).toFixed(1) + '%' : '신규'}</td>` : ''}
     </tr>`;
 
     Object.keys(pd[cat])
@@ -916,9 +939,9 @@ function renderPivot(wkNum) {
         const wc = p2v === null ? 'neu' : up ? 'up' : 'dn';
         html += `<tr>
           <td class="tnm" style="padding-left:22px;">${nm}</td>
-          ${prev ? `<td class="cprev">${pv > 0 ? fmtW(pv) : '–'}</td>` : ''}
+          ${prevHasData2 ? `<td class="cprev">${pv > 0 ? fmtW(pv) : '–'}</td>` : ''}
           <td class="ccurr">${curr > 0 ? fmtW(curr) : '–'}</td>
-          ${prev ? `<td class="cwow ${wc}">${wt}</td>` : ''}
+          ${prevHasData2 ? `<td class="cwow ${wc}">${wt}</td>` : ''}
         </tr>`;
       });
   });
