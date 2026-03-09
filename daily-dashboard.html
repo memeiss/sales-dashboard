@@ -255,16 +255,13 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
   <div class="header-right">
     <div class="period-selector">
       <label>연도</label>
-      <select id="selYear" onchange="initDash()">
+      <select id="selYear">
         <option value="2026" selected>2026</option>
-        <option value="2025">2025</option>
       </select>
       <span class="period-sep">·</span>
       <label>월</label>
-      <select id="selMonth" onchange="initDash()">
-        <option value="1">1월</option><option value="2" selected>2월</option><option value="3">3월</option><option value="4">4월</option>
-        <option value="5">5월</option><option value="6">6월</option><option value="7">7월</option><option value="8">8월</option>
-        <option value="9">9월</option><option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
+      <select id="selMonth">
+        <option value="3" selected>3월</option>
       </select>
     </div>
     <div class="period-badge" id="periodBadge">02.01 – 02.28</div>
@@ -1159,6 +1156,7 @@ async function loadFromFirebase() {
 // ── DATA → DB 재구성 후 현재 연/월 렌더링 ──
 function rebuildAndRender() {
   rebuildDailyDB();   // DB 전체 재구성
+  updatePeriodSelector(); // 연/월 셀렉터 갱신 (index.html과 동일하게)
   // initDash는 YEAR/MONTH/WKS/selS/selE 초기화 + render
   const y = +document.getElementById('selYear').value;
   const m = +document.getElementById('selMonth').value;
@@ -1182,6 +1180,50 @@ function updatePeriodBadge() {
   const dd   = String(days).padStart(2,'0');
   const pb   = document.getElementById('periodBadge');
   if (pb) pb.textContent = `${mm}.01 – ${mm}.${dd}`;
+}
+
+// ── 연/월 셀렉터를 index.html과 동일하게 갱신 ──
+// 데이터 있는 연도만 표시, 월은 1~12 전체 표시 (데이터 없는 달은 disabled)
+function updatePeriodSelector() {
+  const periods = new Set();
+  DATA.daily.forEach(r => { if (r.date) periods.add(r.date.slice(0,7)); });
+  Object.keys(DATA.products_daily || {}).forEach(ds => periods.add(ds.slice(0,7)));
+
+  if (!periods.size) return;
+
+  const years = [...new Set([...periods].map(p => parseInt(p)))].sort();
+  const selY  = document.getElementById('selYear');
+  const selM  = document.getElementById('selMonth');
+  const prevY = parseInt(selY.value) || new Date().getFullYear();
+  const prevM = parseInt(selM.value) || new Date().getMonth() + 1;
+
+  // 연도 옵션: 데이터 있는 연도만
+  selY.innerHTML = years.map(y => `<option value="${y}"${y===prevY?' selected':''}>${y}</option>`).join('');
+  const curY = parseInt(selY.value);
+
+  // 월 옵션: 1~12 전체, 데이터 없는 달은 disabled
+  const dataMonths = new Set([...periods]
+    .filter(p => parseInt(p) === curY)
+    .map(p => parseInt(p.split('-')[1])));
+
+  const latestDataMonth = dataMonths.size ? Math.max(...dataMonths) : new Date().getMonth() + 1;
+  const showUpTo = Math.max(latestDataMonth, 12); // 항상 12월까지 표시
+
+  selM.innerHTML = Array.from({length: 12}, (_, i) => i + 1).map(m => {
+    const hasData = dataMonths.has(m);
+    const isSel   = m === prevM ? ' selected' : (m === latestDataMonth && !dataMonths.has(prevM) ? ' selected' : '');
+    const dis      = hasData ? '' : ' disabled';
+    return `<option value="${m}"${isSel}${dis}>${m}월</option>`;
+  }).join('');
+
+  // selected가 disabled면 최신 데이터 월로 보정
+  if (!dataMonths.has(parseInt(selM.value))) {
+    selM.value = latestDataMonth;
+  }
+
+  // 연도 변경 이벤트
+  selY.onchange = () => { updatePeriodSelector(); initDash(); };
+  selM.onchange = () => initDash();
 }
 
 // ── initDash 재정의: 연/월 변경 시 DATA가 있으면 즉시 재렌더, 없으면 Firebase 로드 ──
