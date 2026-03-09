@@ -1654,25 +1654,32 @@ async function saveDataToFirebase() {
   }
 }
 
-// ─────────────────────────────────────────────────────────────────
-// PARSER  (새 엑셀 형식)
+// ═══════════════════════════════════════════════════════════════════
+// PARSER — 새 엑셀 양식 기준 (dashboard_template_sample.xlsx)
 //
-// 공통 시트 구조:
-//   Row 1  : 시트 제목
-//   Row 2  : 월 목표 (C2, D2, E2 ...)
-//   Row 3  : 연도  (C열부터 열 방향)
-//   Row 4  : 월
-//   Row 5  : 날짜 (YYYY-MM-DD)
-//   Row 6  : 요일
-//   Row 7~ : 지표별 일자별 데이터
+// 공통 시트 구조 (📅일자별매출 / 🛒D2C채널 / 🏷️카테고리매출):
+//   Row1: 시트 제목
+//   Row2: 월 목표 (C2=목표1, D2=목표2 ...)  ← A2는 레이블 텍스트
+//   Row3: 연도 (C열부터)
+//   Row4: 월
+//   Row5: 날짜 (datetime 객체)
+//   Row6: 요일
+//   Row7~: 지표별 데이터
 //
-// 상품별매출 시트:
-//   B2=연도, C2=월
-//   Row 3  : 헤더
-//   Row 4~ : 상품 데이터 (행 방향)
-// ─────────────────────────────────────────────────────────────────
+// 📦 상품별매출:
+//   Row1: 시트 제목
+//   Row2: A2=레이블, B2=연도, C2=월
+//   Row3: A3=상품명, B3=카테고리, C3이후=날짜
+//   Row4~: 상품 데이터
+//
+// 🔄 정기결제:
+//   Row2: B2=연도, C2=월
+//   Row5~9: 매출현황 (C열=당월, D열=전년)
+//   Row11: 상품헤더, Row12~: 상품별현황 ('합계'에서 중단)
+//   Row21: 배송헤더, Row22~: 배송횟수 ('합계'에서 중단)
+// ═══════════════════════════════════════════════════════════════════
 
-// row / col은 0-indexed
+// row/col은 0-indexed
 function cell(ws, r, c) {
   const cl = ws[XLSX.utils.encode_cell({r, c})];
   return cl || null;
@@ -1681,186 +1688,146 @@ function cellV(ws, r, c, def=0) {
   const cl = cell(ws, r, c);
   if (!cl) return def;
   if (typeof cl.v === 'number') return cl.v;
-  if (typeof cl.v === 'string') { const n = parseFloat(cl.v.replace(/,/g,'')); return isNaN(n) ? def : n; }
-  // Date 객체인 경우 엑셀 시리얼로 변환하지 않고 def 반환 (날짜셀은 fmtDate로 처리)
-  return def;
+  if (typeof cl.v === 'string') {
+    const n = parseFloat(cl.v.replace(/,/g,''));
+    return isNaN(n) ? def : n;
+  }
+  return def;  // Date 객체 등은 fmtDate로 별도 처리
 }
 function cellS(ws, r, c, def='') {
   const cl = cell(ws, r, c);
-  return cl ? String(cl.v||'') : def;
+  if (!cl || cl.v === null || cl.v === undefined) return def;
+  return String(cl.v);
 }
-
-function parseWB(wb) {
-  // 📅 일자별매출
-  // Row7=온라인, Row8=오프라인, Row9=전체(formula), Row10=전년온라인, Row11=전년오프라인, Row12=전년전체
-  // 월목표: C2=온라인목표, D2=오프라인목표
-  const ws1 = wb.Sheets['📅 일자별매출'];
-  const onlTgt = ws1 ? cellV(ws1, 1, 1) : 0;  // B2 온라인목표 (r=1,c=1)
-  const offTgt = ws1 ? cellV(ws1, 1, 2) : 0;  // C2 오프라인목표 (r=1,c=2)
-
-  // 🛒 D2C채널
-  // Row7=자사몰, Row8=네이버, Row9=기타, Row10=자사몰UV, Row11=자사몰주문, Row12=전년자사몰, Row13=전년네이버, Row14=전년기타
-  // 월목표: C2=자사몰, D2=네이버, E2=기타
-  const ws2 = wb.Sheets['🛒 D2C채널'];
-  const ownTgt = ws2 ? cellV(ws2, 1, 1) : 0;  // B2 자사몰목표
-  const navTgt = ws2 ? cellV(ws2, 1, 2) : 0;  // C2 네이버목표
-  const etcTgt = ws2 ? cellV(ws2, 1, 3) : 0;  // D2 기타목표
-
-  // 🏷️ 카테고리매출
-  // Row7~11=스킨/헤어/바디/선/기타, Row12=합계(formula), Row13~17=전년
-  // 월목표: C2~G2
-  const ws3 = wb.Sheets['🏷️ 카테고리매출'];
-  const skinTgt = ws3 ? cellV(ws3, 1, 1) : 0;  // B2 새벽배송목표
-  const hairTgt = ws3 ? cellV(ws3, 1, 2) : 0;  // C2 건강케어목표
-  const bodyTgt = ws3 ? cellV(ws3, 1, 3) : 0;  // D2 질환케어목표
-  const sunTgt  = ws3 ? cellV(ws3, 1, 4) : 0;  // E2 보충케어목표
-  const othTgt  = ws3 ? cellV(ws3, 1, 5) : 0;  // F2 이벤트/기타목표
-
-  // 날짜 목록은 Row5(r=4)에서 읽기 (C열부터 = c=2)
-  DATA.daily = parseDataRows(ws1, {
-    online:7, offline:8, total:9,
-    prevOnline:10, prevOffline:11, prevTotal:12
-  });
-
-DATA.d2c = parseDataRows(ws2, {
-  ownSales:7, navSales:8, etcSales:9,
-  ownUV:10,
-  ownNewUV:11,   // 추가
-  ownRetUV:12,   // 추가
-  ownOrd:13,     // 기존 11 → 12
-  ownPrev:14, navPrev:15, etcPrev:16  // 기존 11~13 → 13~15
-});
-
-  DATA.cat = parseDataRows(ws3, {
-    skin:7, hair:8, body:9, sun:10, other:11
-  });
-
-  // products: 해당 월 데이터만 교체 (기존 다른 월 데이터는 유지)
-  const newProds = parseProdSheet(wb.Sheets['📦 상품별매출']);
-  if (newProds.length) {
-    const newY = newProds[0].year;
-    const newM = newProds[0].month;
-    // 같은 연/월 기존 데이터 제거 후 새 데이터 추가
-    DATA.products = DATA.products.filter(p => !(p.year == newY && p.month == newM));
-    DATA.products = DATA.products.concat(newProds);
+function fmtDate(v) {
+  if (!v && v !== 0) return null;
+  if (v instanceof Date) {
+    // cellDates:true 로 읽으면 Date 객체로 옴 — UTC 기준 변환
+    const y = v.getUTCFullYear(), mo = v.getUTCMonth()+1, d = v.getUTCDate();
+    return `${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
   }
-  DATA.sub = parseSubSheet(wb.Sheets['🔄 정기결제']);
-
-  // 목표는 각 시트 Row2에서 읽은 월 단위 값을 DATA.monthTargets에 보관
-  DATA.monthTargets = {
-    onlineTarget: onlTgt, offlineTarget: offTgt,
-    ownTarget: ownTgt, navTarget: navTgt, etcTarget: etcTgt,
-    skinTarget: skinTgt, hairTarget: hairTgt,
-    bodyTarget: bodyTgt, sunTarget: sunTgt, otherTarget: othTgt,
-  };
-
-  updatePeriodSelector();
-  onPeriodChange();
+  if (typeof v === 'string') {
+    const s = v.trim();
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
+    const m = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+    if (m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+    return null;
+  }
+  if (typeof v === 'number' && v > 0) {
+    const d = new Date(Math.round((v - 25569) * 86400 * 1000));
+    const y = d.getUTCFullYear(), mo = d.getUTCMonth()+1, dd = d.getUTCDate();
+    return `${y}-${String(mo).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
+  }
+  return null;
 }
 
-// 새 함수 추가 (parseWB 아래에)
-function parseSubSheet(ws) {
-  if (!ws) return null;
-  return {
-    year:       cellV(ws, 1, 1),   // B2
-    month:      cellV(ws, 1, 2),   // C2
-    // ── 섹션1: 매출 현황 (Row5~9, r=4~8, 당월=C열c=2, 전년=D열c=3)
-    subTotal:   cellV(ws, 4, 2),   // C5
-    prevTotal:  cellV(ws, 4, 3),   // D5
-    totalCnt:   cellV(ws, 5, 2),   // C6  전체 신청건수
-    activeCnt:  cellV(ws, 6, 2),   // C7  진행건수
-    cancelCnt:  cellV(ws, 7, 2),   // C8  해지건수
-    ltr:        cellV(ws, 8, 2),   // C9  구독 유지율 (자동계산)
-    prevLtr:    cellV(ws, 8, 3),   // D9
-    // ── 섹션2: 상품별 현황 (Row12~17, r=11~16)
-    products: (() => {
-      const prods = [];
-      for (let r = 11; ; r++) {
-        const nm = cellS(ws, r, 0);
-        if (!nm) break;
-        prods.push({
-          name:     nm,
-          category: cellS(ws, r, 1),
-          sales:    cellV(ws, r, 2),   // C열
-          active:   cellV(ws, r, 3),   // D열
-          cancel:   cellV(ws, r, 4),   // E열
-          ltr:      cellV(ws, r, 5),   // F열 (자동계산)
-          prev:     cellV(ws, r, 6),   // G열
-        });
-      }
-      return prods;
-    })(),
-    // ── 섹션3: 배송 횟수 (Row22~25, r=21~24)
-    delivery: (() => {
-      const items = [];
-      for (let r = 21; ; r++) {
-        const label = cellS(ws, r, 0);
-        if (!label || label === '합계') break;
-        items.push({
-          label: label,              // A열: '4회','8회'...
-          cnt:   cellV(ws, r, 2),   // C열
-          ratio: cellV(ws, r, 3),   // D열 (자동계산)
-        });
-      }
-      return items;
-    })(),
-  };
-}
-
-// 열 방향 날짜 시트 파싱
-// 날짜: Row5 (r=4), col C 이후 (c=2,3,4...)
-// 데이터행: rowMap = { fieldName: excelRow(1-indexed) }
+// ─── 날짜 행이 Row5(r=4), 데이터 행은 rowMap으로 지정 (1-indexed)
 function parseDataRows(ws, rowMap) {
   if (!ws) return [];
   const rows = [];
-  for (let c = 2; ; c++) {  // C열부터 (0-indexed c=2)
-    const dc = cell(ws, 4, c);  // Row5 (r=4) = 날짜행
-    if (!dc || (dc.v === undefined && dc.v === null)) break;
-    const raw = dc.t === 'd' ? dc.v : (dc.w || dc.v);  // 날짜타입 우선, 포맷문자열 차선
-    if (!raw) break;
-    const dateStr = fmtDate(raw instanceof Date ? raw : dc.v);
+  for (let c = 2; ; c++) {   // C열(c=2)부터
+    const dc = cell(ws, 4, c);   // Row5(r=4) = 날짜
+    if (!dc) break;
+    const dateStr = fmtDate(dc.v instanceof Date ? dc.v : dc.v);
     if (!dateStr) break;
     const row = { date: dateStr };
     Object.entries(rowMap).forEach(([key, excelRow]) => {
-      row[key] = cellV(ws, excelRow - 1, c);  // excelRow는 1-indexed → r=excelRow-1
+      row[key] = cellV(ws, excelRow - 1, c);
     });
     rows.push(row);
   }
   return rows;
 }
 
-// ─── 상품별매출 시트 파싱 (새 구조: 일자별 열 방향) ──────────
-// Row1 : A=연도, B=월
-// Row2 : A=상품명, B=카테고리, C이후=날짜(YYYY-MM-DD 또는 엑셀 날짜값)
-// Row3~: 각 상품의 일자별 자사몰 매출
-// Row(상품 끝+1): A="주문수", B=카테고리, C이후=일자별 주문건수 (선택)
-// 예시:
-//        A          B       C(2026-02-01)  D(2026-02-02) ...
-// Row1:  2026       2
-// Row2:  상품명     카테고리  2026-02-01     2026-02-02
-// Row3:  신장톤톤   질환케어   1200000        980000
-// Row4:  고단백20   건강케어    450000         380000
+function parseWB(wb) {
+  // ── 📅 일자별매출 ──
+  // 목표: C2(c=2)=온라인, D2(c=3)=오프라인
+  const ws1 = wb.Sheets['📅 일자별매출'];
+  const onlTgt = ws1 ? cellV(ws1, 1, 2) : 0;   // C2
+  const offTgt = ws1 ? cellV(ws1, 1, 3) : 0;   // D2
+
+  // ── 🛒 D2C채널 ──
+  // 목표: C2(c=2)=자사몰, D2(c=3)=네이버, E2(c=4)=기타
+  const ws2 = wb.Sheets['🛒 D2C채널'];
+  const ownTgt = ws2 ? cellV(ws2, 1, 2) : 0;   // C2
+  const navTgt = ws2 ? cellV(ws2, 1, 3) : 0;   // D2
+  const etcTgt = ws2 ? cellV(ws2, 1, 4) : 0;   // E2
+
+  // ── 🏷️ 카테고리매출 ──
+  // 목표: C2(c=2)~G2(c=6) = 새벽배송/건강케어/질환케어/보충케어/이벤트
+  const ws3 = wb.Sheets['🏷️ 카테고리매출'];
+  const cat1Tgt = ws3 ? cellV(ws3, 1, 2) : 0;  // C2 새벽배송
+  const cat2Tgt = ws3 ? cellV(ws3, 1, 3) : 0;  // D2 건강케어
+  const cat3Tgt = ws3 ? cellV(ws3, 1, 4) : 0;  // E2 질환케어
+  const cat4Tgt = ws3 ? cellV(ws3, 1, 5) : 0;  // F2 보충케어
+  const cat5Tgt = ws3 ? cellV(ws3, 1, 6) : 0;  // G2 이벤트/기타
+
+  // ── 날짜별 데이터 파싱 ──
+  DATA.daily = parseDataRows(ws1, {
+    online:7, offline:8, total:9,
+    prevOnline:10, prevOffline:11, prevTotal:12
+  });
+  DATA.d2c = parseDataRows(ws2, {
+    ownSales:7, navSales:8, etcSales:9,
+    ownUV:10, ownNewUV:11, ownRetUV:12,
+    ownOrd:13,
+    ownPrev:14, navPrev:15, etcPrev:16
+  });
+  DATA.cat = parseDataRows(ws3, {
+    skin:7, hair:8, body:9, sun:10, other:11
+    // Row12=합계(자동계산), Row13~17=전년 (현재 미사용)
+  });
+
+  // ── 📦 상품별매출 ──
+  // Row2: B2=연도, C2=월 / Row3=헤더(날짜) / Row4~=상품 데이터
+  const ws4 = wb.Sheets['📦 상품별매출'];
+  const newProds = parseProdSheet(ws4);
+  if (newProds.length) {
+    const newY = newProds[0].year, newM = newProds[0].month;
+    DATA.products = DATA.products.filter(p => !(p.year==newY && p.month==newM));
+    DATA.products = DATA.products.concat(newProds);
+  }
+
+  // ── 🔄 정기결제 ──
+  DATA.sub = parseSubSheet(wb.Sheets['🔄 정기결제']);
+
+  // ── 목표 저장 ──
+  DATA.monthTargets = {
+    onlineTarget: onlTgt, offlineTarget: offTgt,
+    ownTarget: ownTgt, navTarget: navTgt, etcTarget: etcTgt,
+    cat1Target: cat1Tgt, cat2Target: cat2Tgt,
+    cat3Target: cat3Tgt, cat4Target: cat4Tgt, cat5Target: cat5Tgt,
+  };
+
+  updatePeriodSelector();
+  onPeriodChange();
+}
+
+// ── 📦 상품별매출 파싱 ──
+// Row2: B2=연도(c=1), C2=월(c=2)
+// Row3: 헤더 — A3=상품명, B3=카테고리, C3이후=날짜
+// Row4~: 상품 데이터
 function parseProdSheet(ws) {
   if (!ws) return [];
-  const y = cellV(ws, 0, 0) || YEAR;   // A1: 연도
-  const m = cellV(ws, 0, 1) || MONTH;  // B1: 월
+  const y = cellV(ws, 1, 1) || YEAR;   // B2=연도
+  const m = cellV(ws, 1, 2) || MONTH;  // C2=월
 
-  // Row3 (r=2): 날짜 헤더 — C열(c=2)부터 (Row2는 안내 텍스트)
+  // Row3(r=2): 날짜 헤더 — C열(c=2)부터
   const dateMap = {};
   for (let c = 2; ; c++) {
-    const dc = cell(ws, 2, c);   // r=2 = Row3
+    const dc = cell(ws, 2, c);
     if (!dc || dc.v === undefined || dc.v === null) break;
-    const ds = fmtDate(dc.v instanceof Date ? dc.v : dc.v);
+    const ds = fmtDate(dc.v);
     if (!ds) break;
     dateMap[c] = ds;
   }
   if (!Object.keys(dateMap).length) return [];
 
-  // Row4부터(r=3): 상품 데이터 행 (Row3=헤더, Row2=안내)
+  // Row4~(r=3): 상품 데이터
   const prodRows = [];
   for (let r = 3; ; r++) {
     const nm = cellS(ws, r, 0);
-    if (!nm || nm === '상품명') break;  // 헤더 행 건너뜀
+    if (!nm || nm === '상품명') break;
     const cat = cellS(ws, r, 1) || '';
     const dailySales = {};
     Object.entries(dateMap).forEach(([c, ds]) => {
@@ -1870,7 +1837,7 @@ function parseProdSheet(ws) {
   }
   if (!prodRows.length) return [];
 
-  // products_daily 구축: { 'YYYY-MM-DD': [{name, category, d2cSales}] }
+  // products_daily: { 'YYYY-MM-DD': [{name, category, d2cSales}] }
   const dailyByDate = {};
   prodRows.forEach(p => {
     Object.entries(p.dailySales).forEach(([ds, val]) => {
@@ -1880,18 +1847,61 @@ function parseProdSheet(ws) {
   });
   DATA.products_daily = dailyByDate;
 
-  // 기존 products 배열 형식 (월 집계 — 월간 요약 슬라이드 호환)
+  // 월 집계 (슬라이드3 호환)
   return prodRows.map(p => ({
     year: y, month: m,
-    name:      p.nm,
-    category:  p.cat,
-    sales:     Object.values(p.dailySales).reduce((s, v) => s + v, 0),
-    orders:    0,
-    prevSales: 0,
+    name: p.nm, category: p.cat,
+    sales: Object.values(p.dailySales).reduce((s,v) => s+v, 0),
+    orders: 0, prevSales: 0,
   }));
 }
 
-// 해당 월의 목표 가져오기 (renderS1/S2 호환 형식으로 반환)
+// ── 🔄 정기결제 파싱 ──
+// Row2: B2=연도, C2=월
+// Row5~9: 매출현황 (당월=C열c=2, 전년=D열c=3)
+// Row11=상품헤더, Row12~=상품별 ('합계'에서 중단)
+// Row21=배송헤더, Row22~=배송횟수 ('합계'에서 중단)
+function parseSubSheet(ws) {
+  if (!ws) return null;
+  return {
+    year:       cellV(ws, 1, 1),   // B2
+    month:      cellV(ws, 1, 2),   // C2
+    subTotal:   cellV(ws, 4, 2),   // C5
+    prevTotal:  cellV(ws, 4, 3),   // D5
+    totalCnt:   cellV(ws, 5, 2),   // C6
+    activeCnt:  cellV(ws, 6, 2),   // C7
+    cancelCnt:  cellV(ws, 7, 2),   // C8
+    ltr:        cellV(ws, 8, 2),   // C9
+    prevLtr:    cellV(ws, 8, 3),   // D9
+    products: (() => {
+      const prods = [];
+      for (let r = 11; ; r++) {   // Row12(r=11)부터
+        const nm = cellS(ws, r, 0);
+        if (!nm || nm === '합계' || nm === '상품명(식단)') { if (nm === '합계') break; if (!nm) break; continue; }
+        prods.push({
+          name:     nm,
+          category: cellS(ws, r, 1),
+          sales:    cellV(ws, r, 2),
+          active:   cellV(ws, r, 3),
+          cancel:   cellV(ws, r, 4),
+          ltr:      cellV(ws, r, 5),
+          prev:     cellV(ws, r, 6),
+        });
+      }
+      return prods;
+    })(),
+    delivery: (() => {
+      const items = [];
+      for (let r = 21; ; r++) {   // Row22(r=21)부터
+        const label = cellS(ws, r, 0);
+        if (!label || label === '합계' || label === '배송 횟수 구분') { if (!label || label === '합계') break; continue; }
+        items.push({ label, cnt: cellV(ws, r, 2), ratio: cellV(ws, r, 3) });
+      }
+      return items;
+    })(),
+  };
+}
+
 function getTargets() {
   if (!DATA.monthTargets) return null;
   const t = DATA.monthTargets;
@@ -1904,31 +1914,6 @@ function getTargets() {
     etcTarget:     t.etcTarget  || 0,
   };
 }
-
-function fmtDate(v) {
-  if (!v && v !== 0) return null;
-  if (v instanceof Date) {
-    // UTC 기준으로 변환 (타임존 오프셋 문제 방지)
-    const y = v.getUTCFullYear(), mo = v.getUTCMonth()+1, d = v.getUTCDate();
-    return `${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-  }
-  if (typeof v === 'string') {
-    const s = v.trim();
-    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
-    // "2026/02/01" 형식 지원
-    const m = s.match(/^(\d{4})[\/-](\d{1,2})[\/-](\d{1,2})/);
-    if (m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
-    return null;
-  }
-  if (typeof v === 'number' && v > 0) {
-    // 엑셀 시리얼 날짜 (UTC 기준)
-    const d = new Date(Math.round((v - 25569) * 86400 * 1000));
-    const y = d.getUTCFullYear(), mo = d.getUTCMonth()+1, dd = d.getUTCDate();
-    return `${y}-${String(mo).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
-  }
-  return null;
-}
-
 // ─── 리뷰 코멘트 ───────────────────────────────────────────
 const ALL_COMMENT_IDS = [
   's1-total','s1-channel','s1-weekday',
