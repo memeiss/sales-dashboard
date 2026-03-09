@@ -79,6 +79,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 .dhc{text-align:center;font-size:8px;font-weight:700;color:var(--muted);padding:2px 0;}
 .dhc.sat{color:#3B82F6;}.dhc.sun{color:#EF4444;}
 .cgrd{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;}
+.day.prev-month{opacity:.55;background:rgba(0,0,0,.02)!important;cursor:default;}
 .day{aspect-ratio:1;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:1.5px solid transparent;transition:.1s;position:relative;padding:1px;min-height:33px;}
 .day:hover:not(.nd):not(.emp){background:var(--blue-lt);border-color:var(--blue-mid);}
 .day.emp{pointer-events:none;}.day.nd{cursor:default;}
@@ -398,21 +399,35 @@ function wkToStart(wkNum, baseYear) {
 }
 
 function buildWeeks(year, month, baseYear) {
+  // 해당 월의 모든 날짜를 순회하며 주차 목록 수집
   const days = new Date(year, month, 0).getDate();
   const seen = new Set(), weeks = [];
+  const p2l = n => String(n).padStart(2, '0');
+  const absDs = d => `${year}-${p2l(month)}-${p2l(d)}`; // 당월 날짜 → YYYY-MM-DD
+
   for (let d = 1; d <= days; d++) {
     const wkNum = dateToWk(new Date(year, month - 1, d), baseYear);
     if (!seen.has(wkNum)) {
       seen.add(wkNum);
-      const fs = wkToStart(wkNum, baseYear);
-      const fe = new Date(+fs + 6 * 86400000);
-      // clamp start: first d in this month belonging to this week
-      let cs = d;
-      // clamp end: last d in this month belonging to this week
+      // 해당 주차의 실제 월~일 (week full range)
+      const fs = wkToStart(wkNum, baseYear);                     // 월요일
+      const fe = new Date(+fs + 6 * 86400000);                   // 일요일
+
+      // clampS: 이 주차에서 현재 월에 속하는 첫날 (월 경계 이전 날도 포함)
+      // → 주 시작이 전월이면 전월 날짜 문자열, 당월이면 당월 날짜 문자열
+      const csDate = fs.getFullYear() < year || fs.getMonth() + 1 < month ? fs : new Date(year, month - 1, d);
+      // clampE: 이 주차에서 현재 월에 속하는 마지막날
       let ce = d;
       while (ce < days && dateToWk(new Date(year, month - 1, ce + 1), baseYear) === wkNum) ce++;
+      const ceDate = new Date(year, month - 1, ce);
+
+      // 날짜→YYYY-MM-DD 헬퍼
+      const ds2str = dt => `${dt.getFullYear()}-${p2l(dt.getMonth()+1)}-${p2l(dt.getDate())}`;
+
       weeks.push({
-        wk: wkNum, clampS: cs, clampE: ce,
+        wk: wkNum,
+        clampS: ds2str(csDate),   // 절대 날짜 문자열 (전월 포함 가능)
+        clampE: ds2str(ceDate),   // 절대 날짜 문자열
         fS: { y: fs.getFullYear(), m: fs.getMonth() + 1, d: fs.getDate() },
         fE: { y: fe.getFullYear(), m: fe.getMonth() + 1, d: fe.getDate() }
       });
@@ -420,6 +435,19 @@ function buildWeeks(year, month, baseYear) {
     }
   }
   return weeks;
+}
+
+// 날짜 범위 내 모든 날짜 문자열 배열 반환 (YYYY-MM-DD)
+function dateRange(startStr, endStr) {
+  const result = [];
+  let cur = new Date(startStr + 'T00:00:00');
+  const end = new Date(endStr + 'T00:00:00');
+  while (cur <= end) {
+    const y = cur.getFullYear(), mo = cur.getMonth()+1, d = cur.getDate();
+    result.push(`${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`);
+    cur.setDate(cur.getDate() + 1);
+  }
+  return result;
 }
 
 /* ════════════════════════════════════════════════════════
@@ -482,22 +510,55 @@ function renderCal() {
   document.getElementById('calTitle').textContent = `${YEAR}년 ${MONTH}월`;
   let mx = 0; for (let d = 1; d <= days; d++) { const v = DB[fmtD(d)]?.tot || 0; if (v > mx) mx = v; }
   const g = document.getElementById('calGrid'); g.innerHTML = '';
-  for (let i = 0; i < off; i++) { const e = document.createElement('div'); e.className = 'day emp'; g.appendChild(e); }
+
+  // 선택 범위 날짜 문자열 기준
+  const lo = selS && selE ? (selS <= selE ? selS : selE) : selS;
+  const hi = selS && selE ? (selS >= selE ? selS : selE) : selS;
+
+  // 첫 행: 이전 달 날짜도 표시 (해당 주차의 전월 부분)
+  // 1일의 요일(off)만큼 전달 날짜를 채움
+  if (off > 0) {
+    const prevMonthDays = new Date(YEAR, MONTH - 1, 0).getDate();
+    for (let i = off - 1; i >= 0; i--) {
+      const pd = prevMonthDays - i;
+      const pm = MONTH - 1 === 0 ? 12 : MONTH - 1;
+      const py = MONTH - 1 === 0 ? YEAR - 1 : YEAR;
+      const dt = `${py}-${String(pm).padStart(2,'0')}-${String(pd).padStart(2,'0')}`;
+      const has = !!(DB[dt]?.tot);
+      const dow = new Date(dt).getDay();
+      const el = document.createElement('div');
+      let cls = 'day prev-month'; // 전달 날짜 스타일
+      if (!has) cls += ' nd';
+      if (dow === 6) cls += ' sat'; if (dow === 0) cls += ' sun';
+      // 선택 범위 하이라이트
+      if (lo && hi) {
+        if (dt === lo && lo !== hi) cls += ' rs';
+        else if (dt === hi && lo !== hi) cls += ' re';
+        else if (dt === lo && lo === hi) cls += ' sel';
+        else if (dt > lo && dt < hi) cls += ' ir';
+      } else if (lo && dt === lo) cls += ' sel';
+      el.className = cls;
+      const pp = mx > 0 ? (DB[dt]?.tot || 0) / mx * 100 : 0;
+      el.innerHTML = `<div class="dn2" style="opacity:.4">${pd}</div>` +
+        (has ? `<div class="dv">${fmtK(DB[dt].tot)}</div><div class="dbar" style="width:${Math.max(20,pp)}%;opacity:.6;"></div><div class="ddot"></div>`
+             : `<div style="width:3px;height:3px;border-radius:50%;background:var(--border);margin-top:1px;opacity:.4;"></div>`);
+      el.onclick = () => {}; // 전달 날짜는 클릭 불가
+      g.appendChild(el);
+    }
+  }
+
   for (let d = 1; d <= days; d++) {
     const dt = fmtD(d), dow = new Date(dt).getDay(), has = !!(DB[dt]?.tot);
     const el = document.createElement('div');
     let cls = 'day';
     if (!has) cls += ' nd';
     if (dow === 6) cls += ' sat'; if (dow === 0) cls += ' sun';
-    const lo = selS && selE ? Math.min(selS, selE) : selS;
-    const hi = selS && selE ? Math.max(selS, selE) : selS;
-    if (selS && !selE && d === selS) cls += ' sel';
-    if (selS && selE) {
-      if (d === lo && lo !== hi) cls += ' rs';
-      else if (d === hi && lo !== hi) cls += ' re';
-      else if (d === lo && lo === hi) cls += ' sel';
-      else if (d > lo && d < hi) cls += ' ir';
-    }
+    if (lo && hi) {
+      if (dt === lo && lo !== hi) cls += ' rs';
+      else if (dt === hi && lo !== hi) cls += ' re';
+      else if (dt === lo && lo === hi) cls += ' sel';
+      else if (dt > lo && dt < hi) cls += ' ir';
+    } else if (lo && dt === lo) cls += ' sel';
     el.className = cls;
     const pp = mx > 0 ? (DB[dt]?.tot || 0) / mx * 100 : 0;
     el.innerHTML = `<div class="dn2">${d}</div>` +
@@ -509,9 +570,13 @@ function renderCal() {
 }
 
 function onDay(d) {
-  if (!DB[fmtD(d)]) return;
-  if (!rmOn) { selS = (selS === d && !selE) ? null : d; selE = null; }
-  else { if (!pick) { selS = d; selE = null; pick = true; } else { if (d < selS) { selE = selS; selS = d; } else selE = d; pick = false; } }
+  const dt = fmtD(d);
+  if (!DB[dt]) return;
+  if (!rmOn) { selS = (selS === dt && !selE) ? null : dt; selE = null; }
+  else {
+    if (!pick) { selS = dt; selE = null; pick = true; }
+    else { if (dt < selS) { selE = selS; selS = dt; } else selE = dt; pick = false; }
+  }
   actWk = null;
   document.querySelectorAll('.wkb').forEach(b => { b.classList.remove('on', 'gon'); });
   renderCal(); updateAll();
@@ -525,7 +590,11 @@ function clearSel() {
 }
 
 /* WEEK SUM */
-function swk(w, key = 'tot') { let t = 0; for (let d = w.clampS; d <= w.clampE; d++) t += DB[fmtD(d)]?.[key] || 0; return t; }
+function swk(w, key = 'tot') {
+  let t = 0;
+  dateRange(w.clampS, w.clampE).forEach(dt => { t += DB[dt]?.[key] || 0; });
+  return t;
+}
 
 /* OMNI WK BAR */
 function renderOmniWk() {
@@ -559,7 +628,7 @@ function renderD2cWk() {
 function selWk(wkNum) {
   actWk = wkNum;
   const w = WKS.find(x => x.wk === wkNum);
-  selS = w.clampS; selE = w.clampE;
+  selS = w.clampS; selE = w.clampE; // 이제 YYYY-MM-DD 문자열
   document.querySelectorAll('#omniWk .wkb').forEach((b, i) => b.classList.toggle('on', WKS[i]?.wk === wkNum));
   renderCal(); updateAll(); renderWkCompare(wkNum);
 }
@@ -596,10 +665,18 @@ function renderWkCompare(wkNum) {
 
 function renderWkLine(curr, prev) {
   if (CH.wl) CH.wl.destroy();
-  const len = Math.max(curr.clampE - curr.clampS + 1, prev ? prev.clampE - prev.clampS + 1 : 0);
-  const lbs = Array.from({ length: len }, (_, i) => `${i + 1}일`);
-  const cV = Array.from({ length: len }, (_, i) => { const d = curr.clampS + i; return d <= curr.clampE ? DB[fmtD(d)]?.tot || 0 : null; });
-  const pV = prev ? Array.from({ length: len }, (_, i) => { const d = prev.clampS + i; return d <= prev.clampE ? DB[fmtD(d)]?.tot || 0 : null; }) : null;
+  const cDates = dateRange(curr.clampS, curr.clampE);
+  const pDates = prev ? dateRange(prev.clampS, prev.clampE) : [];
+  const len = Math.max(cDates.length, pDates.length);
+  const lbs = Array.from({ length: len }, (_, i) => {
+    const dt = cDates[i] || pDates[i];
+    if (!dt) return `${i+1}일`;
+    const p = dt.split('-'); return `${parseInt(p[1])}/${parseInt(p[2])}`;
+  });
+  const cV = cDates.map(dt => DB[dt]?.tot || 0);
+  while (cV.length < len) cV.push(null);
+  const pV = prev ? pDates.map(dt => DB[dt]?.tot || 0) : null;
+  if (pV) while (pV.length < len) pV.push(null);
   const ds = [{ label: `WK${p2(curr.wk)}`, data: cV, borderColor: '#2563EB', borderWidth: 2, tension: .4, pointRadius: 3, fill: false }];
   if (pV) ds.push({ label: `WK${p2(curr.wk - 1)}`, data: pV, borderColor: '#94A3B8', borderWidth: 1.5, tension: .4, pointRadius: 2, fill: false, borderDash: [4, 3] });
   CH.wl = new Chart(document.getElementById('wkLine'), {
@@ -612,10 +689,17 @@ function renderWkLine(curr, prev) {
 
 /* DATES */
 function getDates() {
-  const days = new Date(YEAR, MONTH, 0).getDate();
-  if (!selS) { const a = []; for (let d = 1; d <= days; d++) if (DB[fmtD(d)]) a.push(fmtD(d)); return a; }
-  const lo = Math.min(selS, selE || selS), hi = Math.max(selS, selE || selS);
-  const a = []; for (let d = lo; d <= hi; d++) if (DB[fmtD(d)]) a.push(fmtD(d)); return a;
+  if (!selS) {
+    // 전체 월: YEAR-MONTH의 모든 날짜 중 DB에 있는 것
+    const days = new Date(YEAR, MONTH, 0).getDate();
+    const a = [];
+    for (let d = 1; d <= days; d++) { const dt = fmtD(d); if (DB[dt]) a.push(dt); }
+    return a;
+  }
+  // 선택 범위: selS~selE (날짜 문자열)
+  const lo = selS <= (selE || selS) ? selS : (selE || selS);
+  const hi = selS >= (selE || selS) ? selS : (selE || selS);
+  return dateRange(lo, hi).filter(dt => DB[dt]);
 }
 
 /* UPDATE ALL */
@@ -631,15 +715,20 @@ function updBanner(dates) {
   const b = document.getElementById('rbann');
   if (!selS) { b.style.display = 'none'; return; }
   b.style.display = 'flex';
-  const lo = Math.min(selS, selE || selS), hi = Math.max(selS, selE || selS);
-  document.getElementById('br1').textContent = lo === hi ? `${MONTH}월 ${lo}일` : `${MONTH}월 ${lo}일 – ${hi}일`;
+  const lo = selS <= (selE || selS) ? selS : (selE || selS);
+  const hi = selS >= (selE || selS) ? selS : (selE || selS);
+  // 날짜 문자열에서 월/일 추출해 표시
+  const fmt = ds => { const p = ds.split('-'); return `${parseInt(p[1])}월 ${parseInt(p[2])}일`; };
+  document.getElementById('br1').textContent = lo === hi ? fmt(lo) : `${fmt(lo)} – ${fmt(hi)}`;
   document.getElementById('br2').textContent = `${dates.length}일간`;
   document.getElementById('br3').textContent = fmtW(dates.reduce((s, dt) => s + (DB[dt]?.tot || 0), 0));
 }
 
 function updKPI(dates) {
   let tot = 0, d2c = 0, off = 0, best = 0, bestD = '';
-  dates.forEach(dt => { const v = DB[dt]?.tot || 0, vd = DB[dt]?.tD || 0, vo = DB[dt]?.tO || 0; tot += v; d2c += vd; off += vo; if (v > best) { best = v; bestD = parseInt(dt.slice(8)) + '일'; } });
+  dates.forEach(dt => { const v = DB[dt]?.tot || 0, vd = DB[dt]?.tD || 0, vo = DB[dt]?.tO || 0; tot += v; d2c += vd; off += vo;
+    if (v > best) { best = v; const p = dt.split('-'); bestD = `${parseInt(p[1])}/${parseInt(p[2])}`; }
+  });
   const avg = dates.length ? Math.round(tot / dates.length) : 0;
   const prog = TARGET > 0 ? (tot / TARGET * 100).toFixed(1) : 0;
   document.getElementById('kv1').textContent = fmtW(tot) || '–';
@@ -661,13 +750,14 @@ function updKPI(dates) {
 function renderTrend(dates) {
   if (CH.tr) CH.tr.destroy();
   const cmp = dates.length > 18;
+  const _fmt = ds => { const p = ds.split('-'); return `${parseInt(p[1])}/${parseInt(p[2])}`; };
   document.getElementById('trendSub').textContent = selS
-    ? `${MONTH}월 ${Math.min(selS, selE || selS)}일 ~ ${Math.max(selS, selE || selS)}일`
+    ? `${_fmt(selS <= (selE||selS) ? selS : (selE||selS))} ~ ${_fmt(selS >= (selE||selS) ? selS : (selE||selS))}`
     : `${MONTH}월 전체`;
   CH.tr = new Chart(document.getElementById('trendC'), {
     type: 'bar',
     data: {
-      labels: dates.map(d => parseInt(d.slice(8)) + '일'),
+      labels: dates.map(dt => { const p = dt.split('-'); return `${parseInt(p[1])}/${parseInt(p[2])}`; }),
       datasets: [
         { type: 'bar',  label: '자사몰 매출', data: dates.map(d => DB[d]?.tD || 0),  backgroundColor: 'rgba(8,145,178,.38)', borderRadius: 3, yAxisID: 'y',  order: 2 },
         { type: 'bar',  label: '전체 유입수', data: dates.map(d => DB[d]?.uv || 0),  backgroundColor: 'rgba(124,58,237,.2)', borderRadius: 3, yAxisID: 'y2', order: 3 },
@@ -707,7 +797,10 @@ function renderWkBarChart() {
 function renderCat(dates) {
   const ct = {}; let grand = 0;
   dates.forEach(dt => { (DB[dt]?.prods || []).forEach(p => { const v = p.d2c + p.off; ct[p.cat] = (ct[p.cat] || 0) + v; grand += v; }); });
-  document.getElementById('catL').textContent = selS ? `(${Math.min(selS, selE || selS)}~${Math.max(selS, selE || selS)}일)` : '(전체)';
+  const _fmtM = ds => { const p = ds.split('-'); return `${parseInt(p[1])}/${parseInt(p[2])}`; };
+  const _lo2 = selS && selE ? (selS<=selE?selS:selE) : selS;
+  const _hi2 = selS && selE ? (selS>=selE?selS:selE) : selS;
+  document.getElementById('catL').textContent = selS ? `(${_fmtM(_lo2)}~${_fmtM(_hi2)})` : '(전체)';
   const wrap = document.getElementById('catC'); wrap.innerHTML = '';
   CORD.forEach(cat => {
     const v = ct[cat] || 0; if (!v) return;
@@ -728,7 +821,10 @@ function renderDow(dates) {
   });
   const avgs = sum.map((s, i) => cnt[i] > 0 ? Math.round(s / cnt[i]) : 0);
   const mxA = Math.max(...avgs) || 1;
-  document.getElementById('dowL').textContent = selS ? `(${Math.min(selS, selE || selS)}~${Math.max(selS, selE || selS)}일)` : '(전체)';
+  const _fmtD2 = ds => { const p = ds.split('-'); return `${parseInt(p[1])}/${parseInt(p[2])}`; };
+  const _lo3 = selS && selE ? (selS<=selE?selS:selE) : selS;
+  const _hi3 = selS && selE ? (selS>=selE?selS:selE) : selS;
+  document.getElementById('dowL').textContent = selS ? `(${_fmtD2(_lo3)}~${_fmtD2(_hi3)})` : '(전체)';
   const wrap = document.getElementById('dowMap'); wrap.innerHTML = '';
   LBLS.forEach((lb, i) => {
     const v = avgs[i], pp = v / mxA;
@@ -757,14 +853,13 @@ function renderPivot(wkNum) {
   // 집계
   const pd = {}; // {cat: {prod: {curr, prev}}}
   const col2 = (w, key) => {
-    for (let d = w.clampS; d <= w.clampE; d++) {
-      const dt = fmtD(d);
+    dateRange(w.clampS, w.clampE).forEach(dt => {
       (DB[dt]?.prods || []).forEach(p => {
         if (!pd[p.cat]) pd[p.cat] = {};
         if (!pd[p.cat][p.nm]) pd[p.cat][p.nm] = { curr: 0, prev: 0 };
         pd[p.cat][p.nm][key] += (p.d2c + p.off);
       });
-    }
+    });
   };
   col2(curr, 'curr');
   if (prev) col2(prev, 'prev');
