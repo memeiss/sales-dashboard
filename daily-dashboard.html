@@ -313,18 +313,12 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
           <button onclick="clearSel()" style="margin-left:auto;padding:1px 7px;border-radius:4px;border:1px solid var(--border);background:var(--bg);color:var(--text2);font-size:8px;font-weight:700;cursor:pointer;font-family:inherit;">초기화</button>
         </div>
       </div>
-
-
-    </div>
-
-    <!-- RIGHT -->
-    <div class="rc">
-      <div class="sdvr d">🛒 자사몰 — 주차별 매출 현황</div>
-      <!-- 자사몰 주차 선택 + 전주대비 카드 -->
+      <!-- 자사몰 주차 선택 -->
       <div class="card" style="padding:12px 14px;">
         <div class="ct">🗓️ 자사몰 주차 <em id="d2cWkSub"></em></div>
         <div class="wkbar" id="d2cWk"></div>
       </div>
+      <!-- 자사몰 전주 대비 -->
       <div class="card" id="d2cWkCmp" style="display:none;padding:12px 14px;">
         <div class="ct">⚡ 전주 대비 (자사몰)</div>
         <div class="wcmp">
@@ -334,6 +328,11 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
         <div class="wbg neu" id="d2c-wbg"><div class="wpct neu" id="d2c-wpct">–</div><div class="wlbl" id="d2c-wlbl">–</div></div>
         <div style="height:88px;margin-top:9px;"><canvas id="d2cWkLine"></canvas></div>
       </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="rc">
+      <div class="sdvr d">🛒 자사몰 — 주차별 매출 현황</div>
       <!-- 주차바 + 카테고리 -->
       <div class="c2">
         <div class="card">
@@ -473,7 +472,7 @@ const TARGET = 350000000; // 월 목표 (연동 시 교체)
 function loadDailyData(db) {
   DB = db;
   WKS = buildWeeks(YEAR, MONTH, BASE_YEAR);
-  renderCal(); renderOmniWk(); updateAll();
+  renderCal(); updateAll();
 }
 
 /* STATE */
@@ -498,8 +497,8 @@ function initDash() {
   DB = {}; // 실제 연동 시 loadDailyData(db) 로 주입
   WKS = buildWeeks(YEAR, MONTH, BASE_YEAR);
   selS = null; selE = null; actWk = null; pick = false;
-  document.getElementById('wkCmp').style.display = 'none';
-  renderCal(); renderOmniWk(); updateAll();
+  const _wkEl = document.getElementById('wkCmp'); if (_wkEl) _wkEl.style.display = 'none';
+  renderCal(); updateAll();
 }
 
 /* CALENDAR (월요일 시작) */
@@ -657,37 +656,7 @@ function selWk(wkNum) {
   renderCal(); updateAll(); renderD2cWkCompare(wkNum);
 }
 
-function renderWkCompare(wkNum) {
-  document.getElementById('wkCmp').style.display = 'block';
-  const curr = getWkObj(wkNum), prev = getWkObj(wkNum - 1);
-  // 전주 데이터가 DB에 실제로 있는지 확인
-  const prevHasData = dateRange(prev.clampS, prev.clampE).some(dt => DB[dt]?.tot);
-  const cT = swk(curr), pT = prevHasData ? swk(prev) : 0;
-  const p = prevHasData ? pct(cT, pT) : null, up = p !== null ? parseFloat(p) >= 0 : null;
-  document.getElementById('wc-l').textContent = `WK${p2(wkNum)} 이번주`;
-  document.getElementById('wc-v').textContent = fmtW(cT);
-  document.getElementById('wc-r').textContent = fmtR(curr);
-  if (prevHasData) {
-    document.getElementById('wp-l').textContent = `WK${p2(wkNum - 1)} 전주`;
-    document.getElementById('wp-v').textContent = fmtW(pT);
-    document.getElementById('wp-r').textContent = fmtR(prev);
-    document.getElementById('wbg').className = `wbg ${up ? 'up' : 'dn'}`;
-    document.getElementById('wpct').className = `wpct ${up ? 'up' : 'dn'}`;
-    document.getElementById('wpct').textContent = `${up ? '+' : ''}${p}%`;
-    document.getElementById('wlbl').textContent = `전주 대비 ${up ? '증가 ▲' : '감소 ▼'}`;
-    document.getElementById('kv4').innerHTML = `<span class="${up ? 'up' : 'dn'}">${up ? '+' : ''}${p}%</span>`;
-    document.getElementById('ks4').innerHTML = `<span class="${up ? 'up' : 'dn'}">WK${p2(wkNum - 1)}→WK${p2(wkNum)}</span>`;
-  } else {
-    document.getElementById('wp-l').textContent = '전주';
-    document.getElementById('wp-v').textContent = '–';
-    document.getElementById('wp-r').textContent = '첫째 주';
-    document.getElementById('wbg').className = 'wbg neu';
-    document.getElementById('wpct').className = 'wpct neu'; document.getElementById('wpct').textContent = '–';
-    document.getElementById('wlbl').textContent = '첫째 주 — 비교 없음';
-    document.getElementById('kv4').textContent = '–'; document.getElementById('ks4').textContent = '첫째 주';
-  }
-  renderWkLine(curr, prevHasData ? prev : null);
-}
+/* renderWkCompare 제거됨 — D2C로 통합 */
 
 /* ─── 자사몰 전주 대비 카드 ─── */
 function renderD2cWkCompare(wkNum) {
@@ -748,6 +717,7 @@ function renderD2cWkLine(curr, prev) {
 }
 
 function renderWkLine(curr, prev) {
+  if (!document.getElementById('wkLine')) return;
   if (CH.wl) CH.wl.destroy();
   const cDates = dateRange(curr.clampS, curr.clampE);
   const pDates = prev ? dateRange(prev.clampS, prev.clampE) : [];
@@ -1312,7 +1282,7 @@ async function loadFromFirebase() {
     const snap = await dbF.collection('dashboard').get();
     if (snap.empty) {
       showLoadingState(false, '데이터 없음 — 엑셀 업로드 후 저장하세요');
-      renderCal(); renderOmniWk(); updateAll();
+      renderCal(); updateAll();
       return;
     }
     DATA.daily = []; DATA.d2c = []; DATA.cat = [];
@@ -1332,7 +1302,7 @@ async function loadFromFirebase() {
   } catch(e) {
     console.error('Firebase 로드 실패:', e);
     showLoadingState(false, '❌ 데이터 로드 실패: ' + e.message);
-    renderCal(); renderOmniWk(); updateAll();
+    renderCal(); updateAll();
   }
 }
 
@@ -1349,7 +1319,7 @@ function rebuildAndRender() {
   const el = document.getElementById('wkCmp');
   if (el) el.style.display = 'none';
   updatePeriodBadge();
-  renderCal(); renderOmniWk(); updateAll();
+  renderCal(); updateAll();
   const ym  = `${YEAR}-${String(MONTH).padStart(2,'0')}`;
   const cnt = Object.keys(DB).filter(ds => ds.startsWith(ym)).length;
   showLoadingState(false, cnt > 0
@@ -1422,7 +1392,7 @@ initDash = function() {
   if (hasData) {
     rebuildAndRender();
   } else {
-    renderCal(); renderOmniWk(); updateAll();
+    renderCal(); updateAll();
     loadFromFirebase();
   }
 };
