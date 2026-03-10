@@ -313,24 +313,16 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
           <button onclick="clearSel()" style="margin-left:auto;padding:1px 7px;border-radius:4px;border:1px solid var(--border);background:var(--bg);color:var(--text2);font-size:8px;font-weight:700;cursor:pointer;font-family:inherit;">초기화</button>
         </div>
       </div>
-      <!-- OMNI 주차 -->
+
+
+    </div>
+
+    <!-- RIGHT -->
+    <div class="rc">
+      <div class="sdvr d">🛒 자사몰 — 주차별 매출 현황</div>
+      <!-- 자사몰 주차 선택 + 전주대비 카드 -->
       <div class="card" style="padding:12px 14px;">
-        <div class="ct">🗓️ 주차 선택 <em id="wkSub"></em></div>
-        <div class="wkbar" id="omniWk"></div>
-      </div>
-      <!-- OMNI WK COMPARE -->
-      <div class="card" id="wkCmp" style="display:none;padding:12px 14px;">
-        <div class="ct">⚡ 전주 대비 (OMNI)</div>
-        <div class="wcmp">
-          <div class="wsd prev"><div class="wsl" id="wp-l">전주</div><div class="wsv" id="wp-v">–</div><div class="wsr" id="wp-r">–</div></div>
-          <div class="wsd curr"><div class="wsl" id="wc-l">이번주</div><div class="wsv" id="wc-v">–</div><div class="wsr" id="wc-r">–</div></div>
-        </div>
-        <div class="wbg neu" id="wbg"><div class="wpct neu" id="wpct">–</div><div class="wlbl" id="wlbl">–</div></div>
-        <div style="height:88px;margin-top:9px;"><canvas id="wkLine"></canvas></div>
-      </div>
-      <!-- D2C 주차 + 전주대비 -->
-      <div class="card" style="padding:12px 14px;">
-        <div class="ct">🛒 자사몰 주차 <em id="d2cWkSub"></em></div>
+        <div class="ct">🗓️ 자사몰 주차 <em id="d2cWkSub"></em></div>
         <div class="wkbar" id="d2cWk"></div>
       </div>
       <div class="card" id="d2cWkCmp" style="display:none;padding:12px 14px;">
@@ -342,11 +334,6 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
         <div class="wbg neu" id="d2c-wbg"><div class="wpct neu" id="d2c-wpct">–</div><div class="wlbl" id="d2c-wlbl">–</div></div>
         <div style="height:88px;margin-top:9px;"><canvas id="d2cWkLine"></canvas></div>
       </div>
-    </div>
-
-    <!-- RIGHT -->
-    <div class="rc">
-      <div class="sdvr d">🛒 자사몰 — 주차별 매출 현황</div>
       <!-- 주차바 + 카테고리 -->
       <div class="c2">
         <div class="card">
@@ -598,7 +585,6 @@ function toggleRange() { rmOn = !rmOn; document.getElementById('rtk').classList.
 function clearSel() {
   selS = null; selE = null; pick = false; actWk = null;
   document.querySelectorAll('.wkb').forEach(b => { b.classList.remove('on', 'gon'); });
-  document.getElementById('wkCmp').style.display = 'none';
   const d2cEl = document.getElementById('d2cWkCmp');
   if (d2cEl) d2cEl.style.display = 'none';
   renderCal(); updateAll();
@@ -667,9 +653,8 @@ function selWk(wkNum) {
   actWk = wkNum;
   const w = WKS.find(x => x.wk === wkNum);
   selS = w.clampS; selE = w.clampE;
-  document.querySelectorAll('#omniWk .wkb').forEach((b, i) => b.classList.toggle('on',  WKS[i]?.wk === wkNum));
-  document.querySelectorAll('#d2cWk .wkb').forEach((b, i)  => b.classList.toggle('gon', WKS[i]?.wk === wkNum));
-  renderCal(); updateAll(); renderWkCompare(wkNum); renderD2cWkCompare(wkNum);
+  document.querySelectorAll('#d2cWk .wkb').forEach((b, i) => b.classList.toggle('gon', WKS[i]?.wk === wkNum));
+  renderCal(); updateAll(); renderD2cWkCompare(wkNum);
 }
 
 function renderWkCompare(wkNum) {
@@ -724,6 +709,8 @@ function renderD2cWkCompare(wkNum) {
     document.getElementById('d2c-wpct').className = `wpct ${up ? 'up' : 'dn'}`;
     document.getElementById('d2c-wpct').textContent = `${up ? '+' : ''}${p}%`;
     document.getElementById('d2c-wlbl').textContent = `전주 대비 ${up ? '증가 ▲' : '감소 ▼'}`;
+    document.getElementById('kv4').innerHTML = `<span class="${up ? 'up' : 'dn'}">${up ? '+' : ''}${p}%</span>`;
+    document.getElementById('ks4').innerHTML = `<span class="${up ? 'up' : 'dn'}">WK${p2(wkNum-1)}→WK${p2(wkNum)}</span>`;
   } else {
     document.getElementById('d2c-wp-l').textContent = '전주';
     document.getElementById('d2c-wp-v').textContent = '–';
@@ -732,6 +719,8 @@ function renderD2cWkCompare(wkNum) {
     document.getElementById('d2c-wpct').className = 'wpct neu';
     document.getElementById('d2c-wpct').textContent = '–';
     document.getElementById('d2c-wlbl').textContent = '첫째 주 — 비교 없음';
+    document.getElementById('kv4').textContent = '–';
+    document.getElementById('ks4').textContent = '첫째 주';
   }
   renderD2cWkLine(curr, prevHasData ? prev : null);
 }
@@ -801,7 +790,7 @@ function getDates() {
 function updateAll() {
   const dates = getDates();
   updBanner(dates); updKPI(dates);
-  renderTrend(dates); renderWkBarChart(); renderOmniWk(); renderD2cWk();
+  renderTrend(dates); renderWkBarChart(); renderD2cWk();
   renderCat(dates); renderDow(dates);
   if (actWk) renderPivot(actWk); else renderPivotEmpty();
 }
