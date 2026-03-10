@@ -249,8 +249,8 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
   <div class="header-left">
     <div class="logo-badge">OD</div>
     <div>
-      <div class="header-title">OMNI - Daily & Weekly Dashboard</div>
-      <div class="header-meta">일자별·주차별 매출 분석</div>
+      <div class="header-title">OMNI Sales Dashboard</div>
+      <div class="header-meta">일자·주차별 상세 매출 분석</div>
     </div>
   </div>
   <div class="header-right">
@@ -1285,13 +1285,14 @@ async function saveDataToFirebase() {
 // FIREBASE 설정
 // ⚠️ 아래 값을 index.html 의 firebaseConfig 와 동일하게 교체하세요
 // ══════════════════════════════════════════════════════════
+// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey:            "YOUR_API_KEY",
-  authDomain:        "YOUR_PROJECT.firebaseapp.com",
-  projectId:         "YOUR_PROJECT_ID",
-  storageBucket:     "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId:             "YOUR_APP_ID"
+  apiKey: "AIzaSyAm-Fnz1YKh7OKrPFKjAPO42BwTa3XPnOs",
+  authDomain: "sales-dashboard-d4939.firebaseapp.com",
+  projectId: "sales-dashboard-d4939",
+  storageBucket: "sales-dashboard-d4939.firebasestorage.app",
+  messagingSenderId: "996073785958",
+  appId: "1:996073785958:web:62ef7dee215121f4ae3ba7"
 };
 firebase.initializeApp(firebaseConfig);
 const dbF = firebase.firestore();
