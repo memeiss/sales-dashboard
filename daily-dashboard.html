@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>일자·주차별 매출 분석</title>
+<title>OMNI - Daily & Weekly Dashboard</title>
 <link rel="stylesheet" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -141,6 +141,7 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
 .t5bg{flex:0 0 72px;height:6px;border-radius:3px;background:var(--surface2);overflow:hidden;}
 .t5bf{height:100%;border-radius:3px;}
 .t5vl{font-size:10px;font-weight:700;color:var(--text2);white-space:nowrap;min-width:36px;text-align:right;}
+.t5pct{font-size:9px;font-weight:700;color:var(--muted);white-space:nowrap;min-width:30px;text-align:right;}
 .cdot{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
 .cnm{font-size:10px;font-weight:600;color:var(--text2);min-width:60px;}
 .cbg{flex:1;height:6px;background:var(--bg);border-radius:3px;overflow:hidden;}
@@ -339,34 +340,41 @@ body{font-family:'Pretendard',-apple-system,sans-serif;background:var(--bg);colo
     <!-- RIGHT -->
     <div class="rc">
       <div class="sdvr d">🛒 자사몰 — 주차별 매출 현황</div>
-      <!-- 주차바 + 카테고리 -->
+
+      <!-- ① (좌) 주차별 자사몰 매출 | (우) 요일별 히트맵 -->
       <div class="c2">
         <div class="card">
           <div class="ct">📊 주차별 자사몰 매출 <em id="wkBL"></em></div>
           <div style="height:168px;"><canvas id="wkBar"></canvas></div>
         </div>
         <div class="card">
-          <div class="ct">🏷️ 카테고리별 매출 <em id="catL"></em></div>
-          <div id="catC" style="padding-top:2px;"></div>
-          <div style="border-top:1px solid var(--border);margin:10px 0 6px;"></div>
-          <div class="ct" style="margin-bottom:4px;">🏅 상품별 Top 5 <em id="top5L"></em></div>
-          <div id="top5C"></div>
+          <div class="ct">📅 요일별 평균 매출 히트맵 <em id="dowL"></em></div>
+          <div class="dmap" id="dowMap"></div>
         </div>
       </div>
-      <!-- 자사몰 일자별 매출 추이 및 전환율 -->
+
+      <!-- ② 자사몰 일자별 매출 추이 및 전환율 (전체) -->
       <div class="card">
         <div class="shd">
           <div class="sico" style="background:var(--green-lt);">📈</div>
-          <div><h2>자사몰 일자별 매출 추이 및 전환율</h2><p id="trendSub">자사몰 매출 · 전체 유입수 · 전환율(%)</p></div>
+          <div><h2>자사몰 일자별 매출 추이 및 전환율</h2><p id="trendSub">D2C채널 매출 · 전체 유입수 · 전환율(%)</p></div>
         </div>
         <div style="height:200px;"><canvas id="trendC"></canvas></div>
       </div>
-      <!-- 요일별 히트맵 (월→일) -->
-      <div class="card">
-        <div class="ct">📅 요일별 평균 매출 히트맵 <em id="dowL">(월 → 일 기준)</em></div>
-        <div class="dmap" id="dowMap"></div>
+
+      <!-- ③ (좌) 카테고리별 매출 | (우) 상품별 TOP5 -->
+      <div class="c2">
+        <div class="card">
+          <div class="ct">🏷️ 카테고리별 매출 <em id="catL"></em></div>
+          <div id="catC" style="padding-top:2px;"></div>
+        </div>
+        <div class="card">
+          <div class="ct">🏅 상품별 Top 5 <em id="top5L"></em></div>
+          <div id="top5C" style="padding-top:2px;"></div>
+        </div>
       </div>
-      <!-- 피벗 -->
+
+      <!-- ④ 상품별 주차 매출 피벗 (전체) -->
       <div class="card">
         <div class="shd">
           <div class="sico" style="background:var(--amber-lt);">🛍️</div>
@@ -770,7 +778,7 @@ function updateAll() {
   const dates = getDates();
   updBanner(dates); updKPI(dates);
   renderTrend(dates); renderWkBarChart(); renderD2cWk();
-  renderCat(dates); renderDow(dates);
+  renderCat(dates); renderTop5(dates); renderDow(dates);
   if (actWk) renderPivot(actWk); else renderPivotEmpty();
 }
 
@@ -874,32 +882,47 @@ function renderCat(dates) {
   });
   if (!wrap.innerHTML) wrap.innerHTML = '<div style="padding:14px;text-align:center;color:var(--muted);font-size:11px;">데이터 없음</div>';
 
-  // ── Top 5 상품 (자사몰 d2c 기준) ──
+}
+
+/* TOP 5 상품 (상품별매출 시트 d2c 기준) */
+function renderTop5(dates) {
+  const _fmtM = ds => { const p = ds.split('-'); return `${parseInt(p[1])}/${parseInt(p[2])}`; };
+  const _lo = selS && selE ? (selS<=selE?selS:selE) : selS;
+  const _hi = selS && selE ? (selS>=selE?selS:selE) : selS;
+  const t5L = document.getElementById('top5L');
+  if (t5L) t5L.textContent = selS ? `(${_fmtM(_lo)}~${_fmtM(_hi)})` : '(전체)';
+  const t5Wrap = document.getElementById('top5C');
+  if (!t5Wrap) return;
+
   const prodMap = {};
+  let grandProd = 0;
   dates.forEach(dt => {
     (DB[dt]?.prods || []).forEach(p => {
-      prodMap[p.nm] = (prodMap[p.nm] || { v: 0, cat: p.cat });
+      if (!prodMap[p.nm]) prodMap[p.nm] = { v: 0, cat: p.cat };
       prodMap[p.nm].v += p.d2c;
+      grandProd += p.d2c;
     });
   });
   const top5 = Object.entries(prodMap)
     .map(([nm, o]) => ({ nm, v: o.v, cat: o.cat }))
     .sort((a, b) => b.v - a.v).slice(0, 5);
-  const t5Wrap = document.getElementById('top5C');
-  const t5L    = document.getElementById('top5L');
-  if (t5L) t5L.textContent = selS ? `(${_fmtM(_lo2)}~${_fmtM(_hi2)})` : '(전체)';
-  if (!t5Wrap) return;
-  if (!top5.length) { t5Wrap.innerHTML = '<div style="padding:6px 0;text-align:center;color:var(--muted);font-size:11px;">데이터 없음</div>'; return; }
+
+  if (!top5.length) {
+    t5Wrap.innerHTML = '<div style="padding:12px 0;text-align:center;color:var(--muted);font-size:11px;">데이터 없음</div>';
+    return;
+  }
   const maxV = top5[0].v || 1;
   const RANK_COLORS = ['#EF4444','#F97316','#EAB308','#22C55E','#3B82F6'];
   t5Wrap.innerHTML = top5.map((item, i) => {
-    const col  = CCAT[item.cat] || '#64748B';
-    const pct  = (item.v / maxV * 100).toFixed(0);
+    const col   = CCAT[item.cat] || '#64748B';
+    const barW  = (item.v / maxV * 100).toFixed(0);
+    const share = grandProd > 0 ? (item.v / grandProd * 100).toFixed(1) : '0.0';
     return `<div class="t5row">
-      <div class="t5rank" style="background:${RANK_COLORS[i]};">${i + 1}</div>
+      <div class="t5rank" style="background:${RANK_COLORS[i]};">${i+1}</div>
       <div class="t5nm" title="${item.nm}">${item.nm}</div>
-      <div class="t5bg"><div class="t5bf" style="width:${pct}%;background:${col};"></div></div>
+      <div class="t5bg"><div class="t5bf" style="width:${barW}%;background:${col};"></div></div>
       <div class="t5vl">${fmtK(item.v)}</div>
+      <div class="t5pct">${share}%</div>
     </div>`;
   }).join('');
 }
@@ -1193,14 +1216,15 @@ function rebuildDailyDB() {
   allDates.forEach(ds => {
     const prodList = (pdRaw[ds]||[]).map(p => ({ nm: p.name, cat: p.category, d2c: p.d2cSales||0, off: 0 }));
     const d2c  = d2cMap[ds] || {};
-    const tD   = prodList.reduce((s,p) => s+p.d2c, 0) || (d2c.ownSales||0);
+    const tD   = d2c.ownSales || 0;            // D2C채널 시트 자사몰 매출 (주차/트렌드/히트맵)
+    const tP   = prodList.reduce((s,p) => s+p.d2c, 0); // 상품별매출 시트 합계 (카테고리/TOP5/피벗)
     const uv   = d2c.ownUV  || 0;
     const ord  = d2c.ownOrd || 0;
     const cvr  = uv > 0 ? parseFloat((ord/uv*100).toFixed(2)) : 0;
     const daily= dailyMap[ds] || {};
     const tO   = daily.offline || 0;
     const tot  = daily.total   || (tD + tO);
-    newDB[ds] = { prods: prodList, tD, tO, tot, uv, cvr };
+    newDB[ds] = { prods: prodList, tD, tP, tO, tot, uv, cvr };
   });
   // 글로벌 DB 갱신 후 loadDailyData로 현재 월 렌더링
   loadDailyData(newDB);
