@@ -940,6 +940,9 @@ function renderDow(dates) {
     sum[idx] += DB[dt]?.tD || 0; cnt[idx]++;  // D2C채널 자사몰 기준
   });
   const avgs = sum.map((s, i) => cnt[i] > 0 ? Math.round(s / cnt[i]) : 0);
+  const DLBLS = ['월','화','수','목','금','토','일'];
+  console.log('[히트맵] dates수:', dates.length, '| 요일별 cnt:', cnt.map((c,i)=>DLBLS[i]+':'+c).join(', '));
+  console.log('[히트맵] 요일별 avg:', avgs.map((v,i)=>DLBLS[i]+':'+Math.round(v/10000)+'만').join(', '));
   const mxA = Math.max(...avgs) || 1;
   const _fmtD2 = ds => { const p = ds.split('-'); return `${parseInt(p[1])}/${parseInt(p[2])}`; };
   const _lo3 = selS && selE ? (selS<=selE?selS:selE) : selS;
@@ -1219,8 +1222,8 @@ function rebuildDailyDB() {
   allDates.forEach(ds => {
     const prodList = (pdRaw[ds]||[]).map(p => ({ nm: p.name, cat: p.category, d2c: p.d2cSales||0, off: 0 }));
     const d2c  = d2cMap[ds] || {};
-    const tD   = d2c.ownSales || 0;            // D2C채널 시트 자사몰 매출 (주차/트렌드/히트맵)
     const tP   = prodList.reduce((s,p) => s+p.d2c, 0); // 상품별매출 시트 합계 (카테고리/TOP5/피벗)
+    const tD   = d2c.ownSales || tP || 0;     // D2C채널 ownSales 우선, 없으면 상품별 d2c 합계 fallback
     const uv   = d2c.ownUV  || 0;
     const ord  = d2c.ownOrd || 0;
     const cvr  = uv > 0 ? parseFloat((ord/uv*100).toFixed(2)) : 0;
@@ -1320,7 +1323,6 @@ async function saveDataToFirebase() {
 // FIREBASE 설정
 // ⚠️ 아래 값을 index.html 의 firebaseConfig 와 동일하게 교체하세요
 // ══════════════════════════════════════════════════════════
-// Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyAm-Fnz1YKh7OKrPFKjAPO42BwTa3XPnOs",
   authDomain: "sales-dashboard-d4939.firebaseapp.com",
