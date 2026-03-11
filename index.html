@@ -739,7 +739,11 @@ body {
   </div>
   <div class="grid-2 grid-stack" style="margin-bottom:12px;">
     <div class="chart-card" style="margin-bottom:0">
-      <div class="chart-card-title" style="color:var(--blue)">🌐 온라인 채널</div>
+      <div class="ch-label-wrap" style="margin-bottom:6px;">
+        <div class="chart-card-title" style="color:var(--blue);margin-bottom:0;">🌐 온라인 채널</div>
+        <button class="ch-comment-toggle" id="toggle-s1-online" onclick="toggleComment('s1-online')" title="코멘트 추가">＋</button>
+      </div>
+      <div class="ch-comment-area" id="area-s1-online" style="display:none;"></div>
       <div class="grid-2" style="gap:8px;margin-bottom:8px;">
         <div><div class="stat-label">총 매출액</div><div class="stat-value krw" id="s1-online-total">–</div></div>
         <div><div class="stat-label">목표액</div><div class="stat-value krw" id="s1-online-target">–</div></div>
@@ -766,7 +770,11 @@ body {
       </div>
     </div>
     <div class="chart-card" style="margin-bottom:0">
-      <div class="chart-card-title" style="color:var(--amber)">🏪 오프라인 채널</div>
+      <div class="ch-label-wrap" style="margin-bottom:6px;">
+        <div class="chart-card-title" style="color:var(--amber);margin-bottom:0;">🏪 오프라인 채널</div>
+        <button class="ch-comment-toggle" id="toggle-s1-offline" onclick="toggleComment('s1-offline')" title="코멘트 추가">＋</button>
+      </div>
+      <div class="ch-comment-area" id="area-s1-offline" style="display:none;"></div>
       <div class="grid-2" style="gap:8px;margin-bottom:8px;">
         <div><div class="stat-label">총 매출액</div><div class="stat-value krw" id="s1-offline-total">–</div></div>
         <div><div class="stat-label">목표액</div><div class="stat-value krw" id="s1-offline-target">–</div></div>
@@ -1065,7 +1073,11 @@ body {
   </div>
 
   <div class="chart-card" style="margin-bottom:0">
-    <div class="chart-card-title">자사몰 일자별 매출 추이 및 전환율</div>
+    <div class="ch-label-wrap" style="margin-bottom:4px;">
+      <div class="ch-label" style="flex:1;">자사몰 일자별 매출 추이 및 전환율</div>
+      <button class="ch-comment-toggle" id="toggle-s2-d2ctrend" onclick="toggleComment('s2-d2ctrend')" title="코멘트 추가">＋</button>
+    </div>
+    <div class="ch-comment-area" id="area-s2-d2ctrend" style="display:none;"></div>
     <div style="height:195px"><canvas id="d2cChart"></canvas></div>
   </div>
 </div>
@@ -1950,8 +1962,8 @@ function getTargets() {
 }
 // ─── 리뷰 코멘트 ───────────────────────────────────────────
 const ALL_COMMENT_IDS = [
-  's1-total','s1-channel','s1-daily','s1-weekday',
-  's2-total','s2-channel','s2-funnel',
+  's1-total','s1-channel','s1-online','s1-offline','s1-daily','s1-weekday',
+  's2-total','s2-channel','s2-funnel','s2-d2ctrend',
   's3-summary','s3-annual','s3-sub-sales','s3-sub-prods','s3-delivery'
 ];
 
