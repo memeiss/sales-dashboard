@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OMNI - Sales Dashboard</title>
+<title>매출 대시보드</title>
 <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -300,6 +300,37 @@ body {
 }
 .comment-save-btn:hover { background:#1d4ed8; }
 .comment-save-btn.saved { background:var(--green); }
+
+/* 저장 완료 후 읽기 모드 */
+.comment-view-mode {
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text);
+  min-height: 28px;
+}
+.comment-view-actions {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+.comment-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface2);
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all .15s;
+}
+.comment-icon-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-lt); }
+.comment-icon-btn.del:hover { border-color: var(--red); color: var(--red); background: var(--red-lt, #FEF2F2); }
+
 .comment-editor {
   min-height:60px; border:1px solid var(--border); border-radius:8px;
   padding:9px 12px; font-size:13px; color:var(--text); font-family:inherit;
@@ -570,7 +601,7 @@ body {
     <div class="logo-badge">OD</div>
     <div>
       <div class="header-title">OMNI Sales Dashboard</div>
-      <div class="header-meta">OMNI 채널 통합 매출 분석 시스템</div>
+      <div class="header-meta">옴니채널 통합 매출 분석 시스템</div>
     </div>
   </div>
   <div class="header-right">
@@ -597,7 +628,7 @@ body {
     <button class="nav-tab active" onclick="goTo(0)">📊 OMNI 매출</button>
     <button class="nav-tab" onclick="goTo(1)">🛒 D2C 채널</button>
     <button class="nav-tab" onclick="goTo(2)">🏷️ 자사몰 카테고리</button>
-    <button class="nav-tab" onclick="goTo(3)">🎯 이벤트</button>
+    <button class="nav-tab" onclick="goTo(3)">🎯 이벤트 성과</button>
   </div>
 </div>
 
@@ -628,8 +659,8 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:var(--blue-lt)">📊</div>
     <div>
-      <h2>OMNI - 월별 매출 대시보드</h2>
-      <p id="s1-period-label">전체 채널 통합 매출 현황</p>
+      <h2>OMNI 매출 대시보드</h2>
+      <p id="s1-period-label">전체 채널 통합 매출 현황 · 2025년 1월</p>
     </div>
   </div>
 
@@ -896,8 +927,8 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:var(--green-lt)">🛒</div>
     <div>
-      <h2>D2C - 월별 매출 대시보드</h2>
-      <p id="s2-period-label">자사몰/네이버/기타 채널 성과 분석</p>
+      <h2>D2C 채널 매출 대시보드</h2>
+      <p id="s2-period-label">Direct-to-Consumer 채널 성과 분석 · 2025년 1월</p>
     </div>
   </div>
 
@@ -1040,8 +1071,8 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:var(--amber-lt)">🏷️</div>
     <div>
-      <h2>자사몰 카테고리별 상세현황</h2>
-      <p id="s3-period-label">카테고리/식단별/정기결제 심층 분석</p>
+      <h2>자사몰 카테고리별 대시보드</h2>
+      <p id="s3-period-label">카테고리 · 상품 · 정기결제 심층 분석 · 2025년 1월</p>
     </div>
   </div>
 
@@ -1251,8 +1282,8 @@ body {
   <div class="section-title">
     <div class="section-icon" style="background:#FFF7ED">🎯</div>
     <div>
-      <h2>Promo - Project 성과</h2>
-      <p id="s4-period-label">연간 이벤트 프로모션 운영 성과 분석</p>
+      <h2>이벤트 성과 대시보드</h2>
+      <p id="s4-period-label">이벤트별 매출 성과 분석</p>
     </div>
   </div>
 
@@ -1927,6 +1958,17 @@ function execCmd(cmd) {
 function toggleComment(cid) {
   const area   = document.getElementById('area-' + cid);
   const toggle = document.getElementById('toggle-' + cid);
+  // 에디터 모드 HTML이 없으면 새로 삽입
+  if (!document.getElementById('ceditor-' + cid)) {
+    area.innerHTML = `
+      <div class="ch-comment-toolbar">
+        <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+        <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+        <button class="comment-save-btn" id="csave-${cid}" onclick="saveComment('${cid}')">저장</button>
+      </div>
+      <div class="comment-editor" id="ceditor-${cid}" contenteditable="true"
+        data-placeholder="코멘트를 입력하세요..."></div>`;
+  }
   const isOpen = area.style.display !== 'none';
   if (isOpen) {
     area.style.display = 'none';
@@ -1934,7 +1976,7 @@ function toggleComment(cid) {
   } else {
     area.style.display = 'block';
     toggle.classList.add('open');
-    document.getElementById('ceditor-' + cid).focus();
+    document.getElementById('ceditor-' + cid)?.focus();
   }
 }
 
@@ -1943,16 +1985,64 @@ function commentKey(cid) {
 }
 
 async function saveComment(cid) {
-  const editor = document.getElementById('ceditor-' + cid);
-  const btn    = document.getElementById('csave-' + cid);
-  const html   = editor.innerHTML;
-  const key    = commentKey(cid);
+  const editor  = document.getElementById('ceditor-' + cid);
+  const area    = document.getElementById('area-' + cid);
+  const toggle  = document.getElementById('toggle-' + cid);
+  const html    = editor.innerHTML;
+  const key     = commentKey(cid);
+  if (!html || html === '<br>') { showToast('내용을 입력해주세요.'); return; }
   try {
     await db.collection('comments').doc(key).set({ html, updatedAt: new Date().toISOString() });
-    btn.textContent = '✅ 저장됨';
-    btn.classList.add('saved');
-    setTimeout(() => { btn.textContent = '저장'; btn.classList.remove('saved'); }, 2000);
+    enterViewMode(cid, html);
   } catch(e) { showToast('❌ 코멘트 저장 실패: ' + e.message); }
+}
+
+// 저장 완료 → 읽기 모드 전환 (툴바·에디터 숨김, 내용+수정/삭제 아이콘 표시)
+function enterViewMode(cid, html) {
+  const area   = document.getElementById('area-' + cid);
+  const toggle = document.getElementById('toggle-' + cid);
+  area.innerHTML = `
+    <div style="display:flex;align-items:flex-start;gap:6px;padding:4px 2px;">
+      <div class="comment-view-mode" id="cview-${cid}">${html}</div>
+      <div class="comment-view-actions">
+        <button class="comment-icon-btn" title="수정" onclick="editComment('${cid}')">✏️</button>
+        <button class="comment-icon-btn del" title="삭제" onclick="deleteComment('${cid}')">✕</button>
+      </div>
+    </div>`;
+  area.style.display = 'block';
+  toggle.style.display = 'none'; // + 버튼 숨김 (이미 내용 있음)
+}
+
+// 수정 버튼 → 에디터 모드로 복귀
+function editComment(cid) {
+  const area   = document.getElementById('area-' + cid);
+  const toggle = document.getElementById('toggle-' + cid);
+  const curHtml = document.getElementById('cview-' + cid)?.innerHTML || '';
+  area.innerHTML = `
+    <div class="ch-comment-toolbar">
+      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+      <button class="comment-save-btn" id="csave-${cid}" onclick="saveComment('${cid}')">저장</button>
+    </div>
+    <div class="comment-editor" id="ceditor-${cid}" contenteditable="true"></div>`;
+  const editor = document.getElementById('ceditor-' + cid);
+  editor.innerHTML = curHtml;
+  editor.focus();
+  toggle.style.display = 'none';
+}
+
+// 삭제 버튼 → Firebase에서 제거 후 닫기
+async function deleteComment(cid) {
+  if (!confirm('코멘트를 삭제할까요?')) return;
+  const key    = commentKey(cid);
+  const area   = document.getElementById('area-' + cid);
+  const toggle = document.getElementById('toggle-' + cid);
+  try {
+    await db.collection('comments').doc(key).delete();
+  } catch(e) { console.warn('삭제 실패', e); }
+  area.style.display = 'none';
+  toggle.style.display = '';
+  toggle.classList.remove('open');
 }
 
 async function loadComments() {
@@ -1965,13 +2055,11 @@ async function loadComments() {
     try {
       const doc = await db.collection('comments').doc(key).get();
       if (doc.exists && doc.data().html && doc.data().html !== '<br>') {
-        editor.innerHTML = doc.data().html;
-        // 내용 있으면 자동으로 열어서 표시
-        area.style.display   = 'block';
-        toggle.classList.add('open');
+        // 내용 있으면 읽기 모드로 표시
+        enterViewMode(cid, doc.data().html);
       } else {
-        editor.innerHTML = '';
         area.style.display   = 'none';
+        toggle.style.display = '';
         toggle.classList.remove('open');
       }
     } catch(e) { console.warn('코멘트 로드 실패', cid, e); }
