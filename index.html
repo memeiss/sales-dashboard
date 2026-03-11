@@ -1923,48 +1923,34 @@ function parseProdSheet(ws) {
 }
 
 // ── 🔄 정기결제 파싱 ──
-// 새 구조:
-// Row2: B2=연도, C2=월
-// ■ 1. 신청 현황 (누적)
-//   Row5~9: 항목(A) / 값(C)
-//   Row5=전체신청건수, Row6=진행건수, Row7=해지건수, Row8=구독유지율
-// ■ 2. 식단별 신청 및 매출 현황
-//   Row12=헤더, Row13~=식단별 (상품명/매출액/진행건수/해지건수/구독유지율/비고) — '합계'에서 중단
-// ■ 3. 배송 횟수 현황
-//   Row시작은 동적 탐색 — '배송 횟수 구분' 헤더 이후, '합계'에서 중단
+// 엑셀 구조 (새버전):
+//   Row2: B2=연도, C2=월
+//   ■ 1. 신청 현황: Row6='신규 신청 건수'(C6), Row7='신규 해지 건수'(C8)  → 동적 탐색
+//   ■ 2. 식단별:   Row14=헤더('상품명(식단)'), Row15~=식단 데이터 — '합계'에서 중단
+//   ■ 3. 배송횟수: '배송 횟수 구분' 헤더 이후 — '합계'에서 중단
 function parseSubSheet(ws) {
   if (!ws) return null;
   const year  = cellV(ws, 1, 1);  // B2
   const month = cellV(ws, 1, 2);  // C2
 
-  // ■ 1. 신청 현황 (누적) — 동적으로 헤더 행 탐색
-  // '■ 1. 신청 현황' 섹션 찾기
-  let sec1Row = -1;
-  for (let r = 0; r < 15; r++) {
-    const v = cellS(ws, r, 0);
-    if (v && v.includes('신청 현황')) { sec1Row = r; break; }
-  }
-  // 헤더 행 이후 항목 파싱 (항목명으로 찾기)
-  let totalCnt = 0, activeCnt = 0, cancelCnt = 0, ltr = 0;
-  const maxR = sec1Row >= 0 ? sec1Row + 10 : 12;
-  for (let r = (sec1Row >= 0 ? sec1Row : 3); r < maxR; r++) {
+  // ■ 1. 신청 현황 — 라벨 기준 동적 탐색 (신규 신청 / 신규 해지)
+  let newApply = 0, newCancel = 0;
+  for (let r = 3; r < 15; r++) {
     const label = cellS(ws, r, 0);
     if (!label) continue;
-    if (label.includes('전체 신청'))  totalCnt  = cellV(ws, r, 2) || 0;
-    if (label.includes('진행 건수'))  activeCnt = cellV(ws, r, 2) || 0;
-    if (label.includes('해지 건수'))  cancelCnt = cellV(ws, r, 2) || 0;
-    if (label.includes('구독 유지율')) ltr       = cellV(ws, r, 2) || 0;
+    if (label.includes('신규 신청') || label.includes('신청 건수')) newApply  = cellV(ws, r, 2) || 0;
+    if (label.includes('신규 해지') || label.includes('해지 건수')) newCancel = cellV(ws, r, 2) || 0;
   }
 
-  // ■ 2. 식단별 현황 — '식단별' 또는 '상품명' 헤더 찾기
+  // ■ 2. 식단별 현황 — '상품명' 헤더 행 탐색
   let prodHeaderRow = -1;
-  for (let r = 0; r < 30; r++) {
+  for (let r = 0; r < 20; r++) {
     const v = cellS(ws, r, 0);
-    if (v && (v.includes('상품명') || v === '식단명')) { prodHeaderRow = r; break; }
+    if (v && v.includes('상품명')) { prodHeaderRow = r; break; }
   }
   const products = [];
   if (prodHeaderRow >= 0) {
-    for (let r = prodHeaderRow + 1; r < prodHeaderRow + 30; r++) {
+    for (let r = prodHeaderRow + 1; r < prodHeaderRow + 20; r++) {
       const nm = cellS(ws, r, 0);
       if (!nm || nm === '합계') break;
       products.push({
@@ -1977,26 +1963,22 @@ function parseSubSheet(ws) {
     }
   }
 
-  // ■ 3. 배송 횟수 — '배송 횟수 구분' 헤더 찾기
+  // ■ 3. 배송 횟수 — '배송 횟수 구분' 헤더 탐색
   let delivHeaderRow = -1;
-  for (let r = 0; r < 50; r++) {
+  for (let r = 0; r < 40; r++) {
     const v = cellS(ws, r, 0);
     if (v && v.includes('배송 횟수')) { delivHeaderRow = r; break; }
   }
   const delivery = [];
   if (delivHeaderRow >= 0) {
-    for (let r = delivHeaderRow + 1; r < delivHeaderRow + 20; r++) {
+    for (let r = delivHeaderRow + 1; r < delivHeaderRow + 15; r++) {
       const label = cellS(ws, r, 0);
       if (!label || label === '합계') break;
-      delivery.push({
-        label: label,
-        cnt:   cellV(ws, r, 1) || 0,
-        ratio: cellV(ws, r, 2) || 0,
-      });
+      delivery.push({ label, cnt: cellV(ws, r, 1) || 0, ratio: cellV(ws, r, 2) || 0 });
     }
   }
 
-  return { year, month, totalCnt, activeCnt, cancelCnt, ltr, products, delivery };
+  return { year, month, newApply, newCancel, products, delivery };
 }
 
 
@@ -2589,61 +2571,91 @@ function switchCatTab(idx, catT) {
 
 
 // ── 정기결제 렌더링 ──
-// DATA.subHistory: [{year, month, totalCnt, activeCnt, cancelCnt, ltr, products, delivery}, ...]
-// 누적 집계 함수
-function getSubCumulative() {
-  const hist = DATA.subHistory || [];
-  if (!hist.length) return null;
-  // 가장 최근 시점의 진행건수/해지건수/유지율은 마지막 데이터 기준
-  // (누적이므로 최신값이 곧 누적값)
-  const sorted = [...hist].sort((a,b) => a.year*100+a.month - (b.year*100+b.month));
-  const latest = sorted[sorted.length - 1];
-  return {
-    totalCnt:  latest.totalCnt  || 0,
-    activeCnt: latest.activeCnt || 0,
-    cancelCnt: latest.cancelCnt || 0,
-    ltr:       latest.ltr       || 0,
-  };
-}
+// DATA.subHistory: [{year, month, newApply, newCancel, products, delivery}, ...]
+// 연도 필터 후 월 오름차순 정렬하여 누적 계산
 
-const cumul = getSubCumulative();
-const hist  = DATA.subHistory || [];
+const hist = (DATA.subHistory || [])
+  .filter(h => h.year == YEAR)
+  .sort((a,b) => a.month - b.month);
 
-// 섹션① 신청 현황 카드 (누적)
-set('sub-total-cnt',  cumul ? fmtNum(cumul.totalCnt)  + '건' : '–');
-set('sub-active-cnt', cumul ? fmtNum(cumul.activeCnt) + '건' : '–');
-set('sub-cancel-cnt', cumul ? fmtNum(cumul.cancelCnt) + '건' : '–');
-set('sub-ltr',        cumul ? cumul.ltr.toFixed(1)    + '%'  : '–');
+// 전체 히스토리(연도 무관) 중 최신 레코드 — 식단별·배송횟수 표시용
+const latestAll = (DATA.subHistory || [])
+  .sort((a,b) => a.year*100+a.month - (b.year*100+b.month))
+  .slice(-1)[0] || null;
 
-// 연간 신청 현황 테이블
+// ── 누적 집계 ──
+// 당해 연도의 모든 월 신규 합산
+let cumApply = 0, cumCancel = 0;
+hist.forEach(h => {
+  cumApply  += (h.newApply  || 0);
+  cumCancel += (h.newCancel || 0);
+});
+// 전년도 이월 누적을 더하려면 전체 히스토리 사용
+const prevYearHist = (DATA.subHistory || []).filter(h => h.year < YEAR);
+let carryApply = 0, carryCancel = 0;
+prevYearHist.forEach(h => { carryApply += (h.newApply||0); carryCancel += (h.newCancel||0); });
+const totalCumApply  = carryApply  + cumApply;
+const totalCumCancel = carryCancel + cumCancel;
+const totalActive    = totalCumApply - totalCumCancel;
+const ltr = totalCumApply > 0 ? (totalActive / totalCumApply * 100) : 0;
+
+// 섹션① 카드
+set('sub-total-cnt',  totalCumApply  > 0 ? fmtNum(totalCumApply)  + '건' : '–');
+set('sub-active-cnt', totalActive    > 0 ? fmtNum(totalActive)    + '건' : '–');
+set('sub-cancel-cnt', totalCumCancel > 0 ? fmtNum(totalCumCancel) + '건' : '–');
+set('sub-ltr',        totalCumApply  > 0 ? ltr.toFixed(1) + '%'           : '–');
+
+// 연간 신청 현황 테이블 (당해 연도 기준 월별)
 const subAnnualBody = document.getElementById('subAnnualBody');
-const yearHist = hist.filter(h => h.year == YEAR);
-if (!yearHist.length) {
+if (!hist.length) {
   subAnnualBody.innerHTML = '<tr><td colspan="14" style="text-align:center;color:var(--muted);padding:20px;">엑셀 파일을 업로드하면 데이터가 표시됩니다</td></tr>';
 } else {
   const byMonth = {};
-  yearHist.forEach(h => { byMonth[h.month] = h; });
-  let totalApply = 0, totalCancel = 0;
-  const applyRow = ['신청 건수'];
-  const cancelRow = ['해지 건수'];
+  hist.forEach(h => { byMonth[h.month] = h; });
+
+  // 월별 신규 + 누적 계산
+  let runApply = carryApply, runCancel = carryCancel;
+  const applyNewRow  = ['신규 신청'];
+  const cancelNewRow = ['신규 해지'];
+  const applyCumRow  = ['누적 신청'];
+  const cancelCumRow = ['누적 해지'];
+
   for (let m = 1; m <= 12; m++) {
     const d = byMonth[m];
-    applyRow.push(d ? fmtNum(d.totalCnt) : '–');
-    cancelRow.push(d ? fmtNum(d.cancelCnt) : '–');
-    if (d) { totalApply += (d.totalCnt||0); totalCancel += (d.cancelCnt||0); }
+    const na = d ? (d.newApply  || 0) : null;
+    const nc = d ? (d.newCancel || 0) : null;
+    if (d) { runApply += na; runCancel += nc; }
+
+    applyNewRow .push(na  != null ? fmtNum(na)        : '–');
+    cancelNewRow.push(nc  != null ? fmtNum(nc)        : '–');
+    applyCumRow .push(d   ? fmtNum(runApply)          : '–');
+    cancelCumRow.push(d   ? fmtNum(runCancel)         : '–');
   }
-  applyRow.push(`<strong>${fmtNum(totalApply)}</strong>`);
-  cancelRow.push(`<strong>${fmtNum(totalCancel)}</strong>`);
-  subAnnualBody.innerHTML =
-    `<tr>${applyRow.map((v,i) => `<td style="${i===0?'font-weight:700;':''}${i===13?'font-weight:700;background:var(--surface2);':''}">${v}</td>`).join('')}</tr>` +
-    `<tr>${cancelRow.map((v,i) => `<td style="${i===0?'font-weight:700;color:var(--red);':'color:var(--red);'}${i===13?'font-weight:700;background:var(--surface2);':''}">${v}</td>`).join('')}</tr>`;
+
+  const totalNA = hist.reduce((s,h)=>s+(h.newApply ||0),0);
+  const totalNC = hist.reduce((s,h)=>s+(h.newCancel||0),0);
+  applyNewRow .push(`<strong>${fmtNum(totalNA)}</strong>`);
+  cancelNewRow.push(`<strong>${fmtNum(totalNC)}</strong>`);
+  applyCumRow .push(`<strong>${fmtNum(runApply)}</strong>`);
+  cancelCumRow.push(`<strong>${fmtNum(runCancel)}</strong>`);
+
+  const rowStyles = [
+    { rows: applyNewRow,  labelStyle: 'font-weight:700;color:var(--blue);',   cellStyle: 'color:var(--blue);' },
+    { rows: cancelNewRow, labelStyle: 'font-weight:700;color:var(--red);',    cellStyle: 'color:var(--red);' },
+    { rows: applyCumRow,  labelStyle: 'font-weight:700;background:var(--surface2);', cellStyle: 'background:var(--surface2);font-weight:600;' },
+    { rows: cancelCumRow, labelStyle: 'font-weight:700;background:var(--surface2);color:var(--red);', cellStyle: 'background:var(--surface2);color:var(--red);' },
+  ];
+
+  subAnnualBody.innerHTML = rowStyles.map(({ rows, labelStyle, cellStyle }) =>
+    `<tr>${rows.map((v,i) =>
+      `<td style="${i===0 ? labelStyle : (i===13 ? 'font-weight:700;background:var(--blue-lt);' : cellStyle)}">${v}</td>`
+    ).join('')}</tr>`
+  ).join('');
 }
 
-// 섹션② 식단별 현황 (누적 집계 — 히스토리 전체 합산)
-// 식단별로 최신 데이터를 기준으로 (누적이므로 최신 월 값 사용)
-const latestHist = hist.length ? [...hist].sort((a,b) => a.year*100+a.month - (b.year*100+b.month)).slice(-1)[0] : null;
-const subProds  = latestHist?.products || [];
-const subTotalSales = subProds.reduce((s,p) => s + (p.sales||0), 0);
+// 섹션② 식단별 현황
+const subProds = latestAll?.products || [];
+const subTotalSales = subProds.reduce((s,p) => s+(p.sales||0), 0);
 const tbody2 = document.getElementById('subProdBody');
 tbody2.innerHTML = '';
 if (!subProds.length) {
@@ -2651,7 +2663,8 @@ if (!subProds.length) {
 } else {
   subProds.forEach(p => {
     const pct    = subTotalSales > 0 ? (p.sales / subTotalSales * 100).toFixed(1) : '0.0';
-    const ltrVal = p.ltr != null ? p.ltr : (p.active + p.cancel > 0 ? p.active / (p.active + p.cancel) * 100 : 0);
+    const ltrVal = p.ltr != null && p.ltr > 0 ? p.ltr
+                 : (p.active + p.cancel > 0 ? p.active / (p.active + p.cancel) * 100 : 0);
     tbody2.innerHTML += `<tr>
       <td style="font-weight:600">${p.name}</td>
       <td style="font-weight:700">${fmtKRW(p.sales)}</td>
@@ -2664,63 +2677,46 @@ if (!subProds.length) {
 }
 
 // 섹션③ 배송 횟수 — 단일 복합 차트
-const delivery = latestHist?.delivery || [];
+const delivery = latestAll?.delivery || [];
 destroyChart('deliveryChart');
 if (delivery.length) {
-  const total = delivery.reduce((s,d) => s + (d.cnt||0), 0);
+  const totalDel = delivery.reduce((s,d) => s+(d.cnt||0), 0);
   const BAR_COLORS = ['#2563EB','#0891B2','#059669','#7C3AED','#EA580C'];
   charts['deliveryChart'] = new Chart(document.getElementById('deliveryChart'), {
     type: 'bar',
     data: {
       labels: delivery.map(d => d.label + '회'),
-      datasets: [{
-        label: '신청 건수',
-        data: delivery.map(d => d.cnt),
+      datasets: [{ label:'신청 건수', data: delivery.map(d => d.cnt),
         backgroundColor: delivery.map((_,i) => BAR_COLORS[i % BAR_COLORS.length]),
-        borderRadius: 6, borderSkipped: false,
-      }]
+        borderRadius: 6, borderSkipped: false }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
-        tooltip: {
-          callbacks: {
-            label: ctx => {
-              const cnt = ctx.raw;
-              const ratio = total > 0 ? (cnt/total*100).toFixed(1) : '0.0';
-              return ` ${fmtNum(cnt)}건 (${ratio}%)`;
-            }
-          }
-        },
-        datalabels: false,
+        tooltip: { callbacks: { label: ctx => {
+          const ratio = totalDel > 0 ? (ctx.raw/totalDel*100).toFixed(1) : '0.0';
+          return ` ${fmtNum(ctx.raw)}건 (${ratio}%)`;
+        }}}
       },
       scales: {
-        x: { ticks: { font: { size: 12, weight: '600' } } },
-        y: {
-          beginAtZero: true,
-          ticks: {
-            font: { size: 10 },
-            callback: v => fmtNum(v) + '건'
-          }
-        }
+        x: { ticks: { font: { size:12, weight:'600' } } },
+        y: { beginAtZero:true, ticks: { font:{size:10}, callback: v => fmtNum(v)+'건' } }
       }
     },
     plugins: [{
       id: 'ratioLabel',
       afterDatasetsDraw(chart) {
         const { ctx, data } = chart;
-        const total2 = data.datasets[0].data.reduce((s,v) => s+v, 0);
-        if (!total2) return;
+        const tot = data.datasets[0].data.reduce((s,v)=>s+v,0);
+        if (!tot) return;
         ctx.save();
         data.datasets[0].data.forEach((val, i) => {
-          const meta = chart.getDatasetMeta(0);
-          const bar  = meta.data[i];
-          const ratio = (val / total2 * 100).toFixed(1);
+          const bar = chart.getDatasetMeta(0).data[i];
           ctx.fillStyle = '#1E293B';
           ctx.font = 'bold 11px Pretendard, sans-serif';
           ctx.textAlign = 'center';
-          ctx.fillText(ratio + '%', bar.x, bar.y - 6);
+          ctx.fillText((val/tot*100).toFixed(1)+'%', bar.x, bar.y - 6);
         });
         ctx.restore();
       }
