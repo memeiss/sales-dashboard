@@ -796,7 +796,11 @@ body {
 
   <!-- 차트 -->
   <div class="chart-card">
-    <div class="chart-card-title">일자별 매출 추이</div>
+    <div class="ch-label-wrap" style="margin-bottom:4px;">
+      <div class="ch-label" style="flex:1;">일자별 매출 추이</div>
+      <button class="ch-comment-toggle" id="toggle-s1-daily" onclick="toggleComment('s1-daily')" title="코멘트 추가">＋</button>
+    </div>
+    <div class="ch-comment-area" id="area-s1-daily" style="display:none;"></div>
     <div style="height:185px"><canvas id="dailyChart"></canvas></div>
   </div>
 
@@ -1946,7 +1950,7 @@ function getTargets() {
 }
 // ─── 리뷰 코멘트 ───────────────────────────────────────────
 const ALL_COMMENT_IDS = [
-  's1-total','s1-channel','s1-weekday',
+  's1-total','s1-channel','s1-daily','s1-weekday',
   's2-total','s2-channel','s2-funnel',
   's3-summary','s3-annual','s3-sub-sales','s3-sub-prods','s3-delivery'
 ];
