@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -1198,9 +1199,9 @@ body {
     <span class="sub-badge">Subscription</span>
   </div>
 
-  <!-- ① 매출 현황 -->
+  <!-- ① 신청 현황 (누적) -->
   <div class="ch-label-wrap">
-    <div class="ch-label" style="flex:1;">매출 현황</div>
+    <div class="ch-label" style="flex:1;">신청 현황 <span style="font-size:11px;font-weight:500;color:var(--muted);margin-left:6px;">전체 누적 기준</span></div>
     <button class="ch-comment-toggle" id="toggle-s3-sub-sales" onclick="toggleComment('s3-sub-sales')" title="코멘트 추가">＋</button>
   </div>
   <div class="ch-comment-area" id="area-s3-sub-sales" style="display:none;">
@@ -1210,13 +1211,9 @@ body {
       <button class="comment-save-btn" id="csave-s3-sub-sales" onclick="saveComment('s3-sub-sales')">저장</button>
     </div>
     <div class="comment-editor" id="ceditor-s3-sub-sales" contenteditable="true"
-      data-placeholder="매출 현황에 대한 코멘트를 입력하세요..."></div>
+      data-placeholder="신청 현황에 대한 코멘트를 입력하세요..."></div>
   </div>
-  <div class="sub-grid" style="grid-template-columns:repeat(5,1fr)">
-    <div class="sub-card">
-      <div class="sub-label">총 매출액</div>
-      <div class="sub-value krw" id="sub-total">–</div>
-    </div>
+  <div class="sub-grid" style="grid-template-columns:repeat(4,1fr)">
     <div class="sub-card">
       <div class="sub-label">전체 신청 건수</div>
       <div class="sub-value" id="sub-total-cnt">–</div>
@@ -1235,9 +1232,29 @@ body {
     </div>
   </div>
 
-  <!-- ② 상품(식단)별 현황 -->
+  <!-- 연간 신청 현황 테이블 -->
+  <div class="chart-card" style="margin-bottom:16px;">
+    <div class="chart-card-title">연간 신청 현황 <span style="font-size:11px;font-weight:500;color:var(--muted);margin-left:6px;">월별 누적</span></div>
+    <div style="overflow-x:auto;">
+      <table class="data-table" id="subAnnualTable" style="min-width:700px;">
+        <thead>
+          <tr>
+            <th style="min-width:70px;">항목</th>
+            <th>1월</th><th>2월</th><th>3월</th><th>4월</th><th>5월</th><th>6월</th>
+            <th>7월</th><th>8월</th><th>9월</th><th>10월</th><th>11월</th><th>12월</th>
+            <th>합계</th>
+          </tr>
+        </thead>
+        <tbody id="subAnnualBody">
+          <tr><td colspan="14" style="text-align:center;color:var(--muted);padding:20px;">엑셀 파일을 업로드하면 데이터가 표시됩니다</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ② 식단별 신청 및 매출 현황 -->
   <div class="ch-label-wrap">
-    <div class="ch-label" style="flex:1;">정기결제 상품별 현황</div>
+    <div class="ch-label" style="flex:1;">식단별 신청 및 매출 현황 <span style="font-size:11px;font-weight:500;color:var(--muted);margin-left:6px;">전체 누적 기준</span></div>
     <button class="ch-comment-toggle" id="toggle-s3-sub-prods" onclick="toggleComment('s3-sub-prods')" title="코멘트 추가">＋</button>
   </div>
   <div class="ch-comment-area" id="area-s3-sub-prods" style="display:none;">
@@ -1247,15 +1264,15 @@ body {
       <button class="comment-save-btn" id="csave-s3-sub-prods" onclick="saveComment('s3-sub-prods')">저장</button>
     </div>
     <div class="comment-editor" id="ceditor-s3-sub-prods" contenteditable="true"
-      data-placeholder="정기결제 상품별 현황에 대한 코멘트를 입력하세요..."></div>
+      data-placeholder="식단별 현황에 대한 코멘트를 입력하세요..."></div>
   </div>
   <div class="chart-card">
-    <div class="chart-card-title">식단별 매출 · 진행건수 · 해지건수 · 구독 유지율</div>
+    <div class="chart-card-title">식단별 매출 · 비중 · 진행건수 · 해지건수 · 구독 유지율</div>
     <table class="data-table">
       <thead>
         <tr>
-          <th>상품명(식단)</th><th>카테고리</th>
-          <th>매출액</th><th>전체 대비</th>
+          <th>상품명(식단)</th>
+          <th>매출액</th><th>비중</th>
           <th>진행 건수</th><th>해지 건수</th><th>구독 유지율</th>
         </tr>
       </thead>
@@ -1263,9 +1280,9 @@ body {
     </table>
   </div>
 
-  <!-- ③ 배송 횟수 -->
+  <!-- ③ 배송 횟수 현황 -->
   <div class="ch-label-wrap">
-    <div class="ch-label" style="flex:1;">전체 배송 횟수 현황</div>
+    <div class="ch-label" style="flex:1;">배송 횟수 현황</div>
     <button class="ch-comment-toggle" id="toggle-s3-delivery" onclick="toggleComment('s3-delivery')" title="코멘트 추가">＋</button>
   </div>
   <div class="ch-comment-area" id="area-s3-delivery" style="display:none;">
@@ -1275,22 +1292,12 @@ body {
       <button class="comment-save-btn" id="csave-s3-delivery" onclick="saveComment('s3-delivery')">저장</button>
     </div>
     <div class="comment-editor" id="ceditor-s3-delivery" contenteditable="true"
-      data-placeholder="전체 배송 횟수 현황에 대한 코멘트를 입력하세요..."></div>
+      data-placeholder="배송 횟수 현황에 대한 코멘트를 입력하세요..."></div>
   </div>
-  <div class="grid-2 grid-stack" style="margin-bottom:0">
-    <div class="chart-card" style="margin-bottom:0">
-      <div class="chart-card-title">배송 횟수별 신청 건수</div>
-      <div style="height:160px"><canvas id="deliveryChart"></canvas></div>
-    </div>
-    <div class="chart-card" style="margin-bottom:0">
-      <div class="chart-card-title">배송 횟수별 비율</div>
-      <table class="data-table">
-        <thead><tr><th>구분</th><th>건수</th><th>비율</th></tr></thead>
-        <tbody id="deliveryBody"></tbody>
-      </table>
-    </div>
+  <div class="chart-card" style="margin-bottom:0;">
+    <div class="chart-card-title">배송 횟수별 신청 건수 및 비율</div>
+    <div style="height:220px"><canvas id="deliveryChart"></canvas></div>
   </div>
-
 </div><!-- slide end -->
 
 <!-- ─── SLIDE 4 : 이벤트 성과 ─── -->
@@ -1563,7 +1570,7 @@ function fmtDateLabel(dateStr) {
 }
 
 // ─── State ───
-let DATA = { daily:[], d2c:[], cat:[], products:[], products_daily:{}, sub:null, targets:[], monthTargets:null };
+let DATA = { daily:[], d2c:[], cat:[], products:[], products_daily:{}, subHistory:[], targets:[], monthTargets:null };
 let YEAR = 2025, MONTH = 1;
 let charts = {};
 
@@ -1676,9 +1683,14 @@ async function saveDataToFirebase() {
         products_daily: Object.keys(pdYM).length
                           ? pdYM
                           : (prev.products_daily || {}),
-        sub:            DATA.sub
-                          ? ((DATA.sub.year==y && DATA.sub.month==m) ? DATA.sub : prev.sub || null)
-                          : (prev.sub || null),
+        subHistory:     (() => {
+                          const newEntry = (DATA.subHistory||[]).find(h=>h.year==y&&h.month==m);
+                          const prevArr  = prev.subHistory || (prev.sub ? [prev.sub] : []);
+                          if (!newEntry) return prevArr;
+                          const merged = prevArr.filter(h=>!(h.year==y&&h.month==m));
+                          merged.push(newEntry);
+                          return merged;
+                        })(),
         monthTargets:   DATA.monthTargets || prev.monthTargets || null,
         updatedAt:      new Date().toISOString(),
       };
@@ -1835,7 +1847,15 @@ function parseWB(wb) {
   }
 
   // ── 🔄 정기결제 ──
-  DATA.sub = parseSubSheet(wb.Sheets['🔄 정기결제']);
+  // 🔄 정기결제 — 누적 히스토리 배열에 추가 (같은 연월은 덮어쓰기)
+  const parsedSub = parseSubSheet(wb.Sheets['🔄 정기결제']);
+  if (parsedSub && parsedSub.year && parsedSub.month) {
+    if (!DATA.subHistory) DATA.subHistory = [];
+    DATA.subHistory = DATA.subHistory.filter(
+      h => !(h.year == parsedSub.year && h.month == parsedSub.month)
+    );
+    DATA.subHistory.push(parsedSub);
+  }
 
   // ── 목표 저장 ──
   DATA.monthTargets = {
@@ -1903,50 +1923,82 @@ function parseProdSheet(ws) {
 }
 
 // ── 🔄 정기결제 파싱 ──
+// 새 구조:
 // Row2: B2=연도, C2=월
-// Row5~9: 매출현황 (당월=C열c=2, 전년=D열c=3)
-// Row11=상품헤더, Row12~=상품별 ('합계'에서 중단)
-// Row21=배송헤더, Row22~=배송횟수 ('합계'에서 중단)
+// ■ 1. 신청 현황 (누적)
+//   Row5~9: 항목(A) / 값(C)
+//   Row5=전체신청건수, Row6=진행건수, Row7=해지건수, Row8=구독유지율
+// ■ 2. 식단별 신청 및 매출 현황
+//   Row12=헤더, Row13~=식단별 (상품명/매출액/진행건수/해지건수/구독유지율/비고) — '합계'에서 중단
+// ■ 3. 배송 횟수 현황
+//   Row시작은 동적 탐색 — '배송 횟수 구분' 헤더 이후, '합계'에서 중단
 function parseSubSheet(ws) {
   if (!ws) return null;
-  return {
-    year:       cellV(ws, 1, 1),   // B2
-    month:      cellV(ws, 1, 2),   // C2
-    subTotal:   cellV(ws, 4, 2),   // C5
-    prevTotal:  cellV(ws, 4, 3),   // D5
-    totalCnt:   cellV(ws, 5, 2),   // C6
-    activeCnt:  cellV(ws, 6, 2),   // C7
-    cancelCnt:  cellV(ws, 7, 2),   // C8
-    ltr:        cellV(ws, 8, 2),   // C9
-    prevLtr:    cellV(ws, 8, 3),   // D9
-    products: (() => {
-      const prods = [];
-      for (let r = 11; ; r++) {   // Row12(r=11)부터
-        const nm = cellS(ws, r, 0);
-        if (!nm || nm === '합계' || nm === '상품명(식단)') { if (nm === '합계') break; if (!nm) break; continue; }
-        prods.push({
-          name:     nm,
-          category: cellS(ws, r, 1),
-          sales:    cellV(ws, r, 2),
-          active:   cellV(ws, r, 3),
-          cancel:   cellV(ws, r, 4),
-          ltr:      cellV(ws, r, 5),
-          prev:     cellV(ws, r, 6),
-        });
-      }
-      return prods;
-    })(),
-    delivery: (() => {
-      const items = [];
-      for (let r = 21; ; r++) {   // Row22(r=21)부터
-        const label = cellS(ws, r, 0);
-        if (!label || label === '합계' || label === '배송 횟수 구분') { if (!label || label === '합계') break; continue; }
-        items.push({ label, cnt: cellV(ws, r, 2), ratio: cellV(ws, r, 3) });
-      }
-      return items;
-    })(),
-  };
+  const year  = cellV(ws, 1, 1);  // B2
+  const month = cellV(ws, 1, 2);  // C2
+
+  // ■ 1. 신청 현황 (누적) — 동적으로 헤더 행 탐색
+  // '■ 1. 신청 현황' 섹션 찾기
+  let sec1Row = -1;
+  for (let r = 0; r < 15; r++) {
+    const v = cellS(ws, r, 0);
+    if (v && v.includes('신청 현황')) { sec1Row = r; break; }
+  }
+  // 헤더 행 이후 항목 파싱 (항목명으로 찾기)
+  let totalCnt = 0, activeCnt = 0, cancelCnt = 0, ltr = 0;
+  const maxR = sec1Row >= 0 ? sec1Row + 10 : 12;
+  for (let r = (sec1Row >= 0 ? sec1Row : 3); r < maxR; r++) {
+    const label = cellS(ws, r, 0);
+    if (!label) continue;
+    if (label.includes('전체 신청'))  totalCnt  = cellV(ws, r, 2) || 0;
+    if (label.includes('진행 건수'))  activeCnt = cellV(ws, r, 2) || 0;
+    if (label.includes('해지 건수'))  cancelCnt = cellV(ws, r, 2) || 0;
+    if (label.includes('구독 유지율')) ltr       = cellV(ws, r, 2) || 0;
+  }
+
+  // ■ 2. 식단별 현황 — '식단별' 또는 '상품명' 헤더 찾기
+  let prodHeaderRow = -1;
+  for (let r = 0; r < 30; r++) {
+    const v = cellS(ws, r, 0);
+    if (v && (v.includes('상품명') || v === '식단명')) { prodHeaderRow = r; break; }
+  }
+  const products = [];
+  if (prodHeaderRow >= 0) {
+    for (let r = prodHeaderRow + 1; r < prodHeaderRow + 30; r++) {
+      const nm = cellS(ws, r, 0);
+      if (!nm || nm === '합계') break;
+      products.push({
+        name:   nm,
+        sales:  cellV(ws, r, 1) || 0,
+        active: cellV(ws, r, 2) || 0,
+        cancel: cellV(ws, r, 3) || 0,
+        ltr:    cellV(ws, r, 4) || 0,
+      });
+    }
+  }
+
+  // ■ 3. 배송 횟수 — '배송 횟수 구분' 헤더 찾기
+  let delivHeaderRow = -1;
+  for (let r = 0; r < 50; r++) {
+    const v = cellS(ws, r, 0);
+    if (v && v.includes('배송 횟수')) { delivHeaderRow = r; break; }
+  }
+  const delivery = [];
+  if (delivHeaderRow >= 0) {
+    for (let r = delivHeaderRow + 1; r < delivHeaderRow + 20; r++) {
+      const label = cellS(ws, r, 0);
+      if (!label || label === '합계') break;
+      delivery.push({
+        label: label,
+        cnt:   cellV(ws, r, 1) || 0,
+        ratio: cellV(ws, r, 2) || 0,
+      });
+    }
+  }
+
+  return { year, month, totalCnt, activeCnt, cancelCnt, ltr, products, delivery };
 }
+
 
 function getTargets() {
   if (!DATA.monthTargets) return null;
@@ -2537,29 +2589,71 @@ function switchCatTab(idx, catT) {
 
 
 // ── 정기결제 렌더링 ──
-const sub = DATA.sub || null;
+// DATA.subHistory: [{year, month, totalCnt, activeCnt, cancelCnt, ltr, products, delivery}, ...]
+// 누적 집계 함수
+function getSubCumulative() {
+  const hist = DATA.subHistory || [];
+  if (!hist.length) return null;
+  // 가장 최근 시점의 진행건수/해지건수/유지율은 마지막 데이터 기준
+  // (누적이므로 최신값이 곧 누적값)
+  const sorted = [...hist].sort((a,b) => a.year*100+a.month - (b.year*100+b.month));
+  const latest = sorted[sorted.length - 1];
+  return {
+    totalCnt:  latest.totalCnt  || 0,
+    activeCnt: latest.activeCnt || 0,
+    cancelCnt: latest.cancelCnt || 0,
+    ltr:       latest.ltr       || 0,
+  };
+}
 
-// 섹션① 매출 현황
-set('sub-total',      sub ? fmtKRW(sub.subTotal)          : '–');
-set('sub-total-cnt',  sub ? fmtNum(sub.totalCnt)  + '건'  : '–');
-set('sub-active-cnt', sub ? fmtNum(sub.activeCnt) + '건'  : '–');
-set('sub-cancel-cnt', sub ? fmtNum(sub.cancelCnt) + '건'  : '–');
-set('sub-ltr',        sub ? sub.ltr.toFixed(1)    + '%'   : '–');
+const cumul = getSubCumulative();
+const hist  = DATA.subHistory || [];
 
-// 섹션② 상품별
-const subTotal2 = sub?.subTotal || 0;
-const subProds  = sub?.products || [];
+// 섹션① 신청 현황 카드 (누적)
+set('sub-total-cnt',  cumul ? fmtNum(cumul.totalCnt)  + '건' : '–');
+set('sub-active-cnt', cumul ? fmtNum(cumul.activeCnt) + '건' : '–');
+set('sub-cancel-cnt', cumul ? fmtNum(cumul.cancelCnt) + '건' : '–');
+set('sub-ltr',        cumul ? cumul.ltr.toFixed(1)    + '%'  : '–');
+
+// 연간 신청 현황 테이블
+const subAnnualBody = document.getElementById('subAnnualBody');
+const yearHist = hist.filter(h => h.year == YEAR);
+if (!yearHist.length) {
+  subAnnualBody.innerHTML = '<tr><td colspan="14" style="text-align:center;color:var(--muted);padding:20px;">엑셀 파일을 업로드하면 데이터가 표시됩니다</td></tr>';
+} else {
+  const byMonth = {};
+  yearHist.forEach(h => { byMonth[h.month] = h; });
+  let totalApply = 0, totalCancel = 0;
+  const applyRow = ['신청 건수'];
+  const cancelRow = ['해지 건수'];
+  for (let m = 1; m <= 12; m++) {
+    const d = byMonth[m];
+    applyRow.push(d ? fmtNum(d.totalCnt) : '–');
+    cancelRow.push(d ? fmtNum(d.cancelCnt) : '–');
+    if (d) { totalApply += (d.totalCnt||0); totalCancel += (d.cancelCnt||0); }
+  }
+  applyRow.push(`<strong>${fmtNum(totalApply)}</strong>`);
+  cancelRow.push(`<strong>${fmtNum(totalCancel)}</strong>`);
+  subAnnualBody.innerHTML =
+    `<tr>${applyRow.map((v,i) => `<td style="${i===0?'font-weight:700;':''}${i===13?'font-weight:700;background:var(--surface2);':''}">${v}</td>`).join('')}</tr>` +
+    `<tr>${cancelRow.map((v,i) => `<td style="${i===0?'font-weight:700;color:var(--red);':'color:var(--red);'}${i===13?'font-weight:700;background:var(--surface2);':''}">${v}</td>`).join('')}</tr>`;
+}
+
+// 섹션② 식단별 현황 (누적 집계 — 히스토리 전체 합산)
+// 식단별로 최신 데이터를 기준으로 (누적이므로 최신 월 값 사용)
+const latestHist = hist.length ? [...hist].sort((a,b) => a.year*100+a.month - (b.year*100+b.month)).slice(-1)[0] : null;
+const subProds  = latestHist?.products || [];
+const subTotalSales = subProds.reduce((s,p) => s + (p.sales||0), 0);
 const tbody2 = document.getElementById('subProdBody');
 tbody2.innerHTML = '';
 if (!subProds.length) {
-  tbody2.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px">엑셀 파일을 업로드하면 데이터가 표시됩니다</td></tr>';
+  tbody2.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">엑셀 파일을 업로드하면 데이터가 표시됩니다</td></tr>';
 } else {
   subProds.forEach(p => {
-    const pct    = subTotal2 > 0 ? (p.sales / subTotal2 * 100).toFixed(1) : '0.0';
-    const ltrVal = p.ltr ?? (p.active + p.cancel > 0 ? p.active / (p.active + p.cancel) * 100 : 0);
+    const pct    = subTotalSales > 0 ? (p.sales / subTotalSales * 100).toFixed(1) : '0.0';
+    const ltrVal = p.ltr != null ? p.ltr : (p.active + p.cancel > 0 ? p.active / (p.active + p.cancel) * 100 : 0);
     tbody2.innerHTML += `<tr>
       <td style="font-weight:600">${p.name}</td>
-      <td style="color:var(--muted);font-size:12px">${p.category}</td>
       <td style="font-weight:700">${fmtKRW(p.sales)}</td>
       <td><div class="mini-bar-wrap"><div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${pct}%;background:var(--blue)"></div></div><span style="font-size:11px;font-weight:700;min-width:36px;text-align:right">${pct}%</span></div></td>
       <td style="color:var(--green);font-weight:700">${fmtNum(p.active)}건</td>
@@ -2569,39 +2663,70 @@ if (!subProds.length) {
   });
 }
 
-// 섹션③ 배송 횟수
-const delivery = sub?.delivery || [];
-const tbody3 = document.getElementById('deliveryBody');
-tbody3.innerHTML = '';
-if (!delivery.length) {
-  tbody3.innerHTML = '<tr><td colspan="3" style="text-align:center;color:var(--muted);padding:20px">–</td></tr>';
-} else {
-  delivery.forEach(d => {
-    tbody3.innerHTML += `<tr>
-      <td style="font-weight:700">${d.label}</td>
-      <td style="font-weight:700">${fmtNum(d.cnt)}건</td>
-      <td style="font-weight:700">${d.ratio.toFixed(1)}%</td>
-    </tr>`;
-  });
-}
-
+// 섹션③ 배송 횟수 — 단일 복합 차트
+const delivery = latestHist?.delivery || [];
 destroyChart('deliveryChart');
 if (delivery.length) {
+  const total = delivery.reduce((s,d) => s + (d.cnt||0), 0);
+  const BAR_COLORS = ['#2563EB','#0891B2','#059669','#7C3AED','#EA580C'];
   charts['deliveryChart'] = new Chart(document.getElementById('deliveryChart'), {
     type: 'bar',
     data: {
-      labels: delivery.map(d => d.label),
-      datasets: [{ label:'신청 건수', data: delivery.map(d => d.cnt),
-        backgroundColor:['#2563EB','#0891B2','#059669','#7C3AED'],
-        borderRadius:5, borderSkipped:false }]
+      labels: delivery.map(d => d.label + '회'),
+      datasets: [{
+        label: '신청 건수',
+        data: delivery.map(d => d.cnt),
+        backgroundColor: delivery.map((_,i) => BAR_COLORS[i % BAR_COLORS.length]),
+        borderRadius: 6, borderSkipped: false,
+      }]
     },
-    options: { responsive:true, maintainAspectRatio:false,
-      plugins:{ legend:{display:false},
-        tooltip:{callbacks:{label:ctx=>fmtNum(ctx.raw)+'건 ('+delivery[ctx.dataIndex].ratio.toFixed(1)+'%)'}} },
-      scales:{ x:{ticks:{font:{size:12}}}, y:{beginAtZero:true, ticks:{font:{size:10}}} }
-    }
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => {
+              const cnt = ctx.raw;
+              const ratio = total > 0 ? (cnt/total*100).toFixed(1) : '0.0';
+              return ` ${fmtNum(cnt)}건 (${ratio}%)`;
+            }
+          }
+        },
+        datalabels: false,
+      },
+      scales: {
+        x: { ticks: { font: { size: 12, weight: '600' } } },
+        y: {
+          beginAtZero: true,
+          ticks: {
+            font: { size: 10 },
+            callback: v => fmtNum(v) + '건'
+          }
+        }
+      }
+    },
+    plugins: [{
+      id: 'ratioLabel',
+      afterDatasetsDraw(chart) {
+        const { ctx, data } = chart;
+        const total2 = data.datasets[0].data.reduce((s,v) => s+v, 0);
+        if (!total2) return;
+        ctx.save();
+        data.datasets[0].data.forEach((val, i) => {
+          const meta = chart.getDatasetMeta(0);
+          const bar  = meta.data[i];
+          const ratio = (val / total2 * 100).toFixed(1);
+          ctx.fillStyle = '#1E293B';
+          ctx.font = 'bold 11px Pretendard, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText(ratio + '%', bar.x, bar.y - 6);
+        });
+        ctx.restore();
+      }
+    }]
   });
-} // deliveryChart if end
+}
 } // renderS3 end
 
 // ─── 연간 카테고리별 매출 표 렌더링 (전역 함수) ──────────────
@@ -2872,7 +2997,7 @@ async function loadAllFromFirebase() {
     DATA.d2c      = [];
     DATA.cat      = [];
     DATA.products = [];
-    DATA.sub      = null;
+    DATA.subHistory = [];
     DATA.monthTargets = null;
 
     snap.forEach(doc => {
@@ -2882,7 +3007,18 @@ async function loadAllFromFirebase() {
       if (d.cat)      DATA.cat      = DATA.cat.concat(d.cat);
       if (d.products) DATA.products = DATA.products.concat(d.products);
       if (d.products_daily) Object.assign(DATA.products_daily, d.products_daily);
-      if (d.sub)      DATA.sub      = d.sub;
+      if (d.subHistory) {
+        d.subHistory.forEach(entry => {
+          if (!DATA.subHistory) DATA.subHistory = [];
+          const exists = DATA.subHistory.find(h => h.year==entry.year && h.month==entry.month);
+          if (!exists) DATA.subHistory.push(entry);
+        });
+      } else if (d.sub) {
+        // 구버전 호환: sub 단일 객체
+        if (!DATA.subHistory) DATA.subHistory = [];
+        const exists = DATA.subHistory.find(h => d.sub && h.year==d.sub.year && h.month==d.sub.month);
+        if (!exists && d.sub.year) DATA.subHistory.push(d.sub);
+      }
       if (d.monthTargets) DATA.monthTargets = d.monthTargets;
     });
 
