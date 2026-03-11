@@ -1079,13 +1079,7 @@ body {
       <button class="ch-comment-toggle" id="toggle-s2-d2ctrend" onclick="toggleComment('s2-d2ctrend')" title="코멘트 추가">＋</button>
     </div>
     <div class="ch-comment-area" id="area-s2-d2ctrend" style="display:none;"></div>
-    <div style="display:flex;flex-direction:column;gap:0;">
-      <!-- 상단: 매출액 + 유입수 -->
-      <div style="height:210px;position:relative"><canvas id="d2cChart"></canvas></div>
-      <!-- 하단: 전환율 스트립 -->
-      <div style="height:1px;background:var(--border);margin:4px 0;"></div>
-      <div style="height:90px;position:relative"><canvas id="d2cCvrChart"></canvas></div>
-    </div>
+    <div style="height:280px;position:relative"><canvas id="d2cChart"></canvas></div>
   </div>
 </div>
 
@@ -2401,7 +2395,6 @@ const retUV  = sum('ownRetUV');
   const cvrArr   = rows.map(r => (r.ownUV||0) > 0 ? (r.ownOrd||0)/(r.ownUV||0)*100 : 0);
 
   destroyChart('d2cChart');
-  destroyChart('d2cCvrChart');
   const _cmp = labels.length > 18;
   const ptR  = _cmp ? 0 : 3.5;
 
@@ -2461,20 +2454,21 @@ const retUV  = sum('ownRetUV');
           pointBorderWidth: 2,
         },
         {
-          // ③ 전환율 — 상단 차트에서 제거됨 (하단 스트립 차트로 분리)
+          // ③ 전환율 — 라인, yC 독립축 (min/max로 항상 상단에 표시)
           label: '구매전환율',
           data: cvrArr,
           yAxisID: 'yC',
           order: 1,
-          borderColor: 'rgba(217,119,6,0.25)',
+          borderColor: '#D97706',
           backgroundColor: 'transparent',
-          borderWidth: 1.5,
-          borderDash: [4,3],
+          borderWidth: 2.5,
           tension: 0.42,
           fill: false,
-          pointRadius: 0,
-          pointHoverRadius: 0,
-          hidden: true,
+          pointRadius: ptR,
+          pointHoverRadius: 6,
+          pointBackgroundColor: '#D97706',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
         }
       ]
     },
@@ -2494,7 +2488,6 @@ const retUV  = sum('ownRetUV');
             font: { size: 11, weight: '600' },
             color: '#475569',
             padding: 16,
-            filter: item => item.text !== '구매전환율',
           }
         },
         tooltip: {
@@ -2513,9 +2506,9 @@ const retUV  = sum('ownRetUV');
               return items[0].label + ' (' + dow + ')';
             },
             label: ctx => {
-              if (ctx.dataset.label === '매출액') return '  매출액   ' + fmtKRW(ctx.raw);
-              if (ctx.dataset.label === '유입수')  return '  유입수   ' + (ctx.raw||0).toLocaleString() + '명';
-              if (ctx.dataset.label === '구매전환율') return null; // 상단 차트에선 숨김
+              if (ctx.dataset.label === '매출액')    return '  매출액   ' + fmtKRW(ctx.raw);
+              if (ctx.dataset.label === '유입수')     return '  유입수   ' + (ctx.raw||0).toLocaleString() + '명';
+              if (ctx.dataset.label === '구매전환율') return '  전환율   ' + (ctx.raw||0).toFixed(2) + '%';
               return ctx.dataset.label + ': ' + ctx.raw;
             },
             labelColor: ctx => ({
@@ -2539,115 +2532,46 @@ const retUV  = sum('ownRetUV');
         },
         yS: {
           position: 'left',
+          min: 0,
+          max: Math.max(...salesArr, 1) * 1.7,
           grid: { color: '#F1F5F9', drawBorder: false },
           ticks: {
-            callback: v => v >= 1000000 ? (v/1000000).toFixed(0)+'M' : Math.round(v/10000)+'만',
+            callback: v => v >= 1000000 ? (v/1000000).toFixed(1)+'M' : Math.round(v/10000)+'만',
             font: { size: 9 },
             color: '#2563EB',
+            maxTicksLimit: 5,
           },
           title: { display: true, text: '매출액', font: { size: 9, weight:'600' }, color: '#2563EB' },
           border: { display: false },
         },
         yU: {
           position: 'left',
+          min: 0,
+          max: Math.max(...uvArr, 1) * 1.7,
           grid: { display: false },
           ticks: {
             callback: v => v >= 1000 ? (v/1000).toFixed(1)+'K' : v,
             font: { size: 9 },
             color: '#0891B2',
+            maxTicksLimit: 5,
           },
           title: { display: true, text: '유입수', font: { size: 9, weight:'600' }, color: '#0891B2' },
           border: { display: false },
           offset: true,
         },
         yC: {
-          display: false,
-        }
-      }
-    }
-  });
-
-  // ── 하단: 전환율 스트립 차트 ──
-  charts['d2cCvrChart'] = new Chart(document.getElementById('d2cCvrChart'), {
-    type: 'line',
-    data: {
-      labels,
-      datasets: [{
-        label: '구매전환율',
-        data: cvrArr,
-        borderColor: '#D97706',
-        backgroundColor: ctx2 => {
-          const chart2 = ctx2.chart;
-          const { ctx: c2, chartArea: ca2 } = chart2;
-          if (!ca2) return 'rgba(217,119,6,0.12)';
-          const g = c2.createLinearGradient(0, ca2.top, 0, ca2.bottom);
-          g.addColorStop(0, 'rgba(217,119,6,0.20)');
-          g.addColorStop(1, 'rgba(217,119,6,0.01)');
-          return g;
-        },
-        borderWidth: 2.5,
-        tension: 0.42,
-        fill: true,
-        pointRadius: ptR,
-        pointHoverRadius: 6,
-        pointBackgroundColor: '#D97706',
-        pointBorderColor: '#fff',
-        pointBorderWidth: 2,
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      interaction: { mode: 'index', intersect: false },
-      plugins: {
-        legend: {
-          display: true,
-          position: 'top',
-          align: 'start',
-          labels: {
-            boxWidth: 10, boxHeight: 10,
-            borderRadius: 3, useBorderRadius: true,
-            font: { size: 11, weight: '600' },
-            color: '#D97706',
-            padding: 12,
-          }
-        },
-        tooltip: {
-          backgroundColor: '#fff',
-          borderColor: '#E2E8F0',
-          borderWidth: 1,
-          titleColor: '#1E293B',
-          bodyColor: '#475569',
-          padding: 10,
-          cornerRadius: 10,
-          callbacks: {
-            title: items => items[0].label,
-            label: ctx => '  전환율   ' + (ctx.raw||0).toFixed(2) + '%',
-            labelColor: () => ({ borderColor:'#D97706', backgroundColor:'#D97706', borderRadius:3 }),
-          }
-        }
-      },
-      scales: {
-        x: {
-          grid: { color: '#F1F5F9', drawBorder: false },
-          ticks: {
-            font: { size: 9 },
-            color: '#94A3B8',
-            maxTicksLimit: _cmp ? 8 : labels.length,
-            maxRotation: 0,
-          },
-          border: { display: false }
-        },
-        y: {
           position: 'right',
-          grid: { color: '#F1F5F9', drawBorder: false },
+          grid: { display: false },
+          // min=0, max를 실제 최댓값의 절반으로 설정 → 전환율 라인이 차트 상단에 떠오름
+          min: 0,
+          max: Math.max(...cvrArr, 0.1) * 2.2,
           ticks: {
             callback: v => v.toFixed(1) + '%',
             font: { size: 9, weight: '600' },
             color: '#D97706',
             maxTicksLimit: 4,
           },
-          title: { display: false },
+          title: { display: true, text: '전환율 (%)', font: { size: 9, weight: '600' }, color: '#D97706' },
           border: { display: false },
         }
       }
