@@ -2100,17 +2100,26 @@ async function loadComments() {
     const key    = commentKey(cid);
     const area   = document.getElementById('area-' + cid);
     const toggle = document.getElementById('toggle-' + cid);
-    const editor = document.getElementById('ceditor-' + cid);
-    if (!editor) continue;
+    if (!area || !toggle) continue;
+
+    // ① 월 전환 시 area를 항상 초기 상태(숨김+에디터)로 리셋
+    area.innerHTML = `
+      <div class="ch-comment-toolbar">
+        <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+        <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+        <button class="comment-save-btn" id="csave-${cid}" onclick="saveComment('${cid}')">저장</button>
+      </div>
+      <div class="comment-editor" id="ceditor-${cid}" contenteditable="true"
+        data-placeholder="코멘트를 입력하세요..."></div>`;
+    area.style.display   = 'none';
+    toggle.style.display = '';
+    toggle.classList.remove('open');
+
+    // ② Firebase에서 해당 월 코멘트 조회
     try {
       const doc = await db.collection('comments').doc(key).get();
       if (doc.exists && doc.data().html && doc.data().html !== '<br>') {
-        // 내용 있으면 읽기 모드로 표시
         enterViewMode(cid, doc.data().html);
-      } else {
-        area.style.display   = 'none';
-        toggle.style.display = '';
-        toggle.classList.remove('open');
       }
     } catch(e) { console.warn('코멘트 로드 실패', cid, e); }
   }
