@@ -1963,18 +1963,22 @@ function parseSubSheet(ws) {
     }
   }
 
-  // ■ 3. 배송 횟수 — '배송 횟수 구분' 헤더 탐색
+  // ■ 3. 배송 횟수 — '배송 횟수 구분' 헤더 탐색 (헤더 행 자체는 건너뜀)
   let delivHeaderRow = -1;
   for (let r = 0; r < 40; r++) {
     const v = cellS(ws, r, 0);
+    // '배송 횟수 구분' 또는 '배송 횟수'가 포함된 행 = 헤더 행
     if (v && v.includes('배송 횟수')) { delivHeaderRow = r; break; }
   }
   const delivery = [];
   if (delivHeaderRow >= 0) {
     for (let r = delivHeaderRow + 1; r < delivHeaderRow + 15; r++) {
       const label = cellS(ws, r, 0);
-      if (!label || label === '합계') break;
-      delivery.push({ label, cnt: cellV(ws, r, 1) || 0, ratio: cellV(ws, r, 2) || 0 });
+      if (!label || label === '합계' || label.includes('배송 횟수')) break;
+      // 숫자 또는 'N회' 형태만 데이터로 인정
+      if (!/\d/.test(label)) continue;
+      // 중복 '회' 방지: 이미 '회'로 끝나면 그대로, 아니면 붙이지 않음 (렌더링에서 처리)
+      delivery.push({ label: label.replace(/회$/, ''), cnt: cellV(ws, r, 1) || 0, ratio: cellV(ws, r, 2) || 0 });
     }
   }
 
@@ -2462,7 +2466,6 @@ const retUV  = sum('ownRetUV');
           borderColor: '#D97706',
           backgroundColor: 'transparent',
           borderWidth: 2.5,
-          borderDash: [],
           tension: 0.42,
           fill: false,
           pointRadius: ptR,
@@ -2507,8 +2510,8 @@ const retUV  = sum('ownRetUV');
               return items[0].label + ' (' + dow + ')';
             },
             label: ctx => {
-              if (ctx.dataset.label === '매출액')    return '  매출액   ' + fmtKRW(ctx.raw);
-              if (ctx.dataset.label === '유입수')     return '  유입수   ' + (ctx.raw||0).toLocaleString() + '명';
+              if (ctx.dataset.label === '매출액') return '  매출액   ' + fmtKRW(ctx.raw);
+              if (ctx.dataset.label === '유입수')  return '  유입수   ' + (ctx.raw||0).toLocaleString() + '명';
               if (ctx.dataset.label === '구매전환율') return '  전환율   ' + (ctx.raw||0).toFixed(2) + '%';
               return ctx.dataset.label + ': ' + ctx.raw;
             },
@@ -2559,7 +2562,7 @@ const retUV  = sum('ownRetUV');
           grid: { display: false },
           ticks: {
             callback: v => v.toFixed(1) + '%',
-            font: { size: 9 },
+            font: { size: 9, weight: '600' },
             color: '#D97706',
           },
           title: { display: true, text: '전환율 (%)', font: { size: 9, weight:'600' }, color: '#D97706' },
