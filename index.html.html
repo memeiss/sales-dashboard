@@ -1,0 +1,3599 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OMNI - Sales Dashboard</title>
+<link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"/>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+/* ───────────────────────────────────────
+   DESIGN SYSTEM
+   Primary   : #2563EB  (blue  – actions, active state)
+   Positive  : #16A34A  (green – up, good)
+   Negative  : #DC2626  (red   – down, warning)
+   Neutral   : #1E293B  (text)
+   Muted     : #64748B
+   Surface   : #FFFFFF / #F8FAFC
+   Border    : #E2E8F0
+──────────────────────────────────────── */
+:root {
+  --blue:    #2563EB;
+  --blue-lt: #EFF6FF;
+  --green:   #16A34A;
+  --green-lt:#F0FDF4;
+  --red:     #DC2626;
+  --red-lt:  #FEF2F2;
+  --amber:   #B45309;
+  --amber-lt:#FFFBEB;
+  --text:    #1E293B;
+  --text2:   #475569;
+  --muted:   #94A3B8;
+  --bg:      #F1F5F9;
+  --surface: #FFFFFF;
+  --surface2:#F8FAFC;
+  --border:  #E2E8F0;
+  --shadow:  0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 8px rgba(0,0,0,0.08);
+
+  /* Category palette – only used for chart segments */
+  --cat1: #2563EB;
+  --cat2: #0891B2;
+  --cat3: #059669;
+  --cat4: #7C3AED;
+  --cat5: #EA580C;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Upload Banner ── */
+.upload-banner {
+  background: var(--blue);
+  position: relative;
+}
+.upload-banner::after {
+  content:'';
+  position:absolute;
+  inset:0;
+  background: linear-gradient(90deg, rgba(0,0,0,0.08) 0%, transparent 60%);
+  pointer-events:none;
+}
+.upload-inner {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 11px 28px;
+  position: relative; z-index:1;
+  gap: 16px; flex-wrap: wrap;
+}
+.upload-left { display: flex; align-items: center; gap: 12px; }
+.upload-icon {
+  width:34px; height:34px;
+  background: rgba(255,255,255,0.18);
+  border-radius:8px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:16px; flex-shrink:0;
+}
+.upload-text h3 { color:#fff; font-size:13px; font-weight:700; }
+.upload-text p  { color:rgba(255,255,255,0.72); font-size:11px; margin-top:1px; }
+.upload-right { display:flex; align-items:center; gap:10px; }
+.upload-btn {
+  display:flex; align-items:center; gap:7px;
+  background:#fff; color:var(--blue);
+  border:none; padding:8px 16px;
+  border-radius:7px; font-size:12px; font-weight:700;
+  font-family:inherit; cursor:pointer;
+  transition: all 0.18s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.14);
+}
+.upload-btn:hover { background:#EFF6FF; transform:translateY(-1px); }
+.upload-btn svg { width:14px; height:14px; }
+.upload-status { color:rgba(255,255,255,0.88); font-size:12px; display:flex; align-items:center; gap:6px; }
+.status-dot {
+  width:7px; height:7px; border-radius:50%;
+  background:#86EFAC; animation:pulse 2s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.4)} }
+#fileInput { display:none; }
+
+/* ── Header ── */
+.header {
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 12px 28px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  position:sticky; top:0; z-index:99;
+  flex-wrap:wrap; gap:10px;
+}
+.header-left { display:flex; align-items:center; gap:12px; }
+.logo-badge {
+  width:36px; height:36px;
+  background:var(--blue); border-radius:9px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:12px; font-weight:800; color:#fff; letter-spacing:-0.5px;
+}
+.header-title { font-size:15px; font-weight:800; color:var(--text); letter-spacing:-0.3px; }
+.header-meta  { font-size:11px; color:var(--muted); margin-top:1px; }
+.header-right { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+
+/* Period selector */
+.period-selector {
+  display:flex; align-items:center; gap:5px;
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:8px; padding:5px 11px;
+}
+.period-selector label { font-size:10px; color:var(--muted); font-weight:600; }
+.period-selector select {
+  border:none; background:transparent;
+  font-size:13px; font-weight:700; color:var(--blue);
+  font-family:inherit; cursor:pointer; outline:none; padding:0 2px;
+}
+.period-sep { color:var(--border); }
+.period-badge {
+  background:var(--blue); color:#fff;
+  border-radius:6px; padding:4px 10px;
+  font-size:11px; font-weight:700; letter-spacing:0.2px; white-space:nowrap;
+}
+.live-dot { width:7px;height:7px;background:#4ADE80;border-radius:50%;animation:pulse 2s infinite; }
+
+/* ── Nav Tabs ── */
+.nav-container {
+  display:flex; align-items:center; justify-content:center;
+  padding:16px 28px 0; gap:12px;
+}
+.nav-tabs {
+  display:flex; background:var(--surface);
+  border:1px solid var(--border); border-radius:11px;
+  padding:3px; gap:3px; box-shadow:var(--shadow);
+}
+.nav-tab {
+  padding:7px 20px; border-radius:8px;
+  font-size:13px; font-weight:600; cursor:pointer;
+  color:var(--muted); border:none; background:none;
+  font-family:inherit; transition:all 0.18s; white-space:nowrap;
+}
+.nav-tab:hover { color:var(--blue); background:var(--bg); }
+.nav-tab.active { background:var(--blue); color:#fff; font-weight:700; }
+
+/* ── Arrow Nav ── */
+.arrow-nav {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:12px 28px;
+}
+.arrow-btn {
+  display:flex; align-items:center; gap:6px;
+  background:var(--surface); border:1px solid var(--border);
+  color:var(--text2); padding:8px 16px; border-radius:8px;
+  cursor:pointer; font-size:12px; font-family:inherit; font-weight:600;
+  transition:all 0.18s; box-shadow:var(--shadow);
+}
+.arrow-btn:hover { border-color:var(--blue); color:var(--blue); }
+.arrow-btn:disabled { opacity:0.3; cursor:not-allowed; }
+.arrow-btn svg { width:15px; height:15px; }
+.slide-indicator { display:flex; gap:7px; align-items:center; }
+.dot { width:7px;height:7px;border-radius:50%;background:var(--border);transition:all 0.3s;cursor:pointer; }
+.dot.active { background:var(--blue);width:22px;border-radius:4px; }
+
+/* ── Slides ── */
+.slides-wrapper {
+  overflow: hidden;
+  width: 100%;
+  position: relative;
+}
+.slides-track {
+  display: flex;
+  transition: transform 0.45s cubic-bezier(0.4,0,0.2,1);
+  will-change: transform;
+}
+.slide {
+  min-width: 100%;
+  width: 100%;
+  flex-shrink: 0;
+  padding: 0 28px 36px;
+  box-sizing: border-box;
+  /* 차트가 슬라이드 밖으로 나가지 않도록 */
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ── Section Title ── */
+.section-title {
+  display:flex; align-items:center; gap:10px;
+  margin-bottom:18px; padding-bottom:14px;
+  border-bottom:1px solid var(--border);
+}
+.section-icon { width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px; }
+.section-title h2 { font-size:17px; font-weight:800; letter-spacing:-0.4px; }
+.section-title p  { font-size:11px; color:var(--muted); margin-top:2px; }
+
+/* ── Grids ── */
+.grid-2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px; }
+.grid-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:12px; }
+.grid-4 { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:12px; }
+.grid-7 { display:grid; grid-template-columns:repeat(7,1fr); gap:8px; margin-bottom:12px; }
+
+/* ── Stat Card ── */
+.stat-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:11px; padding:16px;
+  box-shadow:var(--shadow); position:relative; overflow:hidden;
+  transition: box-shadow 0.18s;
+}
+.stat-card:hover { box-shadow:var(--shadow-md); }
+/* Thin top accent only on explicit modifier classes */
+.stat-card.c-blue::before  { content:''; position:absolute; top:0;left:0;right:0;height:3px; background:var(--blue); }
+.stat-card.c-green::before { content:''; position:absolute; top:0;left:0;right:0;height:3px; background:var(--green); }
+.stat-card.c-red::before   { content:''; position:absolute; top:0;left:0;right:0;height:3px; background:var(--red); }
+.stat-card.c-amber::before { content:''; position:absolute; top:0;left:0;right:0;height:3px; background:var(--amber); }
+
+.stat-label {
+  font-size:10px; color:var(--muted); font-weight:600;
+  letter-spacing:0.4px; text-transform:uppercase; margin-bottom:7px;
+}
+/* All stat values → black by default */
+.stat-value {
+  font-size:22px; font-weight:800;
+  color:var(--text);
+  letter-spacing:-0.5px; line-height:1.2;
+  word-break:break-all;
+}
+.stat-value.sm  { font-size:17px; }
+.stat-value.xs  { font-size:14px; }
+.stat-value.krw { font-size:16px; font-weight:700; }
+/* Only use colored values for directional signals */
+.up   { color:var(--green) !important; }
+.down { color:var(--red)   !important; }
+.hi   { color:var(--blue)  !important; }
+
+.stat-sub { font-size:11px; color:var(--muted); margin-top:6px; display:flex;align-items:center;gap:4px; }
+.tag-up   { color:var(--green); font-weight:700; font-size:11px; }
+.tag-down { color:var(--red);   font-weight:700; font-size:11px; }
+
+/* ── 리뷰 코멘트 박스 ── */
+.ch-label-wrap {
+  display:flex; align-items:center; gap:8px; margin-bottom:10px;
+}
+.ch-label-wrap .ch-label {
+  margin-bottom:0;
+}
+.ch-comment-toggle {
+  width:22px; height:22px; border-radius:50%; border:1.5px solid var(--blue);
+  background:var(--blue-lt); color:var(--blue); font-size:15px; font-weight:700;
+  cursor:pointer; display:flex; align-items:center; justify-content:center;
+  flex-shrink:0; transition:all 0.15s; line-height:1; padding:0;
+  font-family:inherit;
+}
+.ch-comment-toggle:hover { background:var(--blue); color:#fff; }
+.ch-comment-toggle.open { background:var(--blue); color:#fff; transform:rotate(45deg); }
+.ch-comment-area {
+  background:#fff; border:1.5px solid var(--border); border-radius:10px;
+  padding:12px 14px; margin-bottom:12px; box-shadow:0 1px 4px rgba(0,0,0,0.04);
+  animation: fadeIn 0.18s ease;
+}
+@keyframes fadeIn { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+.ch-comment-toolbar {
+  display:flex; align-items:center; gap:6px; margin-bottom:7px;
+}
+.comment-btn {
+  padding:3px 10px; border-radius:5px; border:1.5px solid var(--border);
+  background:var(--surface); color:var(--text2); font-size:11px; font-weight:700;
+  cursor:pointer; font-family:inherit; transition:all 0.15s; line-height:1.4;
+}
+.comment-btn:hover { border-color:var(--blue); color:var(--blue); background:var(--blue-lt); }
+.comment-save-btn {
+  margin-left:auto; padding:4px 14px; border-radius:6px;
+  border:none; background:var(--blue); color:#fff;
+  font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.15s;
+}
+.comment-save-btn:hover { background:#1d4ed8; }
+.comment-save-btn.saved { background:var(--green); }
+
+/* 저장 완료 후 읽기 모드 */
+.comment-view-mode {
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text);
+  min-height: 28px;
+}
+.comment-view-actions {
+  display: flex;
+  gap: 4px;
+  margin-left: auto;
+}
+.comment-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface2);
+  color: var(--text2);
+  cursor: pointer;
+  font-size: 12px;
+  transition: all .15s;
+}
+.comment-icon-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-lt); }
+.comment-icon-btn.del:hover { border-color: var(--red); color: var(--red); background: var(--red-lt, #FEF2F2); }
+
+.comment-editor {
+  min-height:60px; border:1px solid var(--border); border-radius:8px;
+  padding:9px 12px; font-size:13px; color:var(--text); font-family:inherit;
+  line-height:1.6; outline:none; background:var(--surface);
+  transition:border-color 0.15s;
+}
+.comment-editor:focus { border-color:var(--blue); background:#fff; }
+.comment-editor:empty:before {
+  content:attr(data-placeholder); color:var(--muted); pointer-events:none;
+}
+
+/* ── Max/Min card layout ── */
+.daystat-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:11px; padding:16px 18px;
+  box-shadow:var(--shadow);
+  display:flex; align-items:center; gap:14px;
+}
+.daystat-icon {
+  width:38px; height:38px; border-radius:9px; flex-shrink:0;
+  display:flex; align-items:center; justify-content:center; font-size:18px;
+}
+.daystat-icon.max-icon { background:var(--green-lt); }
+.daystat-icon.min-icon { background:var(--red-lt); }
+.daystat-body { flex:1; min-width:0; }
+.daystat-label { font-size:10px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.4px; margin-bottom:4px; }
+.daystat-amount { font-size:20px; font-weight:800; color:var(--text); letter-spacing:-0.5px; line-height:1.1; word-break:break-all; }
+.daystat-amount.max { color:var(--green); }
+.daystat-amount.min { color:var(--red); }
+.daystat-date { font-size:12px; color:var(--text2); font-weight:500; margin-top:3px; }
+
+/* ── Progress ── */
+.progress-wrap { margin-top:9px; }
+.prog-label { font-size:11px;font-weight:700;margin-bottom:3px; }
+.progress-bar-bg { background:var(--bg);border-radius:4px;height:5px;overflow:hidden;border:1px solid var(--border); }
+.progress-bar-fill { height:100%;border-radius:4px;transition:width 1s ease;background:var(--blue); }
+
+/* ── Chart Card ── */
+.chart-card {
+  background:var(--surface); border:1px solid var(--border);
+  border-radius:11px; padding:16px;
+  box-shadow:var(--shadow); margin-bottom:12px;
+}
+.chart-card-title {
+  font-size:11px; font-weight:700; color:var(--muted);
+  text-transform:uppercase; letter-spacing:0.4px;
+  margin-bottom:14px; display:flex;align-items:center;gap:8px;
+}
+.chart-card-title::after { content:'';flex:1;height:1px;background:var(--border); }
+
+/* ── Channel label ── */
+.ch-label {
+  font-size:10px; color:var(--muted); font-weight:700;
+  letter-spacing:0.8px; text-transform:uppercase;
+  margin-bottom:9px; display:flex;align-items:center;gap:8px;
+}
+.ch-label::after { content:'';flex:1;height:1px;background:var(--border); }
+
+/* ── Table ── */
+.data-table { width:100%; border-collapse:collapse; }
+.data-table th {
+  font-size:10px;color:var(--muted);font-weight:700;
+  text-transform:uppercase;letter-spacing:0.4px;
+  padding:9px 13px;text-align:left;
+  background:var(--surface2);border-bottom:2px solid var(--border);
+  white-space:nowrap;
+}
+.data-table td {
+  padding:10px 13px;font-size:12px;
+  border-bottom:1px solid var(--border);vertical-align:middle;
+}
+.data-table tr:hover td { background:#F8FAFC; }
+.data-table tr:last-child td { border-bottom:none; }
+.rank-badge {
+  width:21px;height:21px;border-radius:6px;
+  background:var(--bg);border:1px solid var(--border);
+  display:inline-flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:800;
+}
+.rank-badge.gold   { background:#FEF9C3;color:#B45309;border-color:#FDE68A; }
+.rank-badge.silver { background:#F1F5F9;color:#475569;border-color:#CBD5E0; }
+.rank-badge.bronze { background:#FEF3C7;color:#92400E;border-color:#FDE68A; }
+
+/* ── Mini bar ── */
+.mini-bar-wrap { display:flex;align-items:center;gap:7px; }
+.mini-bar-bg { flex:1;height:5px;background:var(--bg);border-radius:3px;overflow:hidden;border:1px solid var(--border); }
+.mini-bar-fill { height:100%;border-radius:3px; }
+
+/* ── Donut legend ── */
+.donut-legend { display:flex;flex-direction:column;gap:9px;justify-content:center; }
+.legend-item { display:flex;align-items:center;gap:9px;font-size:12px;color:var(--text2); }
+.legend-dot { width:9px;height:9px;border-radius:50%;flex-shrink:0; }
+.legend-val { font-weight:700;margin-left:auto;font-size:12px;color:var(--text); }
+
+/* ── Weekday cards ── */
+.weekday-card {
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:9px;padding:11px 7px;text-align:center;
+  box-shadow:var(--shadow);transition:all 0.18s;
+}
+.weekday-card.top { border-color:var(--blue);background:var(--blue-lt); }
+.weekday-name { font-size:10px;color:var(--muted);margin-bottom:5px;font-weight:700; }
+.weekday-name.top-day { color:var(--blue); }
+.weekday-val { font-size:10px;font-weight:700;color:var(--text);word-break:break-all;line-height:1.3; }
+.weekday-bar { height:48px;display:flex;align-items:flex-end;justify-content:center;gap:3px;margin:5px 0; }
+.weekday-bar-inner { width:10px;border-radius:2px 2px 0 0;transition:height 0.5s ease; }
+
+/* 요일 탭 */
+.wd-tabs { display:flex;gap:6px;margin-bottom:10px; }
+.wd-tab {
+  padding:5px 13px;border-radius:6px;border:1px solid var(--border);
+  font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;
+  background:var(--surface);color:var(--text2);transition:all 0.18s;
+}
+.wd-tab.active-all   { background:var(--text);  color:#fff;border-color:var(--text); }
+.wd-tab.active-on    { background:#2563EB;       color:#fff;border-color:#2563EB; }
+.wd-tab.active-off   { background:#F59E0B;       color:#fff;border-color:#F59E0B; }
+/* 3-bar 모드 sub-labels */
+.weekday-sub-vals { display:flex;gap:3px;justify-content:center;flex-wrap:wrap;margin-top:2px; }
+.weekday-sub-val  { font-size:8px;font-weight:700;line-height:1.3; }
+
+/* ── Category rows ── */
+.cat-row {
+  display:flex;align-items:center;gap:10px;
+  padding:10px 0;border-bottom:1px solid var(--border);
+}
+.cat-row:last-child { border-bottom:none; }
+.cat-name { flex:1;font-size:13px;font-weight:500;color:var(--text); }
+.cat-val { font-size:12px;font-weight:700;color:var(--text);min-width:130px;text-align:right;word-break:break-all; }
+.cat-pct { font-size:11px;color:var(--muted);min-width:42px;text-align:right; }
+
+/* ── Subscription Section ── */
+.sub-header {
+  display:flex;align-items:center;gap:10px;
+  padding:14px 0 10px;
+  border-top:2px solid var(--border);
+  margin-top:4px;
+}
+.sub-header h3 { font-size:14px;font-weight:800;color:var(--text);letter-spacing:-0.3px; }
+.sub-badge {
+  background:var(--blue);color:#fff;
+  border-radius:5px;padding:2px 8px;font-size:10px;font-weight:700;
+}
+.sub-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px; }
+.sub-card {
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:11px;padding:14px;box-shadow:var(--shadow);
+}
+.sub-label { font-size:10px;color:var(--muted);font-weight:600;letter-spacing:0.4px;text-transform:uppercase;margin-bottom:6px; }
+.sub-value { font-size:18px;font-weight:800;color:var(--text);letter-spacing:-0.4px; }
+.sub-value.krw { font-size:15px;font-weight:700; }
+.sub-sub { font-size:11px;color:var(--muted);margin-top:5px; }
+.status-row { display:flex;gap:8px;margin-top:8px; }
+.status-pill {
+  display:flex;align-items:center;gap:5px;
+  padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;
+}
+.status-pill.active { background:var(--green-lt);color:var(--green); }
+.status-pill.cancel { background:var(--red-lt);color:var(--red); }
+.status-pill::before { content:'';width:6px;height:6px;border-radius:50%;background:currentColor; }
+
+/* ── Drop overlay / Toast ── */
+.drop-overlay {
+  display:none;position:fixed;inset:0;
+  background:rgba(37,99,235,0.1);backdrop-filter:blur(4px);
+  z-index:999;align-items:center;justify-content:center;
+}
+.drop-overlay.active { display:flex; }
+.drop-box {
+  background:#fff;border:2px dashed var(--blue);
+  border-radius:18px;padding:56px 72px;text-align:center;
+}
+.drop-box h2 { font-size:20px;color:var(--blue);font-weight:800;margin-top:10px; }
+.drop-box p  { color:var(--muted);margin-top:7px;font-size:13px; }
+.toast {
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:#1E293B;color:#fff;
+  padding:11px 22px;border-radius:9px;
+  font-size:13px;font-weight:600;
+  box-shadow:0 8px 24px rgba(0,0,0,0.18);
+  transition:all 0.35s;z-index:9999;opacity:0;pointer-events:none;
+  white-space:nowrap;
+}
+.toast.show { opacity:1; }
+
+@media(max-width:768px){
+  /* 기본 레이아웃 */
+  .grid-4  { grid-template-columns:repeat(2,1fr); }
+  .grid-7  { grid-template-columns:repeat(4,1fr); }
+  .sub-grid{ grid-template-columns:repeat(2,1fr); }
+  .slide,.header,.arrow-nav,.nav-container,.upload-inner { padding-left:14px;padding-right:14px; }
+
+  /* ── 모바일에서 1열로 쌓이는 grid ── */
+  .grid-stack {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* ── grid-3도 모바일 1열 ── */
+  .grid-3 { grid-template-columns: 1fr !important; }
+
+  /* ── 도넛 차트 컨테이너: 모바일에서 전체 너비 활용 ── */
+  .cat-chart-grid .chart-card:first-child > div {
+    justify-content: center;
+  }
+  .cat-chart-grid .chart-card:first-child canvas {
+    width: 180px !important;
+    height: 180px !important;
+  }
+
+  /* ── stat-value 글자 오버플로 방지 ── */
+  .stat-value.krw { font-size: 16px; word-break: break-all; }
+  .daystat-amount  { font-size: 16px !important; word-break: break-all; }
+
+  /* ── 도넛 범례 텍스트 줄바꿈 허용 ── */
+  .donut-legend { flex-wrap: wrap; gap: 6px; }
+
+  /* ── 카테고리 탭 버튼 모바일 ── */
+  #catTabBar { flex-wrap: wrap; gap: 4px; }
+  #catTabBar button { font-size: 11px; padding: 4px 8px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Upload Banner -->
+<div class="upload-banner">
+  <div class="upload-inner">
+    <div class="upload-left">
+      <div class="upload-icon">📂</div>
+      <div class="upload-text">
+        <h3>엑셀 데이터 연동</h3>
+        <p>제공된 엑셀 양식을 업로드하면 대시보드가 자동으로 업데이트됩니다</p>
+      </div>
+    </div>
+    <div class="upload-right">
+      <div class="upload-status">
+        <div class="status-dot" id="statusDot"></div>
+        <span id="statusText">엑셀 파일을 업로드해주세요</span>
+      </div>
+      <button class="upload-btn" onclick="document.getElementById('fileInput').click()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17,8 12,3 7,8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        엑셀 파일 업로드
+      </button>
+      <button class="upload-btn" id="saveBtn" onclick="saveDataToFirebase()" style="background:rgba(255,255,255,0.15);color:#fff;border:1.5px solid rgba(255,255,255,0.5);" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/><polyline points="7,3 7,8 15,8"/></svg>
+        서버에 저장
+      </button>
+      <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFile(event)">
+    </div>
+  </div>
+</div>
+
+<!-- Drop Overlay -->
+<div class="drop-overlay" id="dropOverlay">
+  <div class="drop-box">
+    <div style="font-size:44px">📊</div>
+    <h2>파일을 여기에 놓으세요</h2>
+    <p>엑셀 파일(.xlsx)을 드래그 앤 드롭하여 업로드</p>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo-badge">OD</div>
+    <div>
+      <div class="header-title">OMNI Sales Dashboard</div>
+      <div class="header-meta">OMNI 채널 통합 매출 분석 시스템</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="period-selector">
+      <label>연도</label>
+      <select id="selYear">
+        <option value="">연도</option>
+      </select>
+      <span class="period-sep">·</span>
+      <label>월</label>
+      <select id="selMonth">
+        <option value="">월</option>
+      </select>
+    </div>
+    <div class="period-badge" id="periodBadge">01.01 – 01.31</div>
+    <a href="daily-dashboard.html" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--blue);color:#fff;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;transition:all .15s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='var(--blue)'">📅 일자·주차 분석</a>
+    <div class="live-dot"></div>
+  </div>
+</div>
+
+<!-- Nav -->
+<div class="nav-container">
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="goTo(0)">📊 OMNI 매출</button>
+    <button class="nav-tab" onclick="goTo(1)">🛒 D2C 채널</button>
+    <button class="nav-tab" onclick="goTo(2)">🏷️ 자사몰 카테고리</button>
+    <button class="nav-tab" onclick="goTo(3)">🎯 이벤트</button>
+  </div>
+</div>
+
+<!-- Arrow -->
+<div class="arrow-nav">
+  <button class="arrow-btn" id="prevBtn" onclick="navigate(-1)" disabled>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15,18 9,12 15,6"/></svg>이전
+  </button>
+  <div class="slide-indicator">
+    <div class="dot active" onclick="goTo(0)"></div>
+    <div class="dot" onclick="goTo(1)"></div>
+    <div class="dot" onclick="goTo(2)"></div>
+    <div class="dot" onclick="goTo(3)"></div>
+  </div>
+  <button class="arrow-btn" id="nextBtn" onclick="navigate(1)">
+    다음<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9,6 15,12 9,18"/></svg>
+  </button>
+</div>
+
+<!-- ═════════════════════════════════════════
+     SLIDES
+═════════════════════════════════════════ -->
+<div class="slides-wrapper">
+<div class="slides-track" id="slidesTrack">
+
+<!-- ─── SLIDE 1 : OMNI ─── -->
+<div class="slide">
+  <div class="section-title">
+    <div class="section-icon" style="background:var(--blue-lt)">📊</div>
+    <div>
+      <h2>OMNI - 월별 매출 대시보드</h2>
+      <p id="s1-period-label">전체 채널 통합 매출 현황</p>
+    </div>
+  </div>
+
+
+  <!-- 전체 KPI -->
+  <div class="ch-label-wrap">
+    <div class="ch-label" style="flex:1;">전체 매출 현황</div>
+    <button class="ch-comment-toggle" id="toggle-s1-total" onclick="toggleComment('s1-total')" title="코멘트 추가">＋</button>
+  </div>
+  <div class="ch-comment-area" id="area-s1-total" style="display:none;">
+    <div class="ch-comment-toolbar">
+      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+      <button class="comment-save-btn" id="csave-s1-total" onclick="saveComment('s1-total')">저장</button>
+    </div>
+    <div class="comment-editor" id="ceditor-s1-total" contenteditable="true"
+      data-placeholder="전체 매출 현황에 대한 코멘트를 입력하세요..."></div>
+  </div>
+  <div class="grid-4">
+    <div class="stat-card c-blue">
+      <div class="stat-label">총 매출액</div>
+      <div class="stat-value krw" id="s1-total-sales">–</div>
+      <div class="stat-sub"><span class="tag-up" id="s1-yoy">–</span> 전년대비</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">목표액 / 달성율</div>
+      <div class="stat-value krw" id="s1-target">–</div>
+      <div class="progress-wrap">
+        <div class="prog-label" id="s1-achieve">–</div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="s1-prog" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">일 평균 매출</div>
+      <div class="stat-value krw" id="s1-daily-avg">–</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">전년 매출 (동기)</div>
+      <div class="stat-value krw" id="s1-prev-total">–</div>
+    </div>
+  </div>
+
+  <!-- 최고/최저 매출일 -->
+  <div class="grid-2">
+    <div class="daystat-card">
+      <div class="daystat-icon max-icon">🏆</div>
+      <div class="daystat-body">
+        <div class="daystat-label">최고 매출일</div>
+        <div class="daystat-amount max" id="s1-max-amount">–</div>
+        <div class="daystat-date" id="s1-max-day">–</div>
+      </div>
+    </div>
+    <div class="daystat-card">
+      <div class="daystat-icon min-icon">📉</div>
+      <div class="daystat-body">
+        <div class="daystat-label">최저 매출일</div>
+        <div class="daystat-amount min" id="s1-min-amount">–</div>
+        <div class="daystat-date" id="s1-min-day">–</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 채널별 -->
+  <div class="ch-label-wrap">
+    <div class="ch-label" style="flex:1;">채널별 매출 현황</div>
+    <button class="ch-comment-toggle" id="toggle-s1-channel" onclick="toggleComment('s1-channel')" title="코멘트 추가">＋</button>
+  </div>
+  <div class="ch-comment-area" id="area-s1-channel" style="display:none;">
+    <div class="ch-comment-toolbar">
+      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+      <button class="comment-save-btn" id="csave-s1-channel" onclick="saveComment('s1-channel')">저장</button>
+    </div>
+    <div class="comment-editor" id="ceditor-s1-channel" contenteditable="true"
+      data-placeholder="채널별 매출 현황에 대한 코멘트를 입력하세요..."></div>
+  </div>
+  <div class="grid-2 grid-stack" style="margin-bottom:12px;">
+    <div class="chart-card" style="margin-bottom:0;position:relative;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0;">
+        <div class="chart-card-title" style="color:var(--blue);margin-bottom:0;">🌐 온라인 채널</div>
+        <button class="ch-comment-toggle" id="toggle-s1-online" onclick="toggleComment('s1-online')" title="코멘트 추가">＋</button>
+      </div>
+      <div class="ch-comment-area" id="area-s1-online" style="display:none;"></div>
+      <div class="grid-2" style="gap:8px;margin-bottom:8px;">
+        <div><div class="stat-label">총 매출액</div><div class="stat-value krw" id="s1-online-total">–</div></div>
+        <div><div class="stat-label">목표액</div><div class="stat-value krw" id="s1-online-target">–</div></div>
+        <div><div class="stat-label">달성율</div><div class="stat-value sm" id="s1-online-ach">–</div></div>
+        <div><div class="stat-label">전년대비</div><div class="stat-value sm" id="s1-online-yoy">–</div></div>
+      </div>
+      <div class="grid-2" style="gap:8px;">
+        <div class="daystat-card" style="padding:10px 12px;gap:8px;">
+          <div class="daystat-icon max-icon" style="width:30px;height:30px;font-size:14px;">🏆</div>
+          <div class="daystat-body">
+            <div class="daystat-label">최고</div>
+            <div class="daystat-amount max xs" id="s1-online-max-amt">–</div>
+            <div class="daystat-date" id="s1-online-max-day" style="font-size:11px;">–</div>
+          </div>
+        </div>
+        <div class="daystat-card" style="padding:10px 12px;gap:8px;">
+          <div class="daystat-icon min-icon" style="width:30px;height:30px;font-size:14px;">📉</div>
+          <div class="daystat-body">
+            <div class="daystat-label">최저</div>
+            <div class="daystat-amount min xs" id="s1-online-min-amt">–</div>
+            <div class="daystat-date" id="s1-online-min-day" style="font-size:11px;">–</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="chart-card" style="margin-bottom:0;position:relative;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0;">
+        <div class="chart-card-title" style="color:var(--amber);margin-bottom:0;">🏪 오프라인 채널</div>
+        <button class="ch-comment-toggle" id="toggle-s1-offline" onclick="toggleComment('s1-offline')" title="코멘트 추가">＋</button>
+      </div>
+      <div class="ch-comment-area" id="area-s1-offline" style="display:none;"></div>
+      <div class="grid-2" style="gap:8px;margin-bottom:8px;">
+        <div><div class="stat-label">총 매출액</div><div class="stat-value krw" id="s1-offline-total">–</div></div>
+        <div><div class="stat-label">목표액</div><div class="stat-value krw" id="s1-offline-target">–</div></div>
+        <div><div class="stat-label">달성율</div><div class="stat-value sm" id="s1-offline-ach">–</div></div>
+        <div><div class="stat-label">전년대비</div><div class="stat-value sm" id="s1-offline-yoy">–</div></div>
+      </div>
+      <div class="grid-2" style="gap:8px;">
+        <div class="daystat-card" style="padding:10px 12px;gap:8px;">
+          <div class="daystat-icon max-icon" style="width:30px;height:30px;font-size:14px;">🏆</div>
+          <div class="daystat-body">
+            <div class="daystat-label">최고</div>
+            <div class="daystat-amount max xs" id="s1-offline-max-amt">–</div>
+            <div class="daystat-date" id="s1-offline-max-day" style="font-size:11px;">–</div>
+          </div>
+        </div>
+        <div class="daystat-card" style="padding:10px 12px;gap:8px;">
+          <div class="daystat-icon min-icon" style="width:30px;height:30px;font-size:14px;">📉</div>
+          <div class="daystat-body">
+            <div class="daystat-label">최저</div>
+            <div class="daystat-amount min xs" id="s1-offline-min-amt">–</div>
+            <div class="daystat-date" id="s1-offline-min-day" style="font-size:11px;">–</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 차트 -->
+  <div class="chart-card">
+    <div class="ch-label-wrap" style="margin-bottom:4px;">
+      <div class="ch-label" style="flex:1;">일자별 매출 추이</div>
+      <button class="ch-comment-toggle" id="toggle-s1-daily" onclick="toggleComment('s1-daily')" title="코멘트 추가">＋</button>
+    </div>
+    <div class="ch-comment-area" id="area-s1-daily" style="display:none;"></div>
+    <div style="height:185px"><canvas id="dailyChart"></canvas></div>
+  </div>
+
+  <!-- 요일별 -->
+  <div style="height:12px"></div>
+  <div class="ch-label-wrap">
+    <div class="ch-label" style="flex:1;">요일별 평균 매출</div>
+    <button class="ch-comment-toggle" id="toggle-s1-weekday" onclick="toggleComment('s1-weekday')" title="코멘트 추가">＋</button>
+  </div>
+  <div class="ch-comment-area" id="area-s1-weekday" style="display:none;">
+    <div class="ch-comment-toolbar">
+      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+      <button class="comment-save-btn" id="csave-s1-weekday" onclick="saveComment('s1-weekday')">저장</button>
+    </div>
+    <div class="comment-editor" id="ceditor-s1-weekday" contenteditable="true"
+      data-placeholder="요일별 평균 매출에 대한 코멘트를 입력하세요..."></div>
+  </div>
+
+  <!-- 탭 -->
+  <div class="wd-tabs">
+    <button class="wd-tab active-all" id="wdTab-all"  onclick="setWdTab('all')">전체</button>
+    <button class="wd-tab"            id="wdTab-on"   onclick="setWdTab('on')">🌐 온라인</button>
+    <button class="wd-tab"            id="wdTab-off"  onclick="setWdTab('off')">🏪 오프라인</button>
+  </div>
+
+  <div style="display:flex;gap:12px;">
+    <div class="grid-7" style="flex:2;margin-bottom:0;" id="wdGrid">
+      <!-- 각 카드: 막대 3개(전/온/오) + 현재 탭 값 표시 -->
+      <div class="weekday-card" id="wd-0">
+        <div class="weekday-name" id="wdn-0">월</div>
+        <div class="weekday-bar">
+          <div class="weekday-bar-inner" id="wdb-all-0" style="background:#64748B"></div>
+          <div class="weekday-bar-inner" id="wdb-on-0"  style="background:#2563EB"></div>
+          <div class="weekday-bar-inner" id="wdb-off-0" style="background:#F59E0B"></div>
+        </div>
+        <div class="weekday-val" id="wdv-0">–</div>
+      </div>
+      <div class="weekday-card" id="wd-1">
+        <div class="weekday-name" id="wdn-1">화</div>
+        <div class="weekday-bar">
+          <div class="weekday-bar-inner" id="wdb-all-1" style="background:#64748B"></div>
+          <div class="weekday-bar-inner" id="wdb-on-1"  style="background:#2563EB"></div>
+          <div class="weekday-bar-inner" id="wdb-off-1" style="background:#F59E0B"></div>
+        </div>
+        <div class="weekday-val" id="wdv-1">–</div>
+      </div>
+      <div class="weekday-card" id="wd-2">
+        <div class="weekday-name" id="wdn-2">수</div>
+        <div class="weekday-bar">
+          <div class="weekday-bar-inner" id="wdb-all-2" style="background:#64748B"></div>
+          <div class="weekday-bar-inner" id="wdb-on-2"  style="background:#2563EB"></div>
+          <div class="weekday-bar-inner" id="wdb-off-2" style="background:#F59E0B"></div>
+        </div>
+        <div class="weekday-val" id="wdv-2">–</div>
+      </div>
+      <div class="weekday-card" id="wd-3">
+        <div class="weekday-name" id="wdn-3">목</div>
+        <div class="weekday-bar">
+          <div class="weekday-bar-inner" id="wdb-all-3" style="background:#64748B"></div>
+          <div class="weekday-bar-inner" id="wdb-on-3"  style="background:#2563EB"></div>
+          <div class="weekday-bar-inner" id="wdb-off-3" style="background:#F59E0B"></div>
+        </div>
+        <div class="weekday-val" id="wdv-3">–</div>
+      </div>
+      <div class="weekday-card" id="wd-4">
+        <div class="weekday-name" id="wdn-4">금</div>
+        <div class="weekday-bar">
+          <div class="weekday-bar-inner" id="wdb-all-4" style="background:#64748B"></div>
+          <div class="weekday-bar-inner" id="wdb-on-4"  style="background:#2563EB"></div>
+          <div class="weekday-bar-inner" id="wdb-off-4" style="background:#F59E0B"></div>
+        </div>
+        <div class="weekday-val" id="wdv-4">–</div>
+      </div>
+      <div class="weekday-card" id="wd-5">
+        <div class="weekday-name" id="wdn-5">토</div>
+        <div class="weekday-bar">
+          <div class="weekday-bar-inner" id="wdb-all-5" style="background:#64748B"></div>
+          <div class="weekday-bar-inner" id="wdb-on-5"  style="background:#2563EB"></div>
+          <div class="weekday-bar-inner" id="wdb-off-5" style="background:#F59E0B"></div>
+        </div>
+        <div class="weekday-val" id="wdv-5">–</div>
+      </div>
+      <div class="weekday-card" id="wd-6">
+        <div class="weekday-name" id="wdn-6">일</div>
+        <div class="weekday-bar">
+          <div class="weekday-bar-inner" id="wdb-all-6" style="background:#64748B"></div>
+          <div class="weekday-bar-inner" id="wdb-on-6"  style="background:#2563EB"></div>
+          <div class="weekday-bar-inner" id="wdb-off-6" style="background:#F59E0B"></div>
+        </div>
+        <div class="weekday-val" id="wdv-6">–</div>
+      </div>
+    </div>
+
+    <div style="flex:1;display:flex;flex-direction:column;gap:8px;">
+      <div class="stat-card" style="flex:1">
+        <div class="stat-label">주중 평균</div>
+        <div class="stat-value krw" id="s1-weekday-avg">–</div>
+      </div>
+      <div class="stat-card" style="flex:1">
+        <div class="stat-label">주말 평균</div>
+        <div class="stat-value krw" id="s1-weekend-avg">–</div>
+        <div class="stat-sub" id="s1-weekend-diff">–</div>
+      </div>
+      <div class="stat-card c-blue" style="flex:1">
+        <div class="stat-label">🏆 최고 요일</div>
+        <div class="stat-value sm hi" id="s1-best-day">–</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 범례 -->
+  <div style="display:flex;gap:14px;margin-top:8px;padding-left:4px;">
+    <div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:var(--text2);">
+      <div style="width:10px;height:10px;border-radius:2px;background:#64748B;flex-shrink:0;"></div>전체
+    </div>
+    <div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:var(--text2);">
+      <div style="width:10px;height:10px;border-radius:2px;background:#2563EB;flex-shrink:0;"></div>온라인
+    </div>
+    <div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:var(--text2);">
+      <div style="width:10px;height:10px;border-radius:2px;background:#F59E0B;flex-shrink:0;"></div>오프라인
+    </div>
+  </div>
+</div>
+
+<!-- ─── SLIDE 2 : D2C ─── -->
+<div class="slide">
+  <div class="section-title">
+    <div class="section-icon" style="background:var(--green-lt)">🛒</div>
+    <div>
+      <h2>D2C - 월별 매출 대시보드</h2>
+      <p id="s2-period-label">자사몰/네이버/기타 채널 성과 분석</p>
+    </div>
+  </div>
+
+
+  <div class="ch-label-wrap">
+    <div class="ch-label" style="flex:1;">D2C 전체 매출 현황</div>
+    <button class="ch-comment-toggle" id="toggle-s2-total" onclick="toggleComment('s2-total')" title="코멘트 추가">＋</button>
+  </div>
+  <div class="ch-comment-area" id="area-s2-total" style="display:none;">
+    <div class="ch-comment-toolbar">
+      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+      <button class="comment-save-btn" id="csave-s2-total" onclick="saveComment('s2-total')">저장</button>
+    </div>
+    <div class="comment-editor" id="ceditor-s2-total" contenteditable="true"
+      data-placeholder="D2C 전체 매출 현황에 대한 코멘트를 입력하세요..."></div>
+  </div>
+  <div class="grid-4">
+    <div class="stat-card c-blue">
+      <div class="stat-label">총 매출액</div>
+      <div class="stat-value krw" id="s2-total">–</div>
+      <div class="stat-sub"><span class="tag-up" id="s2-yoy">–</span> 전년대비</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">목표 달성율</div>
+      <div class="stat-value sm" id="s2-achieve">–</div>
+      <div class="progress-wrap"><div class="progress-bar-bg"><div class="progress-bar-fill" id="s2-prog" style="width:0%"></div></div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">일 평균 매출</div>
+      <div class="stat-value krw" id="s2-daily">–</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">총 주문건수</div>
+      <div class="stat-value sm" id="s2-orders">–</div>
+      <div class="stat-sub" id="s2-orders-yoy">–</div>
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="daystat-card">
+      <div class="daystat-icon max-icon">🏆</div>
+      <div class="daystat-body">
+        <div class="daystat-label">최고 매출일</div>
+        <div class="daystat-amount max" id="s2-max-amount">–</div>
+        <div class="daystat-date" id="s2-max-day">–</div>
+      </div>
+    </div>
+    <div class="daystat-card">
+      <div class="daystat-icon min-icon">📉</div>
+      <div class="daystat-body">
+        <div class="daystat-label">최저 매출일</div>
+        <div class="daystat-amount min" id="s2-min-amount">–</div>
+        <div class="daystat-date" id="s2-min-day">–</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="ch-label-wrap">
+    <div class="ch-label" style="flex:1;">D2C 채널별 매출</div>
+    <button class="ch-comment-toggle" id="toggle-s2-channel" onclick="toggleComment('s2-channel')" title="코멘트 추가">＋</button>
+  </div>
+  <div class="ch-comment-area" id="area-s2-channel" style="display:none;">
+    <div class="ch-comment-toolbar">
+      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+      <button class="comment-save-btn" id="csave-s2-channel" onclick="saveComment('s2-channel')">저장</button>
+    </div>
+    <div class="comment-editor" id="ceditor-s2-channel" contenteditable="true"
+      data-placeholder="D2C 채널별 매출에 대한 코멘트를 입력하세요..."></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-card-title">자사몰 / 네이버스토어 / 기타 채널 비교</div>
+    <table class="data-table">
+      <thead>
+        <tr><th>채널</th><th>매출액</th><th>D2C 내 비중</th><th>전년대비</th><th>유입수</th><th>전환율</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span style="font-weight:700;">🏠 자사몰</span></td>
+          <td style="font-weight:700;" id="s2-own-sales">–</td>
+          <td><div class="mini-bar-wrap"><div class="mini-bar-bg"><div class="mini-bar-fill" id="s2-own-bar" style="background:var(--cat1);width:0%"></div></div><span id="s2-own-pct" style="font-size:12px;font-weight:700;min-width:38px;text-align:right;">–</span></div></td>
+          <td><span id="s2-own-yoy">–</span></td>
+          <td id="s2-own-uv">–</td>
+          <td style="font-weight:700;" id="s2-own-cvr">–</td>
+        </tr>
+        <tr>
+          <td><span style="font-weight:700;">N 네이버스토어</span></td>
+          <td style="font-weight:700;" id="s2-nav-sales">–</td>
+          <td><div class="mini-bar-wrap"><div class="mini-bar-bg"><div class="mini-bar-fill" id="s2-nav-bar" style="background:var(--cat3);width:0%"></div></div><span id="s2-nav-pct" style="font-size:12px;font-weight:700;min-width:38px;text-align:right;">–</span></div></td>
+          <td><span id="s2-nav-yoy">–</span></td>
+          <td id="s2-nav-uv">–</td>
+          <td style="font-weight:700;" id="s2-nav-cvr">–</td>
+        </tr>
+        <tr>
+          <td><span style="font-weight:700;">📦 기타</span></td>
+          <td style="font-weight:700;" id="s2-etc-sales">–</td>
+          <td><div class="mini-bar-wrap"><div class="mini-bar-bg"><div class="mini-bar-fill" id="s2-etc-bar" style="background:var(--muted);width:0%"></div></div><span id="s2-etc-pct" style="font-size:12px;font-weight:700;min-width:38px;text-align:right;">–</span></div></td>
+          <td><span id="s2-etc-yoy">–</span></td>
+          <td id="s2-etc-uv">–</td>
+          <td style="font-weight:700;" id="s2-etc-cvr">–</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="ch-label-wrap">
+    <div class="ch-label" style="flex:1;">자사몰 유입 및 전환 통계</div>
+    <button class="ch-comment-toggle" id="toggle-s2-funnel" onclick="toggleComment('s2-funnel')" title="코멘트 추가">＋</button>
+  </div>
+  <div class="ch-comment-area" id="area-s2-funnel" style="display:none;">
+    <div class="ch-comment-toolbar">
+      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+      <button class="comment-save-btn" id="csave-s2-funnel" onclick="saveComment('s2-funnel')">저장</button>
+    </div>
+    <div class="comment-editor" id="ceditor-s2-funnel" contenteditable="true"
+      data-placeholder="자사몰 유입 및 전환 통계에 대한 코멘트를 입력하세요..."></div>
+  </div>
+  <div class="grid-4">
+    <div class="stat-card"><div class="stat-label">총 유입수</div><div class="stat-value sm" id="s2-total-uv">–</div></div>
+    <div class="stat-card"><div class="stat-label">신규 유입</div><div class="stat-value sm" id="s2-new-uv">–</div><div class="stat-sub">신규 비율 <span id="s2-new-pct">–</span></div></div>
+    <div class="stat-card"><div class="stat-label">재방문</div><div class="stat-value sm" id="s2-return-uv">–</div><div class="stat-sub">재방문 비율 <span id="s2-return-pct">–</span></div></div>
+    <div class="stat-card c-blue"><div class="stat-label">전환율</div><div class="stat-value sm hi" id="s2-cvr">–</div></div>
+  </div>
+  <div class="grid-4">
+    <div class="stat-card"><div class="stat-label">총 주문건수</div><div class="stat-value sm" id="s2-ord-total">–</div></div>
+    <div class="stat-card"><div class="stat-label">평균 객단가</div><div class="stat-value krw" id="s2-aov">–</div></div>
+    <div class="stat-card"><div class="stat-label">주중 평균 전환율</div><div class="stat-value sm" id="s2-wd-cvr">–</div></div>
+    <div class="stat-card c-blue"><div class="stat-label">주말 평균 전환율</div><div class="stat-value sm hi" id="s2-we-cvr">–</div></div>
+  </div>
+
+  <div class="chart-card" style="margin-bottom:0">
+    <div class="ch-label-wrap" style="margin-bottom:4px;">
+      <div class="ch-label" style="flex:1;">자사몰 일자별 매출 추이 및 전환율</div>
+      <button class="ch-comment-toggle" id="toggle-s2-d2ctrend" onclick="toggleComment('s2-d2ctrend')" title="코멘트 추가">＋</button>
+    </div>
+    <div class="ch-comment-area" id="area-s2-d2ctrend" style="display:none;"></div>
+    <div style="height:280px;position:relative"><canvas id="d2cChart"></canvas></div>
+  </div>
+</div>
+
+<!-- ─── SLIDE 3 : Category ─── -->
+<div class="slide">
+  <div class="section-title">
+    <div class="section-icon" style="background:var(--amber-lt)">🏷️</div>
+    <div>
+      <h2>자사몰 카테고리별 상세 현황</h2>
+      <p id="s3-period-label">카테고리/식단별/정기결제 심층 분석</p>
+    </div>
+  </div>
+
+
+  <!-- 매출 통계 요약 -->
+  <div class="ch-label-wrap">
+    <div class="ch-label" style="flex:1;">매출 통계 요약</div>
+    <button class="ch-comment-toggle" id="toggle-s3-summary" onclick="toggleComment('s3-summary')" title="코멘트 추가">＋</button>
+  </div>
+  <div class="ch-comment-area" id="area-s3-summary" style="display:none;">
+    <div class="ch-comment-toolbar">
+      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+      <button class="comment-save-btn" id="csave-s3-summary" onclick="saveComment('s3-summary')">저장</button>
+    </div>
+    <div class="comment-editor" id="ceditor-s3-summary" contenteditable="true"
+      data-placeholder="매출 통계 요약에 대한 코멘트를 입력하세요..."></div>
+  </div>
+  <div class="grid-3">
+    <div class="stat-card c-blue">
+      <div class="stat-label">총 매출</div>
+      <div class="stat-value krw" id="s3-total">–</div>
+      <div class="stat-sub"><span class="tag-up" id="s3-yoy">–</span> 전년대비</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">일 평균 매출</div>
+      <div class="stat-value krw" id="s3-daily">–</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">🏆 TOP 카테고리</div>
+      <div class="stat-value sm" id="s3-top-cat">–</div>
+      <div class="stat-sub" id="s3-top-cat-val">–</div>
+    </div>
+  </div>
+
+  <!-- 카테고리 + TOP5 -->
+  <div class="grid-2 grid-stack">
+    <div class="chart-card" style="margin-bottom:0">
+      <div class="chart-card-title">카테고리별 매출액 및 구성비</div>
+      <div id="catRows"></div>
+    </div>
+    <div class="chart-card" style="margin-bottom:0">
+      <div class="chart-card-title">TOP 5 매출 상품</div>
+      <table class="data-table" id="top5Table">
+        <thead><tr><th>순위</th><th>상품명</th><th>카테고리</th><th>매출액</th></tr></thead>
+        <tbody id="top5Body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 차트 -->
+  <div style="height:12px"></div>
+  <div class="chart-card" style="margin-bottom:0">
+    <div class="chart-card-title">카테고리별 상품 상세 매출</div>
+    <!-- 카테고리 탭 -->
+    <div id="catTabBar" style="display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap;"></div>
+    <!-- 카테고리별 캔버스 (JS로 show/hide) -->
+    <div id="catChartWrap" style="height:220px;position:relative;">
+      <canvas id="catBarChart-0" style="position:absolute;inset:0"></canvas>
+      <canvas id="catBarChart-1" style="position:absolute;inset:0;display:none"></canvas>
+      <canvas id="catBarChart-2" style="position:absolute;inset:0;display:none"></canvas>
+      <canvas id="catBarChart-3" style="position:absolute;inset:0;display:none"></canvas>
+      <canvas id="catBarChart-4" style="position:absolute;inset:0;display:none"></canvas>
+    </div>
+  </div>
+
+  <!-- ════ 연간 카테고리별 매출 현황 ════ -->
+  <div style="height:16px"></div>
+  <div class="ch-label-wrap">
+    <div class="ch-label" style="flex:1;">연간 카테고리별 매출 현황</div>
+    <button class="ch-comment-toggle" id="toggle-s3-annual" onclick="toggleComment('s3-annual')" title="코멘트 추가">＋</button>
+  </div>
+  <div class="ch-comment-area" id="area-s3-annual" style="display:none;">
+    <div class="ch-comment-toolbar">
+      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+      <button class="comment-save-btn" id="csave-s3-annual" onclick="saveComment('s3-annual')">저장</button>
+    </div>
+    <div class="comment-editor" id="ceditor-s3-annual" contenteditable="true"
+      data-placeholder="연간 카테고리별 매출 현황에 대한 코멘트를 입력하세요..."></div>
+  </div>
+  <div class="chart-card" style="padding:0;overflow:auto;">
+    <table class="data-table" id="annualTable" style="min-width:900px;font-size:11px;">
+      <thead>
+        <tr id="annualHeaderRow">
+          <th style="min-width:90px;position:sticky;left:0;background:var(--surface);z-index:2;text-align:left;padding:10px 12px;">구분</th>
+          <th style="min-width:60px;">합계</th>
+          <th style="min-width:62px;">1월</th><th style="min-width:62px;">2월</th>
+          <th style="min-width:62px;">3월</th><th style="min-width:62px;">4월</th>
+          <th style="min-width:62px;">5월</th><th style="min-width:62px;">6월</th>
+          <th style="min-width:62px;">7월</th><th style="min-width:62px;">8월</th>
+          <th style="min-width:62px;">9월</th><th style="min-width:62px;">10월</th>
+          <th style="min-width:62px;">11월</th><th style="min-width:62px;">12월</th>
+          <th style="min-width:68px;background:#FFF7ED;color:#EA580C;font-weight:800;">전월 比</th>
+        </tr>
+      </thead>
+      <tbody id="annualBody">
+        <tr><td colspan="15" style="text-align:center;color:var(--muted);padding:24px;">엑셀 파일을 업로드하면 연간 데이터가 표시됩니다</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ════ 정기결제 현황 ════ -->
+  <div class="sub-header">
+    <div class="section-icon" style="background:#EFF6FF;width:32px;height:32px;font-size:14px;">🔄</div>
+    <h3>정기결제 현황</h3>
+    <span class="sub-badge">Subscription</span>
+  </div>
+
+  <!-- ① 신청 현황 (누적) -->
+  <div class="ch-label-wrap">
+    <div class="ch-label" style="flex:1;">신청 현황 <span style="font-size:11px;font-weight:500;color:var(--muted);margin-left:6px;">전체 누적 기준</span></div>
+    <button class="ch-comment-toggle" id="toggle-s3-sub-sales" onclick="toggleComment('s3-sub-sales')" title="코멘트 추가">＋</button>
+  </div>
+  <div class="ch-comment-area" id="area-s3-sub-sales" style="display:none;">
+    <div class="ch-comment-toolbar">
+      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+      <button class="comment-save-btn" id="csave-s3-sub-sales" onclick="saveComment('s3-sub-sales')">저장</button>
+    </div>
+    <div class="comment-editor" id="ceditor-s3-sub-sales" contenteditable="true"
+      data-placeholder="신청 현황에 대한 코멘트를 입력하세요..."></div>
+  </div>
+  <div class="sub-grid" style="grid-template-columns:repeat(4,1fr)">
+    <div class="sub-card">
+      <div class="sub-label">전체 신청 건수</div>
+      <div class="sub-value" id="sub-total-cnt">–</div>
+    </div>
+    <div class="sub-card">
+      <div class="sub-label">진행 건수</div>
+      <div class="sub-value" style="color:var(--green)" id="sub-active-cnt">–</div>
+    </div>
+    <div class="sub-card">
+      <div class="sub-label">해지 건수</div>
+      <div class="sub-value" style="color:var(--red)" id="sub-cancel-cnt">–</div>
+    </div>
+    <div class="sub-card c-blue">
+      <div class="sub-label">구독 유지율</div>
+      <div class="sub-value hi" id="sub-ltr">–</div>
+    </div>
+  </div>
+
+  <!-- 연간 신청 현황 테이블 -->
+  <div class="chart-card" style="margin-bottom:16px;">
+    <div class="chart-card-title">연간 신청 현황 <span style="font-size:11px;font-weight:500;color:var(--muted);margin-left:6px;">월별 누적</span></div>
+    <div style="overflow-x:auto;">
+      <table class="data-table" id="subAnnualTable" style="min-width:700px;">
+        <thead>
+          <tr>
+            <th style="min-width:70px;">항목</th>
+            <th>1월</th><th>2월</th><th>3월</th><th>4월</th><th>5월</th><th>6월</th>
+            <th>7월</th><th>8월</th><th>9월</th><th>10월</th><th>11월</th><th>12월</th>
+            <th>합계</th>
+          </tr>
+        </thead>
+        <tbody id="subAnnualBody">
+          <tr><td colspan="14" style="text-align:center;color:var(--muted);padding:20px;">엑셀 파일을 업로드하면 데이터가 표시됩니다</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ② 식단별 신청 및 매출 현황 -->
+  <div class="ch-label-wrap">
+    <div class="ch-label" style="flex:1;">식단별 신청 및 매출 현황 <span style="font-size:11px;font-weight:500;color:var(--muted);margin-left:6px;">전체 누적 기준</span></div>
+    <button class="ch-comment-toggle" id="toggle-s3-sub-prods" onclick="toggleComment('s3-sub-prods')" title="코멘트 추가">＋</button>
+  </div>
+  <div class="ch-comment-area" id="area-s3-sub-prods" style="display:none;">
+    <div class="ch-comment-toolbar">
+      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+      <button class="comment-save-btn" id="csave-s3-sub-prods" onclick="saveComment('s3-sub-prods')">저장</button>
+    </div>
+    <div class="comment-editor" id="ceditor-s3-sub-prods" contenteditable="true"
+      data-placeholder="식단별 현황에 대한 코멘트를 입력하세요..."></div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-card-title">식단별 매출 · 비중 · 진행건수 · 해지건수 · 구독 유지율</div>
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>상품명(식단)</th>
+          <th>매출액</th><th>비중</th>
+          <th>진행 건수</th><th>해지 건수</th><th>구독 유지율</th>
+        </tr>
+      </thead>
+      <tbody id="subProdBody"></tbody>
+    </table>
+  </div>
+
+  <!-- ③ 배송 횟수 현황 -->
+  <div class="ch-label-wrap">
+    <div class="ch-label" style="flex:1;">배송 횟수 현황</div>
+    <button class="ch-comment-toggle" id="toggle-s3-delivery" onclick="toggleComment('s3-delivery')" title="코멘트 추가">＋</button>
+  </div>
+  <div class="ch-comment-area" id="area-s3-delivery" style="display:none;">
+    <div class="ch-comment-toolbar">
+      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+      <button class="comment-save-btn" id="csave-s3-delivery" onclick="saveComment('s3-delivery')">저장</button>
+    </div>
+    <div class="comment-editor" id="ceditor-s3-delivery" contenteditable="true"
+      data-placeholder="배송 횟수 현황에 대한 코멘트를 입력하세요..."></div>
+  </div>
+  <div class="chart-card" style="margin-bottom:0;">
+    <div class="chart-card-title">배송 횟수별 신청 건수 및 비율</div>
+    <div style="height:220px"><canvas id="deliveryChart"></canvas></div>
+  </div>
+</div><!-- slide end -->
+
+<!-- ─── SLIDE 4 : 이벤트 성과 ─── -->
+<div class="slide" id="slide-event">
+  <div class="section-title">
+    <div class="section-icon" style="background:#FFF7ED">🎯</div>
+    <div>
+      <h2>Promo - Project 성과</h2>
+      <p id="s4-period-label">연간 이벤트 프로모션 운영 성과 분석</p>
+    </div>
+  </div>
+
+  <!-- ── 이벤트 선택 + 추가 바 ── -->
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
+    <div id="evtTabWrap" style="display:flex;gap:6px;flex-wrap:wrap;flex:1;"></div>
+    <button onclick="openAddEventModal()" style="
+      display:flex;align-items:center;gap:6px;padding:7px 14px;
+      border-radius:8px;border:1.5px dashed var(--blue);
+      background:var(--blue-lt);color:var(--blue);
+      font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;
+      white-space:nowrap;flex-shrink:0;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      이벤트 추가
+    </button>
+  </div>
+
+  <!-- ── 이벤트 정보 카드 ── -->
+  <div id="evtInfoCard" class="chart-card" style="margin-bottom:12px;display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
+      <div style="flex:1;min-width:200px;">
+        <div id="evtTitle" style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:4px;">–</div>
+        <div id="evtDate"  style="font-size:12px;color:var(--muted);margin-bottom:8px;">–</div>
+        <div id="evtDesc"  style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">–</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0;">
+        <button onclick="openEditEventModal()" style="
+          padding:6px 12px;border-radius:7px;border:1px solid var(--border);
+          background:var(--surface);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--text2);">
+          ✏️ 수정
+        </button>
+        <button onclick="deleteCurrentEvent()" style="
+          padding:6px 12px;border-radius:7px;border:1px solid var(--red-lt);
+          background:var(--red-lt);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--red);">
+          🗑 삭제
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 이벤트 없을 때 빈 상태 ── -->
+  <div id="evtEmpty" style="text-align:center;padding:60px 20px;color:var(--muted);">
+    <div style="font-size:40px;margin-bottom:12px;">🎯</div>
+    <div style="font-size:15px;font-weight:700;margin-bottom:6px;">등록된 이벤트가 없습니다</div>
+    <div style="font-size:12px;">상단 [이벤트 추가] 버튼을 눌러 이벤트를 등록하세요</div>
+  </div>
+
+  <!-- ── 이벤트 데이터 업로드 영역 ── -->
+  <div id="evtDataSection" style="display:none;">
+
+    <!-- 엑셀 업로드 -->
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:12px 16px;background:var(--blue-lt);border-radius:10px;border:1px solid rgba(37,99,235,0.15);flex-wrap:wrap;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" style="width:18px;height:18px;flex-shrink:0"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="3"/></svg>
+      <span style="font-size:12px;font-weight:700;color:var(--blue);flex:1;">이벤트 성과 데이터 업로드</span>
+      <button onclick="downloadEvtTemplate()" style="padding:5px 12px;border-radius:7px;border:1px solid var(--blue);background:#fff;color:var(--blue);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">
+        📥 양식 다운로드
+      </button>
+      <button onclick="document.getElementById('evtFileInput').click()" style="padding:5px 12px;border-radius:7px;border:none;background:var(--blue);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">
+        📂 엑셀 업로드
+      </button>
+      <input type="file" id="evtFileInput" accept=".xlsx,.xls" style="display:none" onchange="handleEvtFile(event)">
+      <span id="evtUploadStatus" style="font-size:11px;color:var(--muted);">데이터 없음</span>
+    </div>
+
+    <!-- KPI 카드 4개 -->
+    <div class="grid-4" style="margin-bottom:12px;">
+      <div class="stat-card c-blue">
+        <div class="stat-label">총 매출액</div>
+        <div class="stat-value krw" id="ev-total">–</div>
+        <div class="stat-sub"><span id="ev-yoy" class="tag-up">–</span> 전년대비</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">주문건수</div>
+        <div class="stat-value" id="ev-orders">–</div>
+        <div class="stat-sub"><span id="ev-orders-yoy" class="tag-up">–</span> 전년대비</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">평균 주문금액</div>
+        <div class="stat-value krw" id="ev-aov">–</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">이벤트 기간</div>
+        <div class="stat-value sm" id="ev-period">–</div>
+        <div class="stat-sub" id="ev-days">–</div>
+      </div>
+    </div>
+
+    <!-- 일자별 매출 차트 + 전년 비교 / 상품 현황 -->
+
+    <!-- [레이아웃 A] 전년 데이터 없을 때: 차트(좌) + 상품테이블(우) -->
+    <div id="evtLayoutA" class="grid-2 grid-stack" style="margin-bottom:12px;display:none;">
+      <div class="chart-card" style="margin-bottom:0">
+        <div class="chart-card-title">일자별 매출 현황</div>
+        <div style="height:240px"><canvas id="evtDailyChart"></canvas></div>
+      </div>
+      <div class="chart-card" style="margin-bottom:0">
+        <div class="chart-card-title">상품별 상세 현황</div>
+        <table class="data-table" id="evtProdTableA">
+          <thead><tr id="evtProdHeadA">
+            <th>상품명</th><th>매출액</th><th>비중</th><th>주문건수</th>
+          </tr></thead>
+          <tbody id="evtProdBodyA"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- [레이아웃 B] 전년 데이터 있을 때: 차트(좌) + 전년비교(우) → 상품테이블 풀너비 -->
+    <div id="evtLayoutB" style="display:none;">
+      <div class="grid-2 grid-stack" style="margin-bottom:12px;">
+        <div class="chart-card" style="margin-bottom:0">
+          <div class="chart-card-title">일자별 매출 현황</div>
+          <div style="height:200px"><canvas id="evtDailyChartB"></canvas></div>
+        </div>
+        <div class="chart-card" id="evtYoyCard" style="margin-bottom:0;">
+          <div class="chart-card-title">전년 동기 비교</div>
+          <div class="grid-2" style="gap:8px;margin-bottom:10px;">
+            <div class="stat-card" style="padding:12px;">
+              <div class="stat-label">올해 매출</div>
+              <div class="stat-value krw" style="font-size:16px;" id="ev-this-total">–</div>
+            </div>
+            <div class="stat-card" style="padding:12px;">
+              <div class="stat-label">전년 매출</div>
+              <div class="stat-value krw" style="font-size:16px;" id="ev-prev-total">–</div>
+            </div>
+          </div>
+          <div style="height:120px"><canvas id="evtYoyChart"></canvas></div>
+        </div>
+      </div>
+      <div class="chart-card" style="margin-bottom:12px;">
+        <div class="chart-card-title">상품별 상세 현황</div>
+        <table class="data-table" id="evtProdTableB">
+          <thead><tr id="evtProdHeadB">
+            <th>상품명</th><th>매출액</th><th>비중</th><th>주문건수</th>
+            <th id="evtColPrev">전년 매출</th><th id="evtColDiff">증감</th>
+          </tr></thead>
+          <tbody id="evtProdBodyB"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div><!-- evtDataSection -->
+</div><!-- slide 4 end -->
+
+</div><!-- slides-track -->
+</div><!-- slides-wrapper -->
+
+<!-- ── 이벤트 추가/수정 모달 ── -->
+<div id="evtModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:9000;align-items:center;justify-content:center;padding:16px;">
+  <div style="background:#fff;border-radius:16px;padding:28px;width:100%;max-width:480px;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+    <div style="font-size:16px;font-weight:800;margin-bottom:20px;color:var(--text);" id="evtModalTitle">이벤트 추가</div>
+
+    <div style="margin-bottom:14px;">
+      <label style="font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:5px;">이벤트 타이틀 *</label>
+      <input id="evtInputTitle" type="text" placeholder="예: 1월 신년 맞이 기획전" style="
+        width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;
+        font-size:13px;font-family:inherit;box-sizing:border-box;outline:none;
+        transition:border-color 0.18s;">
+    </div>
+
+    <div style="margin-bottom:14px;">
+      <label style="font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:5px;">이벤트 기간 *</label>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input id="evtInputStart" type="date" style="
+          flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;
+          font-size:13px;font-family:inherit;box-sizing:border-box;outline:none;">
+        <span style="color:var(--muted);font-size:12px;">~</span>
+        <input id="evtInputEnd" type="date" style="
+          flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;
+          font-size:13px;font-family:inherit;box-sizing:border-box;outline:none;">
+      </div>
+    </div>
+
+    <div style="margin-bottom:22px;">
+      <label style="font-size:11px;font-weight:700;color:var(--muted);display:block;margin-bottom:5px;">상세 내용 (2~3줄)</label>
+      <textarea id="evtInputDesc" rows="3" placeholder="이벤트 내용, 할인율, 대상 상품 등을 입력하세요" style="
+        width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;
+        font-size:13px;font-family:inherit;box-sizing:border-box;outline:none;
+        resize:vertical;line-height:1.6;"></textarea>
+    </div>
+
+    <div style="display:flex;gap:10px;justify-content:flex-end;">
+      <button onclick="closeEvtModal()" style="
+        padding:9px 20px;border-radius:8px;border:1px solid var(--border);
+        background:var(--surface);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--text2);">
+        취소
+      </button>
+      <button onclick="saveEvtModal()" style="
+        padding:9px 20px;border-radius:8px;border:none;
+        background:var(--blue);color:#fff;font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;">
+        저장
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── Slide Nav ───
+let current = 0;
+const track = document.getElementById('slidesTrack');
+const dots  = document.querySelectorAll('.dot');
+const tabs  = document.querySelectorAll('.nav-tab');
+const prevBtn = document.getElementById('prevBtn');
+const nextBtn = document.getElementById('nextBtn');
+
+function goTo(i) {
+  current = i;
+  track.style.transform = `translateX(-${current * 100}%)`;
+  dots.forEach((d,j) => d.classList.toggle('active', j === current));
+  tabs.forEach((t,j) => t.classList.toggle('active', j === current));
+  prevBtn.disabled = current === 0;
+  nextBtn.disabled = current === 3;
+  // 슬라이드 전환 후 차트 크기 재계산 (숨겨진 슬라이드에서 그리면 크기 오류 발생)
+  setTimeout(() => {
+    Object.values(charts).forEach(c => { try { c.resize(); } catch(e){} });
+  }, 460); // transition 완료 후
+}
+function navigate(d) { goTo(Math.max(0, Math.min(3, current + d))); }
+
+// 창 크기 변경 시 모든 차트 크기 재계산
+window.addEventListener('resize', () => {
+  clearTimeout(window._resizeTimer);
+  window._resizeTimer = setTimeout(() => {
+    Object.values(charts).forEach(c => { try { c.resize(); } catch(e){} });
+  }, 200);
+});
+
+// ─── Chart defaults ───
+Chart.defaults.color = '#94A3B8';
+Chart.defaults.borderColor = '#E2E8F0';
+Chart.defaults.font.family = "'Pretendard', -apple-system, sans-serif";
+
+// ─── Constants ───
+const WD_KR   = ['월','화','수','목','금','토','일'];
+const WD_FULL = ['월요일','화요일','수요일','목요일','금요일','토요일','일요일'];
+const CAT_COLORS = ['#2563EB','#0891B2','#059669','#7C3AED','#EA580C'];
+
+// ─── Formatters ───
+function fmtKRW(v) {
+  if (v === null || v === undefined || isNaN(v)) return '–';
+  return Math.round(v).toLocaleString('ko-KR') + '원';
+}
+function fmtNum(v) {
+  if (v === null || v === undefined || isNaN(v)) return '–';
+  return Math.round(v).toLocaleString('ko-KR');
+}
+function yoyStr(curr, prev) {
+  if (!curr || !prev) return '–';
+  const p = ((curr - prev) / prev * 100).toFixed(1);
+  return (p >= 0 ? '+' : '') + p + '%';
+}
+function yoyClass(curr, prev) {
+  return curr >= prev ? 'tag-up' : 'tag-down';
+}
+function daysInMonth(y, m) { return new Date(y, m, 0).getDate(); }
+function getDow(dateStr) { const d = new Date(dateStr); return (d.getDay() + 6) % 7; }
+function fmtDateLabel(dateStr) {
+  if (!dateStr) return '–';
+  const d = new Date(dateStr);
+  const wd = WD_KR[(d.getDay()+6)%7];
+  return `${d.getMonth()+1}월 ${d.getDate()}일 (${wd})`;
+}
+
+// ─── State ───
+let DATA = { daily:[], d2c:[], cat:[], products:[], products_daily:{}, subHistory:[], targets:[], monthTargets:null };
+let YEAR = 2025, MONTH = 1;
+let charts = {};
+
+// ─── Period ───
+function onPeriodChange() {
+  const selY = document.getElementById('selYear');
+  const selM = document.getElementById('selMonth');
+
+  YEAR  = parseInt(selY.value) || new Date().getFullYear();
+  MONTH = parseInt(selM.value) || new Date().getMonth() + 1;
+
+  const days = daysInMonth(YEAR, MONTH);
+  const mm   = String(MONTH).padStart(2,'0');
+  const dd   = String(days).padStart(2,'0');
+  document.getElementById('periodBadge').textContent = `${mm}.01 – ${mm}.${dd}`;
+
+  if (DATA.daily.length > 0 || DATA.products.length > 0) {
+    const filterDate = r => { const d = new Date(r.date); return d.getFullYear()==YEAR && d.getMonth()+1==MONTH; };
+    renderAll(
+      DATA.daily.filter(filterDate),
+      DATA.d2c.filter(filterDate),
+      DATA.cat.filter(filterDate),
+      DATA.products.filter(p => p.year==YEAR && p.month==MONTH)
+    );
+  } else {
+    renderAll([], [], [], []);
+  }
+  loadComments();
+}
+
+// ─── File handling ───
+document.addEventListener('dragover', e => { e.preventDefault(); document.getElementById('dropOverlay').classList.add('active'); });
+document.addEventListener('dragleave', e => { if(!e.relatedTarget) document.getElementById('dropOverlay').classList.remove('active'); });
+document.addEventListener('drop', e => {
+  e.preventDefault();
+  document.getElementById('dropOverlay').classList.remove('active');
+  if (e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]);
+});
+function handleFile(e) { if (e.target.files[0]) processFile(e.target.files[0]); }
+
+function processFile(file) {
+  showToast('📂 파일을 읽는 중...');
+  const reader = new FileReader();
+  reader.onload = evt => {
+    try {
+      const wb = XLSX.read(evt.target.result, {type:'array', cellDates:false});
+      parseWB(wb);
+      document.getElementById('statusDot').style.background = '#FBBF24';
+      document.getElementById('statusDot').style.boxShadow = '0 0 0 3px rgba(251,191,36,0.3)';
+      document.getElementById('statusText').textContent = `📂 ${file.name} 로드됨 — [서버에 저장] 버튼을 눌러주세요`;
+      // 저장 버튼 활성화
+      const saveBtn = document.getElementById('saveBtn');
+      saveBtn.disabled = false;
+      saveBtn.style.background = '#fff';
+      saveBtn.style.color = 'var(--blue)';
+      saveBtn.style.border = 'none';
+      showToast('✅ 파일 로드 완료! [서버에 저장] 버튼을 눌러주세요.');
+    } catch(err) { showToast('❌ 파일 오류: ' + err.message); console.error(err); }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+// ─── 저장 버튼 클릭 시 Firebase에 저장 ───
+async function saveDataToFirebase() {
+  const hasDaily = DATA.daily.length > 0;
+  const hasProds = DATA.products.length > 0;
+  if (!hasDaily && !hasProds) { showToast('⚠️ 먼저 엑셀 파일을 업로드해주세요.'); return; }
+
+  const saveBtn = document.getElementById('saveBtn');
+  saveBtn.innerHTML = '저장 중...';
+  saveBtn.disabled = true;
+  try {
+    // daily 기반 월 목록 + products 기반 월 목록을 합산
+    const monthsSet = new Set();
+    DATA.daily.forEach(r => monthsSet.add(r.date.slice(0,7)));
+    DATA.products.forEach(p => {
+      if (p.year && p.month) {
+        const mm = String(p.month).padStart(2,'0');
+        monthsSet.add(`${p.year}-${mm}`);
+      }
+    });
+
+    for (const ym of monthsSet) {
+      const [y, m] = ym.split('-').map(Number);
+      const filterYM = r => r.date && r.date.startsWith(ym);
+      // 기존 문서를 먼저 읽어서 없는 필드는 기존 값 유지 (merge)
+      const docRef  = db.collection('dashboard').doc(ym);
+      const existing = await docRef.get();
+      const prev    = existing.exists ? existing.data() : {};
+
+      // products_daily: 해당 월의 일자별 데이터만 필터
+      const pdYM = {};
+      Object.entries(DATA.products_daily || {}).forEach(([ds, arr]) => {
+        if (ds.startsWith(ym)) pdYM[ds] = arr;
+      });
+
+      const payload = {
+        daily:          DATA.daily.filter(filterYM).length
+                          ? DATA.daily.filter(filterYM)
+                          : (prev.daily || []),
+        d2c:            DATA.d2c.filter(filterYM).length
+                          ? DATA.d2c.filter(filterYM)
+                          : (prev.d2c || []),
+        cat:            DATA.cat.filter(filterYM).length
+                          ? DATA.cat.filter(filterYM)
+                          : (prev.cat || []),
+        products:       DATA.products.filter(p => p.year==y && p.month==m).length
+                          ? DATA.products.filter(p => p.year==y && p.month==m)
+                          : (prev.products || []),
+        products_daily: Object.keys(pdYM).length
+                          ? pdYM
+                          : (prev.products_daily || {}),
+        subHistory:     (() => {
+                          const newEntry = (DATA.subHistory||[]).find(h=>h.year==y&&h.month==m);
+                          const prevArr  = prev.subHistory || (prev.sub ? [prev.sub] : []);
+                          if (!newEntry) return prevArr;
+                          const merged = prevArr.filter(h=>!(h.year==y&&h.month==m));
+                          merged.push(newEntry);
+                          return merged;
+                        })(),
+        monthTargets:   DATA.monthTargets || prev.monthTargets || null,
+        updatedAt:      new Date().toISOString(),
+      };
+      await docRef.set(payload);
+    }
+    document.getElementById('statusDot').style.background = '#4ADE80';
+    document.getElementById('statusDot').style.boxShadow = '0 0 0 3px rgba(74,222,128,0.3)';
+    document.getElementById('statusText').textContent = '☁️ 서버 저장 완료 — 모든 기기에서 조회 가능';
+    saveBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px"><path d="M20 6L9 17l-5-5"/></svg> 저장 완료`;
+    saveBtn.style.background = 'rgba(74,222,128,0.25)';
+    saveBtn.style.color = '#fff';
+    saveBtn.style.border = '1.5px solid rgba(74,222,128,0.6)';
+    showToast('☁️ 서버 저장 완료! 다른 PC에서도 데이터가 표시됩니다.');
+  } catch(e) {
+    showToast('❌ 저장 실패: ' + e.message);
+    console.error(e);
+    saveBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/></svg> 서버에 저장`;
+    saveBtn.disabled = false;
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
+// PARSER — 새 엑셀 양식 기준 (dashboard_template_sample.xlsx)
+//
+// 공통 시트 구조 (📅일자별매출 / 🛒D2C채널 / 🏷️카테고리매출):
+//   Row1: 시트 제목
+//   Row2: 월 목표 (C2=목표1, D2=목표2 ...)  ← A2는 레이블 텍스트
+//   Row3: 연도 (C열부터)
+//   Row4: 월
+//   Row5: 날짜 (datetime 객체)
+//   Row6: 요일
+//   Row7~: 지표별 데이터
+//
+// 📦 상품별매출:
+//   Row1: 시트 제목
+//   Row2: A2=레이블, B2=연도, C2=월
+//   Row3: A3=상품명, B3=카테고리, C3이후=날짜
+//   Row4~: 상품 데이터
+//
+// 🔄 정기결제:
+//   Row2: B2=연도, C2=월
+//   Row5~9: 매출현황 (C열=당월, D열=전년)
+//   Row11: 상품헤더, Row12~: 상품별현황 ('합계'에서 중단)
+//   Row21: 배송헤더, Row22~: 배송횟수 ('합계'에서 중단)
+// ═══════════════════════════════════════════════════════════════════
+
+// row/col은 0-indexed
+function cell(ws, r, c) {
+  const cl = ws[XLSX.utils.encode_cell({r, c})];
+  return cl || null;
+}
+function cellV(ws, r, c, def=0) {
+  const cl = cell(ws, r, c);
+  if (!cl) return def;
+  if (typeof cl.v === 'number') return cl.v;
+  if (typeof cl.v === 'string') {
+    const n = parseFloat(cl.v.replace(/,/g,''));
+    return isNaN(n) ? def : n;
+  }
+  return def;  // Date 객체 등은 fmtDate로 별도 처리
+}
+function cellS(ws, r, c, def='') {
+  const cl = cell(ws, r, c);
+  if (!cl || cl.v === null || cl.v === undefined) return def;
+  return String(cl.v);
+}
+function fmtDate(v) {
+  if (!v && v !== 0) return null;
+  if (v instanceof Date) {
+    // cellDates:false 로 읽으면 Date 객체로 옴 — UTC 기준 변환
+    const y = v.getUTCFullYear(), mo = v.getUTCMonth()+1, d = v.getUTCDate();
+    return `${y}-${String(mo).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  }
+  if (typeof v === 'string') {
+    const s = v.trim();
+    if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
+    const m = s.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+    if (m) return `${m[1]}-${m[2].padStart(2,'0')}-${m[3].padStart(2,'0')}`;
+    return null;
+  }
+  if (typeof v === 'number' && v > 0) {
+    const d = new Date(Math.round((v - 25569) * 86400 * 1000));
+    const y = d.getUTCFullYear(), mo = d.getUTCMonth()+1, dd = d.getUTCDate();
+    return `${y}-${String(mo).padStart(2,'0')}-${String(dd).padStart(2,'0')}`;
+  }
+  return null;
+}
+
+// ─── 날짜 행이 Row5(r=4), 데이터 행은 rowMap으로 지정 (1-indexed)
+function parseDataRows(ws, rowMap) {
+  if (!ws) return [];
+  const rows = [];
+  for (let c = 2; ; c++) {   // C열(c=2)부터
+    const dc = cell(ws, 4, c);   // Row5(r=4) = 날짜
+    if (!dc) break;
+    const dateStr = fmtDate(dc.v instanceof Date ? dc.v : dc.v);
+    if (!dateStr) break;
+    const row = { date: dateStr };
+    Object.entries(rowMap).forEach(([key, excelRow]) => {
+      row[key] = cellV(ws, excelRow - 1, c);
+    });
+    rows.push(row);
+  }
+  return rows;
+}
+
+function parseWB(wb) {
+  // ── 📅 일자별매출 ──
+  // 목표: C2(c=2)=온라인, D2(c=3)=오프라인
+  const ws1 = wb.Sheets['📅 일자별매출'];
+  const onlTgt = ws1 ? cellV(ws1, 1, 2) : 0;   // C2
+  const offTgt = ws1 ? cellV(ws1, 1, 3) : 0;   // D2
+
+  // ── 🛒 D2C채널 ──
+  // 목표: C2(c=2)=자사몰, D2(c=3)=네이버, E2(c=4)=기타
+  const ws2 = wb.Sheets['🛒 D2C채널'];
+  const ownTgt = ws2 ? cellV(ws2, 1, 2) : 0;   // C2
+  const navTgt = ws2 ? cellV(ws2, 1, 3) : 0;   // D2
+  const etcTgt = ws2 ? cellV(ws2, 1, 4) : 0;   // E2
+
+  // ── 🏷️ 카테고리매출 ──
+  // 목표: C2(c=2)~G2(c=6) = 새벽배송/건강케어/질환케어/보충케어/이벤트
+  const ws3 = wb.Sheets['🏷️ 카테고리매출'];
+  const cat1Tgt = ws3 ? cellV(ws3, 1, 2) : 0;  // C2 새벽배송
+  const cat2Tgt = ws3 ? cellV(ws3, 1, 3) : 0;  // D2 건강케어
+  const cat3Tgt = ws3 ? cellV(ws3, 1, 4) : 0;  // E2 질환케어
+  const cat4Tgt = ws3 ? cellV(ws3, 1, 5) : 0;  // F2 보충케어
+  const cat5Tgt = ws3 ? cellV(ws3, 1, 6) : 0;  // G2 이벤트/기타
+
+  // ── 날짜별 데이터 파싱 ──
+  DATA.daily = parseDataRows(ws1, {
+    online:7, offline:8, total:9,
+    prevOnline:10, prevOffline:11, prevTotal:12
+  });
+  DATA.d2c = parseDataRows(ws2, {
+    ownSales:7, navSales:8, etcSales:9,
+    ownUV:10, ownNewUV:11, ownRetUV:12,
+    ownOrd:13,
+    ownPrev:14, navPrev:15, etcPrev:16
+  });
+  DATA.cat = parseDataRows(ws3, {
+    skin:7, hair:8, body:9, sun:10, other:11
+    // Row12=합계(자동계산), Row13~17=전년 (현재 미사용)
+  });
+
+  // ── 📦 상품별매출 ──
+  // Row2: B2=연도, C2=월 / Row3=헤더(날짜) / Row4~=상품 데이터
+  const ws4 = wb.Sheets['📦 상품별매출'];
+  const newProds = parseProdSheet(ws4);
+  if (newProds.length) {
+    const newY = newProds[0].year, newM = newProds[0].month;
+    DATA.products = DATA.products.filter(p => !(p.year==newY && p.month==newM));
+    DATA.products = DATA.products.concat(newProds);
+  }
+
+  // ── 🔄 정기결제 ──
+  // 🔄 정기결제 — 누적 히스토리 배열에 추가 (같은 연월은 덮어쓰기)
+  const parsedSub = parseSubSheet(wb.Sheets['🔄 정기결제']);
+  if (parsedSub && parsedSub.year && parsedSub.month) {
+    if (!DATA.subHistory) DATA.subHistory = [];
+    DATA.subHistory = DATA.subHistory.filter(
+      h => !(h.year == parsedSub.year && h.month == parsedSub.month)
+    );
+    DATA.subHistory.push(parsedSub);
+  }
+
+  // ── 목표 저장 ──
+  DATA.monthTargets = {
+    onlineTarget: onlTgt, offlineTarget: offTgt,
+    ownTarget: ownTgt, navTarget: navTgt, etcTarget: etcTgt,
+    cat1Target: cat1Tgt, cat2Target: cat2Tgt,
+    cat3Target: cat3Tgt, cat4Target: cat4Tgt, cat5Target: cat5Tgt,
+  };
+
+  updatePeriodSelector();
+  onPeriodChange();
+}
+
+// ── 📦 상품별매출 파싱 ──
+// Row2: B2=연도(c=1), C2=월(c=2)
+// Row3: 헤더 — A3=상품명, B3=카테고리, C3이후=날짜
+// Row4~: 상품 데이터
+function parseProdSheet(ws) {
+  if (!ws) return [];
+  const y = cellV(ws, 1, 1) || YEAR;   // B2=연도
+  const m = cellV(ws, 1, 2) || MONTH;  // C2=월
+
+  // Row3(r=2): 날짜 헤더 — C열(c=2)부터
+  const dateMap = {};
+  for (let c = 2; ; c++) {
+    const dc = cell(ws, 2, c);
+    if (!dc || dc.v === undefined || dc.v === null) break;
+    const ds = fmtDate(dc.v);
+    if (!ds) break;
+    dateMap[c] = ds;
+  }
+  if (!Object.keys(dateMap).length) return [];
+
+  // Row4~(r=3): 상품 데이터
+  const prodRows = [];
+  for (let r = 3; ; r++) {
+    const nm = cellS(ws, r, 0);
+    if (!nm || nm === '상품명') break;
+    const cat = cellS(ws, r, 1) || '';
+    const dailySales = {};
+    Object.entries(dateMap).forEach(([c, ds]) => {
+      dailySales[ds] = cellV(ws, r, +c) || 0;
+    });
+    prodRows.push({ nm, cat, dailySales });
+  }
+  if (!prodRows.length) return [];
+
+  // products_daily: { 'YYYY-MM-DD': [{name, category, d2cSales}] }
+  const dailyByDate = {};
+  prodRows.forEach(p => {
+    Object.entries(p.dailySales).forEach(([ds, val]) => {
+      if (!dailyByDate[ds]) dailyByDate[ds] = [];
+      dailyByDate[ds].push({ name: p.nm, category: p.cat, d2cSales: val });
+    });
+  });
+  DATA.products_daily = dailyByDate;
+
+  // 월 집계 (슬라이드3 호환)
+  return prodRows.map(p => ({
+    year: y, month: m,
+    name: p.nm, category: p.cat,
+    sales: Object.values(p.dailySales).reduce((s,v) => s+v, 0),
+    orders: 0, prevSales: 0,
+  }));
+}
+
+// ── 🔄 정기결제 파싱 ──
+// 엑셀 구조 (새버전):
+//   Row2: B2=연도, C2=월
+//   ■ 1. 신청 현황: Row6='신규 신청 건수'(C6), Row7='신규 해지 건수'(C8)  → 동적 탐색
+//   ■ 2. 식단별:   Row14=헤더('상품명(식단)'), Row15~=식단 데이터 — '합계'에서 중단
+//   ■ 3. 배송횟수: '배송 횟수 구분' 헤더 이후 — '합계'에서 중단
+function parseSubSheet(ws) {
+  if (!ws) return null;
+  const year  = cellV(ws, 1, 1);  // B2
+  const month = cellV(ws, 1, 2);  // C2
+
+  // ■ 1. 신청 현황 — 라벨 기준 동적 탐색 (신규 신청 / 신규 해지)
+  let newApply = 0, newCancel = 0;
+  for (let r = 3; r < 15; r++) {
+    const label = cellS(ws, r, 0);
+    if (!label) continue;
+    if (label.includes('신규 신청') || label.includes('신청 건수')) newApply  = cellV(ws, r, 2) || 0;
+    if (label.includes('신규 해지') || label.includes('해지 건수')) newCancel = cellV(ws, r, 2) || 0;
+  }
+
+  // ■ 2. 식단별 현황 — '상품명' 헤더 행 탐색
+  let prodHeaderRow = -1;
+  for (let r = 0; r < 20; r++) {
+    const v = cellS(ws, r, 0);
+    if (v && v.includes('상품명')) { prodHeaderRow = r; break; }
+  }
+  const products = [];
+  if (prodHeaderRow >= 0) {
+    for (let r = prodHeaderRow + 1; r < prodHeaderRow + 20; r++) {
+      const nm = cellS(ws, r, 0);
+      if (!nm || nm === '합계') break;
+      products.push({
+        name:   nm,
+        sales:  cellV(ws, r, 1) || 0,
+        active: cellV(ws, r, 2) || 0,
+        cancel: cellV(ws, r, 3) || 0,
+        ltr:    cellV(ws, r, 4) || 0,
+      });
+    }
+  }
+
+  // ■ 3. 배송 횟수 — '배송 횟수 구분' 헤더 탐색 (헤더 행 자체는 건너뜀)
+  let delivHeaderRow = -1;
+  for (let r = 0; r < 40; r++) {
+    const v = cellS(ws, r, 0);
+    // '배송 횟수 구분' 또는 '배송 횟수'가 포함된 행 = 헤더 행
+    if (v && v.includes('배송 횟수')) { delivHeaderRow = r; break; }
+  }
+  const delivery = [];
+  if (delivHeaderRow >= 0) {
+    for (let r = delivHeaderRow + 1; r < delivHeaderRow + 15; r++) {
+      const label = cellS(ws, r, 0);
+      if (!label || label === '합계' || label.includes('배송 횟수')) break;
+      // 숫자 또는 'N회' 형태만 데이터로 인정
+      if (!/\d/.test(label)) continue;
+      // 중복 '회' 방지: 이미 '회'로 끝나면 그대로, 아니면 붙이지 않음 (렌더링에서 처리)
+      delivery.push({ label: label.replace(/회$/, ''), cnt: cellV(ws, r, 1) || 0, ratio: cellV(ws, r, 2) || 0 });
+    }
+  }
+
+  return { year, month, newApply, newCancel, products, delivery };
+}
+
+
+function getTargets() {
+  if (!DATA.monthTargets) return null;
+  const t = DATA.monthTargets;
+  return {
+    onlineTarget:  t.onlineTarget  || 0,
+    offlineTarget: t.offlineTarget || 0,
+    d2cTarget:     (t.ownTarget||0) + (t.navTarget||0) + (t.etcTarget||0),
+    ownTarget:     t.ownTarget  || 0,
+    navTarget:     t.navTarget  || 0,
+    etcTarget:     t.etcTarget  || 0,
+  };
+}
+// ─── 리뷰 코멘트 ───────────────────────────────────────────
+const ALL_COMMENT_IDS = [
+  's1-total','s1-channel','s1-online','s1-offline','s1-daily','s1-weekday',
+  's2-total','s2-channel','s2-funnel','s2-d2ctrend',
+  's3-summary','s3-annual','s3-sub-sales','s3-sub-prods','s3-delivery'
+];
+
+function execCmd(cmd) {
+  document.execCommand(cmd, false, null);
+}
+
+function toggleComment(cid) {
+  const area   = document.getElementById('area-' + cid);
+  const toggle = document.getElementById('toggle-' + cid);
+  // 에디터 모드 HTML이 없으면 새로 삽입
+  if (!document.getElementById('ceditor-' + cid)) {
+    area.innerHTML = `
+      <div class="ch-comment-toolbar">
+        <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+        <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+        <button class="comment-save-btn" id="csave-${cid}" onclick="saveComment('${cid}')">저장</button>
+      </div>
+      <div class="comment-editor" id="ceditor-${cid}" contenteditable="true"
+        data-placeholder="코멘트를 입력하세요..."></div>`;
+  }
+  const isOpen = area.style.display !== 'none';
+  if (isOpen) {
+    area.style.display = 'none';
+    toggle.classList.remove('open');
+  } else {
+    area.style.display = 'block';
+    toggle.classList.add('open');
+    document.getElementById('ceditor-' + cid)?.focus();
+  }
+}
+
+function commentKey(cid) {
+  return `comment_${cid}_${YEAR}_${String(MONTH).padStart(2,'0')}`;
+}
+
+async function saveComment(cid) {
+  const editor  = document.getElementById('ceditor-' + cid);
+  const area    = document.getElementById('area-' + cid);
+  const toggle  = document.getElementById('toggle-' + cid);
+  const html    = editor.innerHTML;
+  const key     = commentKey(cid);
+  if (!html || html === '<br>') { showToast('내용을 입력해주세요.'); return; }
+  try {
+    await db.collection('comments').doc(key).set({ html, updatedAt: new Date().toISOString() });
+    enterViewMode(cid, html);
+  } catch(e) { showToast('❌ 코멘트 저장 실패: ' + e.message); }
+}
+
+// 저장 완료 → 읽기 모드 전환 (툴바·에디터 숨김, 내용+수정/삭제 아이콘 표시)
+function enterViewMode(cid, html) {
+  const area   = document.getElementById('area-' + cid);
+  const toggle = document.getElementById('toggle-' + cid);
+  area.innerHTML = `
+    <div style="display:flex;align-items:flex-start;gap:6px;padding:4px 2px;">
+      <div class="comment-view-mode" id="cview-${cid}">${html}</div>
+      <div class="comment-view-actions">
+        <button class="comment-icon-btn" title="수정" onclick="editComment('${cid}')">✏️</button>
+        <button class="comment-icon-btn del" title="삭제" onclick="deleteComment('${cid}')">✕</button>
+      </div>
+    </div>`;
+  area.style.display = 'block';
+  toggle.style.display = 'none'; // + 버튼 숨김 (이미 내용 있음)
+}
+
+// 수정 버튼 → 에디터 모드로 복귀
+function editComment(cid) {
+  const area   = document.getElementById('area-' + cid);
+  const toggle = document.getElementById('toggle-' + cid);
+  const curHtml = document.getElementById('cview-' + cid)?.innerHTML || '';
+  area.innerHTML = `
+    <div class="ch-comment-toolbar">
+      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+      <button class="comment-save-btn" id="csave-${cid}" onclick="saveComment('${cid}')">저장</button>
+    </div>
+    <div class="comment-editor" id="ceditor-${cid}" contenteditable="true"></div>`;
+  const editor = document.getElementById('ceditor-' + cid);
+  editor.innerHTML = curHtml;
+  editor.focus();
+  toggle.style.display = 'none';
+}
+
+// 삭제 버튼 → Firebase에서 제거 후 닫기
+async function deleteComment(cid) {
+  if (!confirm('코멘트를 삭제할까요?')) return;
+  const key    = commentKey(cid);
+  const area   = document.getElementById('area-' + cid);
+  const toggle = document.getElementById('toggle-' + cid);
+  try {
+    await db.collection('comments').doc(key).delete();
+  } catch(e) { console.warn('삭제 실패', e); }
+  area.style.display = 'none';
+  toggle.style.display = '';
+  toggle.classList.remove('open');
+}
+
+async function loadComments() {
+  for (const cid of ALL_COMMENT_IDS) {
+    const key    = commentKey(cid);
+    const area   = document.getElementById('area-' + cid);
+    const toggle = document.getElementById('toggle-' + cid);
+    if (!area || !toggle) continue;
+
+    // ① 월 전환 시 area를 항상 초기 상태(숨김+에디터)로 리셋
+    area.innerHTML = `
+      <div class="ch-comment-toolbar">
+        <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
+        <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
+        <button class="comment-save-btn" id="csave-${cid}" onclick="saveComment('${cid}')">저장</button>
+      </div>
+      <div class="comment-editor" id="ceditor-${cid}" contenteditable="true"
+        data-placeholder="코멘트를 입력하세요..."></div>`;
+    area.style.display   = 'none';
+    toggle.style.display = '';
+    toggle.classList.remove('open');
+
+    // ② Firebase에서 해당 월 코멘트 조회
+    try {
+      const doc = await db.collection('comments').doc(key).get();
+      if (doc.exists && doc.data().html && doc.data().html !== '<br>') {
+        enterViewMode(cid, doc.data().html);
+      }
+    } catch(e) { console.warn('코멘트 로드 실패', cid, e); }
+  }
+}
+// ────────────────────────────────────────────────────────────
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+// ─── Sample Data 없음 — 엑셀 업로드 후 표시 ───
+
+function loadSample() {
+  // 샘플 데이터 제거됨. 업로드 전 빈 상태 유지.
+  renderAll([], [], [], []);
+}
+
+// ─── Render All ───
+function resetDash() {
+  // 데이터 없을 때 전체 – 초기화
+  const ids = ['s1-total-sales','s1-yoy','s1-target','s1-achieve','s1-daily-avg','s1-prev-total',
+    's1-max-amount','s1-max-day','s1-min-amount','s1-min-day',
+    's1-online-total','s1-online-target','s1-online-ach','s1-online-yoy','s1-online-max-amt','s1-online-max-day','s1-online-min-amt','s1-online-min-day',
+    's1-offline-total','s1-offline-target','s1-offline-ach','s1-offline-yoy','s1-offline-max-amt','s1-offline-max-day','s1-offline-min-amt','s1-offline-min-day',
+    's1-donut-online','s1-donut-offline',
+    's2-total','s2-yoy','s2-achieve','s2-daily','s2-orders','s2-orders-yoy',
+    's2-max-amount','s2-max-day','s2-min-amount','s2-min-day',
+    's2-own-sales','s2-own-pct','s2-own-yoy','s2-own-uv','s2-own-cvr',
+    's2-nav-sales','s2-nav-pct','s2-nav-yoy','s2-nav-uv','s2-nav-cvr',
+    's2-etc-sales','s2-etc-pct','s2-etc-yoy','s2-etc-uv','s2-etc-cvr',
+    's2-total-uv','s2-new-uv','s2-new-pct','s2-return-uv','s2-return-pct','s2-cvr','s2-ord-total','s2-aov','s2-wd-cvr','s2-we-cvr',
+    's3-total','s3-yoy','s3-daily','s3-top-cat','s3-top-cat-val',
+    'sub-total','sub-total-cnt','sub-active-cnt','sub-cancel-cnt','sub-ltr'];
+  ids.forEach(id => set(id, '–'));
+  for(let i=0;i<7;i++) {
+    set('wdv-'+i,'–');
+    ['all','on','off'].forEach(t => {
+      const b = document.getElementById('wdb-'+t+'-'+i);
+      if (b) b.style.height = '0%';
+    });
+  }
+  set('s1-weekday-avg','–'); set('s1-weekend-avg','–'); set('s1-best-day','–');
+  document.getElementById('s1-prog').style.width = '0%';
+  document.getElementById('s2-prog').style.width = '0%';
+  ['dailyChart','channelDonut','d2cChart','deliveryChart','catBarChart-0','catBarChart-1','catBarChart-2','catBarChart-3','catBarChart-4'].forEach(destroyChart);
+  const catRowsEl = document.getElementById('catRows'); if(catRowsEl) catRowsEl.innerHTML='';
+  const top5El    = document.getElementById('top5Body'); if(top5El) top5El.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">엑셀 파일을 업로드하면 데이터가 표시됩니다</td></tr>';
+  const subEl     = document.getElementById('subProdBody'); if(subEl) subEl.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px">엑셀 파일을 업로드하면 데이터가 표시됩니다</td></tr>';
+  const delEl     = document.getElementById('deliveryBody'); if(delEl) delEl.innerHTML='';
+}
+
+function renderAll(daily, d2c, cat, products) {
+  if (!daily.length && !d2c.length && !cat.length && !products.length) { resetDash(); return; }
+  renderS1(daily);
+  renderS2(d2c);
+  renderS3(cat, products);
+  renderAnnualTable();
+}
+
+// ─── SLIDE 1 ───
+function renderS1(rows) {
+  if (!rows.length) return;
+
+  const sum = key => rows.reduce((s,r) => s+(r[key]||0), 0);
+  const totOn  = sum('online'), totOff = sum('offline'), totAll = totOn + totOff;
+  const totPrev = sum('prevTotal');
+  const onPrev = sum('prevOnline'), offPrev = sum('prevOffline');
+
+  // 월 목표 (각 시트 2행에서 읽거나 샘플값)
+  const tgt = getTargets();
+  const totTgt = tgt ? (tgt.onlineTarget + tgt.offlineTarget) : 0;
+  const onTgt  = tgt ? tgt.onlineTarget  : 0;
+  const offTgt = tgt ? tgt.offlineTarget : 0;
+  const ach = totTgt > 0 ? totAll/totTgt*100 : 0;
+
+  set('s1-total-sales', fmtKRW(totAll));
+  setYoy('s1-yoy', totAll, totPrev);
+  set('s1-target', totTgt ? fmtKRW(totTgt) : '목표 미입력');
+  set('s1-achieve', totTgt ? '달성율 ' + ach.toFixed(1) + '%' : '–');
+  document.getElementById('s1-prog').style.width = Math.min(ach,100) + '%';
+  set('s1-daily-avg', fmtKRW(totAll / rows.length));
+  set('s1-prev-total', fmtKRW(totPrev));
+
+  // Max / Min
+  const maxRow = rows.reduce((a,b) => (a.total||0)>(b.total||0)?a:b);
+  const minRow = rows.reduce((a,b) => (a.total||0)<(b.total||0)?a:b);
+  set('s1-max-amount', fmtKRW(maxRow.total));
+  set('s1-max-day',    fmtDateLabel(maxRow.date));
+  set('s1-min-amount', fmtKRW(minRow.total));
+  set('s1-min-day',    fmtDateLabel(minRow.date));
+
+  // Online channel
+  set('s1-online-total',  fmtKRW(totOn));
+  set('s1-online-target', onTgt ? fmtKRW(onTgt) : '–');
+  set('s1-online-ach',    onTgt>0 ? (totOn/onTgt*100).toFixed(1)+'%' : '–');
+  setYoy('s1-online-yoy', totOn, onPrev);
+  const maxOn = rows.reduce((a,b) => (a.online||0)>(b.online||0)?a:b);
+  const minOn = rows.reduce((a,b) => (a.online||0)<(b.online||0)?a:b);
+  set('s1-online-max-amt', fmtKRW(maxOn.online));
+  set('s1-online-max-day', fmtDateLabel(maxOn.date));
+  set('s1-online-min-amt', fmtKRW(minOn.online));
+  set('s1-online-min-day', fmtDateLabel(minOn.date));
+
+  // Offline channel
+  set('s1-offline-total',  fmtKRW(totOff));
+  set('s1-offline-target', offTgt ? fmtKRW(offTgt) : '–');
+  set('s1-offline-ach',    offTgt>0 ? (totOff/offTgt*100).toFixed(1)+'%' : '–');
+  setYoy('s1-offline-yoy', totOff, offPrev);
+  const maxOff = rows.reduce((a,b) => (a.offline||0)>(b.offline||0)?a:b);
+  const minOff = rows.reduce((a,b) => (a.offline||0)<(b.offline||0)?a:b);
+  set('s1-offline-max-amt', fmtKRW(maxOff.offline));
+  set('s1-offline-max-day', fmtDateLabel(maxOff.date));
+  set('s1-offline-min-amt', fmtKRW(minOff.offline));
+  set('s1-offline-min-day', fmtDateLabel(minOff.date));
+
+  // Donut
+  const onPct  = totAll>0 ? (totOn/totAll*100).toFixed(1) : '0.0';
+  const offPct = totAll>0 ? (totOff/totAll*100).toFixed(1) : '0.0';
+  set('s1-donut-online',  onPct+'%');
+  set('s1-donut-offline', offPct+'%');
+
+  // Weekday — 전체/온라인/오프라인 3채널
+  const wdTall=[0,0,0,0,0,0,0], wdTon=[0,0,0,0,0,0,0], wdToff=[0,0,0,0,0,0,0], wdC=[0,0,0,0,0,0,0];
+  rows.forEach(r => {
+    const wd = getDow(r.date);
+    wdTall[wd] += (r.total||0);
+    wdTon[wd]  += (r.online||0);
+    wdToff[wd] += (r.offline||0);
+    wdC[wd]++;
+  });
+  const wdAll = wdTall.map((t,i) => wdC[i]>0 ? t/wdC[i] : 0);
+  const wdOn  = wdTon.map((t,i)  => wdC[i]>0 ? t/wdC[i] : 0);
+  const wdOff = wdToff.map((t,i) => wdC[i]>0 ? t/wdC[i] : 0);
+
+  // 각 채널의 max 기준으로 막대 높이 계산
+  const wdMaxAll = Math.max(...wdAll) || 1;
+  const wdMaxOn  = Math.max(...wdOn)  || 1;
+  const wdMaxOff = Math.max(...wdOff) || 1;
+
+  // DATA에 저장 (탭 전환 시 재사용)
+  DATA._wd = { wdAll, wdOn, wdOff, maxAll:wdMaxAll, maxOn:wdMaxOn, maxOff:wdMaxOff, wdC };
+
+  // 막대 높이 세팅
+  for (let i = 0; i < 7; i++) {
+    const bAll = document.getElementById('wdb-all-'+i);
+    const bOn  = document.getElementById('wdb-on-'+i);
+    const bOff = document.getElementById('wdb-off-'+i);
+    if (bAll) bAll.style.height = (wdAll[i]/wdMaxAll*100)+'%';
+    if (bOn)  bOn.style.height  = (wdOn[i]/wdMaxOn*100)+'%';
+    if (bOff) bOff.style.height = (wdOff[i]/wdMaxOff*100)+'%';
+  }
+
+  // 현재 탭 기준으로 값 텍스트 + 최고 요일 표시
+  const curTab = window._wdTab || 'all';
+  applyWdTab(curTab);
+
+  // 주중/주말 평균 (전체 기준)
+  const wdAvgDays = [0,1,2,3,4].filter(i=>wdC[i]>0);
+  const weAvgDays = [5,6].filter(i=>wdC[i]>0);
+  const wdAvg = wdAvgDays.length ? wdAvgDays.reduce((s,i)=>s+wdAll[i],0)/wdAvgDays.length : 0;
+  const weAvg = weAvgDays.length ? weAvgDays.reduce((s,i)=>s+wdAll[i],0)/weAvgDays.length : 0;
+  set('s1-weekday-avg', fmtKRW(Math.round(wdAvg)));
+  set('s1-weekend-avg', fmtKRW(Math.round(weAvg)));
+  const diff = wdAvg>0 ? (weAvg-wdAvg)/wdAvg*100 : 0;
+  const elDiff = document.getElementById('s1-weekend-diff');
+  if (elDiff) { elDiff.textContent=(diff>=0?'+':'')+diff.toFixed(1)+'% vs 주중'; elDiff.style.color=diff>=0?'var(--green)':'var(--red)'; }
+
+  // Charts
+  const labels    = rows.map(r => r.date.slice(5).replace('-','/'));
+  const onlineArr = rows.map(r => r.online||0);
+  const offlineArr= rows.map(r => r.offline||0);
+
+  destroyChart('dailyChart');
+  charts['dailyChart'] = new Chart(document.getElementById('dailyChart'), {
+    type:'line',
+    data:{ labels, datasets:[
+      {label:'온라인', data:onlineArr, borderColor:'#2563EB', backgroundColor:'rgba(37,99,235,0.07)', borderWidth:1.5, tension:0.4, fill:true, pointRadius:0},
+      {label:'오프라인', data:offlineArr, borderColor:'#F59E0B', backgroundColor:'rgba(245,158,11,0.05)', borderWidth:1.5, tension:0.4, fill:true, pointRadius:0},
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{ legend:{display:true,position:'top',labels:{boxWidth:9,font:{size:10}}}, tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+fmtKRW(ctx.raw)}} },
+      scales:{ x:{ticks:{maxTicksLimit:8,font:{size:10}}}, y:{ticks:{callback:v=>Math.round(v/10000)+'만',font:{size:10}}} }
+    }
+  });
+
+}
+
+// ─── SLIDE 2 ───
+function renderS2(rows) {
+  if (!rows.length) return;
+  const sum = key => rows.reduce((s,r) => s+(r[key]||0), 0);
+  const ownT = sum('ownSales'), navT = sum('navSales'), etcT = sum('etcSales');
+  const d2cT = ownT + navT + etcT;
+  const ownPv = sum('ownPrev'), navPv = sum('navPrev'), etcPv = sum('etcPrev');
+  const d2cPv = ownPv + navPv + etcPv;
+  // 자사몰 유입·주문만 존재
+  const ownUV  = sum('ownUV');
+  const ownOrd = sum('ownOrd');
+
+  // 월 목표 (각 시트 2행에서 읽거나 샘플값)
+  const tgt    = getTargets();
+  const d2cTgt = tgt ? tgt.d2cTarget  : 0;
+  const ownTgt = tgt ? tgt.ownTarget  : 0;
+  const navTgt = tgt ? tgt.navTarget  : 0;
+  const etcTgt = tgt ? tgt.etcTarget  : 0;
+  const ach = d2cTgt>0?d2cT/d2cTgt*100:0;
+
+  set('s2-total', fmtKRW(d2cT));
+  setYoy('s2-yoy', d2cT, d2cPv);
+  set('s2-achieve', d2cTgt ? ach.toFixed(1)+'%' : '–');
+  document.getElementById('s2-prog').style.width = Math.min(ach,100)+'%';
+  set('s2-daily',  fmtKRW(d2cT / rows.length));
+  set('s2-orders', fmtNum(ownOrd)+'건');  // 자사몰 주문건수만
+  const el2 = document.getElementById('s2-orders-yoy');
+  if(el2) { const p=yoyStr(ownOrd, Math.round(ownOrd*.82)); el2.textContent=p+' 전년대비'; el2.style.color=ownOrd>=ownOrd*.82?'var(--green)':'var(--red)'; }
+
+  const dayTotals = rows.map(r => ({date:r.date, v:(r.ownSales||0)+(r.navSales||0)+(r.etcSales||0)}));
+  const mx = dayTotals.reduce((a,b) => a.v>b.v?a:b);
+  const mn = dayTotals.reduce((a,b) => a.v<b.v?a:b);
+  set('s2-max-amount', fmtKRW(mx.v));
+  set('s2-max-day', fmtDateLabel(mx.date));
+  set('s2-min-amount', fmtKRW(mn.v));
+  set('s2-min-day', fmtDateLabel(mn.date));
+
+  const ownP = d2cT>0?ownT/d2cT*100:0;
+  const navP = d2cT>0?navT/d2cT*100:0;
+  const etcP = d2cT>0?etcT/d2cT*100:0;
+
+  set('s2-own-sales', fmtKRW(ownT)); setYoy('s2-own-yoy', ownT, ownPv);
+  set('s2-own-pct', ownP.toFixed(1)+'%'); setWidth('s2-own-bar', ownP);
+  set('s2-own-uv',  fmtNum(ownUV));
+  set('s2-own-cvr', ownUV>0?(ownOrd/ownUV*100).toFixed(1)+'%':'–');
+
+  set('s2-nav-sales', fmtKRW(navT)); setYoy('s2-nav-yoy', navT, navPv);
+  set('s2-nav-pct', navP.toFixed(1)+'%'); setWidth('s2-nav-bar', navP);
+  // 네이버·기타는 유입수·전환율 없음
+  set('s2-nav-uv',  '–');
+  set('s2-nav-cvr', '–');
+
+  set('s2-etc-sales', fmtKRW(etcT)); setYoy('s2-etc-yoy', etcT, etcPv);
+  set('s2-etc-pct', etcP.toFixed(1)+'%'); setWidth('s2-etc-bar', etcP);
+  set('s2-etc-uv',  '–');
+  set('s2-etc-cvr', '–');
+
+const newUV  = sum('ownNewUV');
+const retUV  = sum('ownRetUV');
+  const cvr = ownUV>0?ownOrd/ownUV*100:0;
+  const wdR = rows.filter(r => getDow(r.date)<5);
+  const weR = rows.filter(r => getDow(r.date)>=5);
+  const wdUV  = wdR.reduce((s,r)=>s+(r.ownUV||0),0);
+  const wdOrd = wdR.reduce((s,r)=>s+(r.ownOrd||0),0);
+  const weUV  = weR.reduce((s,r)=>s+(r.ownUV||0),0);
+  const weOrd = weR.reduce((s,r)=>s+(r.ownOrd||0),0);
+  const wdCV = wdUV>0?wdOrd/wdUV*100:0;
+  const weCV = weUV>0?weOrd/weUV*100:0;
+
+  set('s2-total-uv', fmtNum(ownUV));
+  set('s2-new-uv', fmtNum(newUV)); set('s2-new-pct', (ownUV>0?(newUV/ownUV*100).toFixed(1):0)+'%');
+  set('s2-return-uv', fmtNum(retUV)); set('s2-return-pct', (ownUV>0?(retUV/ownUV*100).toFixed(1):0)+'%');
+  set('s2-cvr', cvr.toFixed(1)+'%');
+  set('s2-ord-total', fmtNum(ownOrd)+'건');
+  set('s2-aov', ownOrd>0?fmtKRW(Math.round(ownT/ownOrd)):'–');
+  set('s2-wd-cvr', wdCV.toFixed(1)+'%');
+  set('s2-we-cvr', weCV.toFixed(1)+'%');
+
+  const labels   = rows.map(r => r.date.slice(5).replace('-','/'));
+  const salesArr = rows.map(r => r.ownSales || 0);
+  const uvArr    = rows.map(r => r.ownUV    || 0);
+  const cvrArr   = rows.map(r => (r.ownUV||0) > 0 ? (r.ownOrd||0)/(r.ownUV||0)*100 : 0);
+
+  destroyChart('d2cChart');
+  const _cmp = labels.length > 18;
+  const ptR  = _cmp ? 0 : 3.5;
+
+  charts['d2cChart'] = new Chart(document.getElementById('d2cChart'), {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          // ① 매출 — 채워진 면적
+          label: '매출액',
+          data: salesArr,
+          yAxisID: 'yS',
+          order: 3,
+          borderColor: '#2563EB',
+          backgroundColor: (ctx) => {
+            const chart = ctx.chart;
+            const { ctx: c, chartArea } = chart;
+            if (!chartArea) return 'rgba(37,99,235,0.12)';
+            const grad = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            grad.addColorStop(0, 'rgba(37,99,235,0.22)');
+            grad.addColorStop(1, 'rgba(37,99,235,0.01)');
+            return grad;
+          },
+          borderWidth: 2.5,
+          tension: 0.42,
+          fill: true,
+          pointRadius: ptR,
+          pointHoverRadius: 6,
+          pointBackgroundColor: '#2563EB',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+        },
+        {
+          // ② 유입수 — 채워진 면적
+          label: '유입수',
+          data: uvArr,
+          yAxisID: 'yU',
+          order: 4,
+          borderColor: '#0891B2',
+          backgroundColor: (ctx) => {
+            const chart = ctx.chart;
+            const { ctx: c, chartArea } = chart;
+            if (!chartArea) return 'rgba(8,145,178,0.10)';
+            const grad = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            grad.addColorStop(0, 'rgba(8,145,178,0.18)');
+            grad.addColorStop(1, 'rgba(8,145,178,0.01)');
+            return grad;
+          },
+          borderWidth: 2,
+          tension: 0.42,
+          fill: true,
+          pointRadius: ptR,
+          pointHoverRadius: 6,
+          pointBackgroundColor: '#0891B2',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+        },
+        {
+          // ③ 전환율 — 라인만
+          label: '구매전환율',
+          data: cvrArr,
+          yAxisID: 'yC',
+          order: 1,
+          borderColor: '#D97706',
+          backgroundColor: 'transparent',
+          borderWidth: 2.5,
+          tension: 0.42,
+          fill: false,
+          pointRadius: ptR,
+          pointHoverRadius: 6,
+          pointBackgroundColor: '#D97706',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          align: 'start',
+          labels: {
+            boxWidth: 10, boxHeight: 10,
+            borderRadius: 3,
+            useBorderRadius: true,
+            font: { size: 11, weight: '600' },
+            color: '#475569',
+            padding: 16,
+          }
+        },
+        tooltip: {
+          backgroundColor: '#fff',
+          borderColor: '#E2E8F0',
+          borderWidth: 1,
+          titleColor: '#1E293B',
+          bodyColor: '#475569',
+          padding: 12,
+          cornerRadius: 10,
+          boxPadding: 5,
+          callbacks: {
+            title: items => {
+              const d = rows[items[0].dataIndex]?.date || '';
+              const dow = ['일','월','화','수','목','금','토'][new Date(d).getDay()];
+              return items[0].label + ' (' + dow + ')';
+            },
+            label: ctx => {
+              if (ctx.dataset.label === '매출액') return '  매출액   ' + fmtKRW(ctx.raw);
+              if (ctx.dataset.label === '유입수')  return '  유입수   ' + (ctx.raw||0).toLocaleString() + '명';
+              if (ctx.dataset.label === '구매전환율') return '  전환율   ' + (ctx.raw||0).toFixed(2) + '%';
+              return ctx.dataset.label + ': ' + ctx.raw;
+            },
+            labelColor: ctx => ({
+              borderColor: ctx.dataset.borderColor,
+              backgroundColor: ctx.dataset.borderColor,
+              borderRadius: 3,
+            }),
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: '#F1F5F9', drawBorder: false },
+          ticks: {
+            font: { size: 9 },
+            color: '#94A3B8',
+            maxTicksLimit: _cmp ? 8 : labels.length,
+            maxRotation: 0,
+          },
+          border: { display: false }
+        },
+        yS: {
+          position: 'left',
+          grid: { color: '#F1F5F9', drawBorder: false },
+          ticks: {
+            callback: v => v >= 1000000 ? (v/1000000).toFixed(0)+'M' : Math.round(v/10000)+'만',
+            font: { size: 9 },
+            color: '#2563EB',
+          },
+          title: { display: true, text: '매출액', font: { size: 9, weight:'600' }, color: '#2563EB' },
+          border: { display: false },
+        },
+        yU: {
+          position: 'left',
+          grid: { display: false },
+          ticks: {
+            callback: v => v >= 1000 ? (v/1000).toFixed(1)+'K' : v,
+            font: { size: 9 },
+            color: '#0891B2',
+          },
+          title: { display: true, text: '유입수', font: { size: 9, weight:'600' }, color: '#0891B2' },
+          border: { display: false },
+          offset: true,
+        },
+        yC: {
+          position: 'right',
+          grid: { display: false },
+          ticks: {
+            callback: v => v.toFixed(1) + '%',
+            font: { size: 9, weight: '600' },
+            color: '#D97706',
+          },
+          title: { display: true, text: '전환율 (%)', font: { size: 9, weight:'600' }, color: '#D97706' },
+          border: { display: false },
+        }
+      }
+    }
+  });
+}
+
+// ─── SLIDE 3 ───
+function renderS3(cat, products) {
+  if (!cat.length) return;
+
+  const cats = [
+    {key:'skin', label:'새벽배송', color:CAT_COLORS[0]},
+    {key:'hair', label:'건강케어', color:CAT_COLORS[1]},
+    {key:'body', label:'질환케어', color:CAT_COLORS[2]},
+    {key:'sun',  label:'보충케어',   color:CAT_COLORS[3]},
+    {key:'other',label:'이벤트/기타',     color:CAT_COLORS[4]},
+  ];
+  const catT = cats.map(c => ({...c, total:cat.reduce((s,r)=>s+(r[c.key]||0),0)}));
+  const grand = catT.reduce((s,c)=>s+c.total,0);
+  const days  = cat.length;
+  const prev  = grand*.805;
+
+  set('s3-total', fmtKRW(grand));
+  setYoy('s3-yoy', grand, prev);
+  set('s3-daily', fmtKRW(Math.round(grand/days)));
+  const top = catT.reduce((a,b)=>a.total>b.total?a:b);
+  set('s3-top-cat', top.label);
+  set('s3-top-cat-val', fmtKRW(top.total)+' · '+(grand>0?(top.total/grand*100).toFixed(1):0)+'%');
+
+  // Cat rows
+  const cr = document.getElementById('catRows'); cr.innerHTML='';
+  catT.forEach(c => {
+    const pct = grand>0?c.total/grand*100:0;
+    cr.innerHTML += `<div class="cat-row">
+      <span class="legend-dot" style="background:${c.color}"></span>
+      <span class="cat-name">${c.label}</span>
+      <div style="flex:1;margin:0 8px"><div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${pct}%;background:${c.color}"></div></div></div>
+      <span class="cat-val">${fmtKRW(c.total)}</span>
+      <span class="cat-pct">${pct.toFixed(1)}%</span>
+    </div>`;
+  });
+
+  // TOP5
+  const sorted = [...products].sort((a,b)=>b.sales-a.sales).slice(0,5);
+  const badges = ['gold','silver','bronze','',''];
+  const tbody = document.getElementById('top5Body'); tbody.innerHTML='';
+  sorted.forEach((p,i) => {
+    tbody.innerHTML += `<tr>
+      <td><span class="rank-badge ${badges[i]}">${i+1}</span></td>
+      <td style="font-weight:600">${p.name}</td>
+      <td style="color:var(--muted);font-size:12px">${p.category}</td>
+      <td style="font-weight:700">${fmtKRW(p.sales)}</td>
+    </tr>`;
+  });
+  if(!sorted.length) tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:20px">데이터 없음</td></tr>';
+
+  // Bar
+// 카테고리별 탭 + 바차트 — products 기준으로 매출 있는 카테고리만 표시
+const activeCatT = catT.filter(c =>
+  products.some(p => p.category === c.label && (p.sales || 0) > 0)
+);
+
+// 탭 버튼 생성
+const tabBar = document.getElementById('catTabBar');
+tabBar.innerHTML = '';
+activeCatT.forEach((cat, i) => {
+  const btn = document.createElement('button');
+  btn.textContent = cat.label;
+  btn.dataset.idx = i;
+  btn.style.cssText = `padding:4px 12px;border-radius:6px;border:1px solid var(--border);
+    font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;
+    background:${i===0 ? cat.color : 'var(--surface)'};
+    color:${i===0 ? '#fff' : 'var(--text2)'};transition:all 0.18s`;
+  btn.onclick = () => switchCatTab(i, activeCatT);
+  tabBar.appendChild(btn);
+});
+
+// 카테고리별 차트 렌더링 (매출 있는 카테고리만)
+const maxProdsCount = activeCatT.reduce((max, c) => {
+  const cnt = products.filter(p => p.category === c.label).length;
+  return Math.max(max, Math.min(cnt, 8));
+}, 0);
+const chartH = Math.max(180, maxProdsCount * 32 + 40);
+const wrap = document.getElementById('catChartWrap');
+if (wrap) wrap.style.height = chartH + 'px';
+
+// 기존 캔버스 전부 초기화
+for (let i=0;i<5;i++) { destroyChart('catBarChart-'+i); const cv=document.getElementById('catBarChart-'+i); if(cv) cv.style.display='none'; }
+
+activeCatT.forEach((c, i) => {
+  const key = 'catBarChart-' + i;
+  const canvas = document.getElementById(key);
+  if (canvas) canvas.style.display = i===0 ? 'block' : 'none';
+  const catTotal = c.total || 1;
+  const prods = products
+    .filter(p => p.category === c.label)
+    .sort((a,b) => b.sales - a.sales)
+    .slice(0, 8);
+  if (!prods.length) return;
+
+  // 매출 비중 계산
+  const pcts = prods.map(p => catTotal > 0 ? (p.sales / catTotal * 100) : 0);
+
+  charts[key] = new Chart(document.getElementById(key), {
+    type: 'bar',
+    data: { labels: prods.map(p => p.name), datasets: [{
+      label: '매출액', data: prods.map(p => p.sales),
+      backgroundColor: c.color + 'CC', borderRadius: 3, borderSkipped: false
+    }]},
+    options: {
+      responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+      layout: { padding: { right: 110 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => fmtKRW(ctx.raw) + '  (' + pcts[ctx.dataIndex].toFixed(1) + '%)' } },
+        // 막대 끝에 값 직접 표시 (custom inline plugin)
+        afterDraw: undefined
+      },
+      scales: {
+        x: { ticks: { callback: v => Math.round(v/10000)+'만', font:{size:10} }, grid: { display: true } },
+        y: { ticks: { font: { size: 10 } } }
+      }
+    },
+    plugins: [{
+      id: 'barLabel-'+i,
+      afterDatasetsDraw(chart) {
+        const { ctx, data, scales: { x, y } } = chart;
+        ctx.save();
+        data.datasets[0].data.forEach((val, idx) => {
+          const bar   = chart.getDatasetMeta(0).data[idx];
+          const xEnd  = x.getPixelForValue(val);
+          const yMid  = bar.y;
+          const pct   = pcts[idx];
+          const label = fmtKRW(val) + '  ' + pct.toFixed(1) + '%';
+          ctx.font         = 'bold 10px Pretendard, sans-serif';
+          ctx.fillStyle    = 'var(--text2)';
+          ctx.textAlign    = 'left';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(label, xEnd + 6, yMid);
+        });
+        ctx.restore();
+      }
+    }]
+  });
+});
+
+// 탭 전환 함수 (전역)
+function switchCatTab(idx, catT) {
+  for (let i = 0; i < 5; i++) {
+    const canvas = document.getElementById('catBarChart-' + i);
+    if (canvas) canvas.style.display = i === idx ? 'block' : 'none';
+  }
+  document.querySelectorAll('#catTabBar button').forEach((btn, i) => {
+    const active = i === idx;
+    btn.style.background = active ? catT[i].color : 'var(--surface)';
+    btn.style.color       = active ? '#fff'        : 'var(--text2)';
+    btn.style.borderColor = active ? catT[i].color : 'var(--border)';
+  });
+}
+
+
+
+// ── 정기결제 렌더링 ──
+// DATA.subHistory: [{year, month, newApply, newCancel, products, delivery}, ...]
+// 연도 필터 후 월 오름차순 정렬하여 누적 계산
+
+const hist = (DATA.subHistory || [])
+  .filter(h => h.year == YEAR)
+  .sort((a,b) => a.month - b.month);
+
+// 전체 히스토리(연도 무관) 중 최신 레코드 — 식단별·배송횟수 표시용
+const latestAll = (DATA.subHistory || [])
+  .sort((a,b) => a.year*100+a.month - (b.year*100+b.month))
+  .slice(-1)[0] || null;
+
+// ── 누적 집계 ──
+// 당해 연도의 모든 월 신규 합산
+let cumApply = 0, cumCancel = 0;
+hist.forEach(h => {
+  cumApply  += (h.newApply  || 0);
+  cumCancel += (h.newCancel || 0);
+});
+// 전년도 이월 누적을 더하려면 전체 히스토리 사용
+const prevYearHist = (DATA.subHistory || []).filter(h => h.year < YEAR);
+let carryApply = 0, carryCancel = 0;
+prevYearHist.forEach(h => { carryApply += (h.newApply||0); carryCancel += (h.newCancel||0); });
+const totalCumApply  = carryApply  + cumApply;
+const totalCumCancel = carryCancel + cumCancel;
+const totalActive    = totalCumApply - totalCumCancel;
+const ltr = totalCumApply > 0 ? (totalActive / totalCumApply * 100) : 0;
+
+// 섹션① 카드
+set('sub-total-cnt',  totalCumApply  > 0 ? fmtNum(totalCumApply)  + '건' : '–');
+set('sub-active-cnt', totalActive    > 0 ? fmtNum(totalActive)    + '건' : '–');
+set('sub-cancel-cnt', totalCumCancel > 0 ? fmtNum(totalCumCancel) + '건' : '–');
+set('sub-ltr',        totalCumApply  > 0 ? ltr.toFixed(1) + '%'           : '–');
+
+// 연간 신청 현황 테이블 (당해 연도 기준 월별)
+const subAnnualBody = document.getElementById('subAnnualBody');
+if (!hist.length) {
+  subAnnualBody.innerHTML = '<tr><td colspan="14" style="text-align:center;color:var(--muted);padding:20px;">엑셀 파일을 업로드하면 데이터가 표시됩니다</td></tr>';
+} else {
+  const byMonth = {};
+  hist.forEach(h => { byMonth[h.month] = h; });
+
+  // 월별 신규 + 누적 계산
+  let runApply = carryApply, runCancel = carryCancel;
+  const applyNewRow  = ['신규 신청'];
+  const cancelNewRow = ['신규 해지'];
+  const applyCumRow  = ['누적 신청'];
+  const cancelCumRow = ['누적 해지'];
+
+  for (let m = 1; m <= 12; m++) {
+    const d = byMonth[m];
+    const na = d ? (d.newApply  || 0) : null;
+    const nc = d ? (d.newCancel || 0) : null;
+    if (d) { runApply += na; runCancel += nc; }
+
+    applyNewRow .push(na  != null ? fmtNum(na)        : '–');
+    cancelNewRow.push(nc  != null ? fmtNum(nc)        : '–');
+    applyCumRow .push(d   ? fmtNum(runApply)          : '–');
+    cancelCumRow.push(d   ? fmtNum(runCancel)         : '–');
+  }
+
+  const totalNA = hist.reduce((s,h)=>s+(h.newApply ||0),0);
+  const totalNC = hist.reduce((s,h)=>s+(h.newCancel||0),0);
+  applyNewRow .push(`<strong>${fmtNum(totalNA)}</strong>`);
+  cancelNewRow.push(`<strong>${fmtNum(totalNC)}</strong>`);
+  applyCumRow .push(`<strong>${fmtNum(runApply)}</strong>`);
+  cancelCumRow.push(`<strong>${fmtNum(runCancel)}</strong>`);
+
+  const rowStyles = [
+    { rows: applyNewRow,  labelStyle: 'font-weight:700;color:var(--blue);',   cellStyle: 'color:var(--blue);' },
+    { rows: cancelNewRow, labelStyle: 'font-weight:700;color:var(--red);',    cellStyle: 'color:var(--red);' },
+    { rows: applyCumRow,  labelStyle: 'font-weight:700;background:var(--surface2);', cellStyle: 'background:var(--surface2);font-weight:600;' },
+    { rows: cancelCumRow, labelStyle: 'font-weight:700;background:var(--surface2);color:var(--red);', cellStyle: 'background:var(--surface2);color:var(--red);' },
+  ];
+
+  subAnnualBody.innerHTML = rowStyles.map(({ rows, labelStyle, cellStyle }) =>
+    `<tr>${rows.map((v,i) =>
+      `<td style="${i===0 ? labelStyle : (i===13 ? 'font-weight:700;background:var(--blue-lt);' : cellStyle)}">${v}</td>`
+    ).join('')}</tr>`
+  ).join('');
+}
+
+// 섹션② 식단별 현황
+const subProds = latestAll?.products || [];
+const subTotalSales = subProds.reduce((s,p) => s+(p.sales||0), 0);
+const tbody2 = document.getElementById('subProdBody');
+tbody2.innerHTML = '';
+if (!subProds.length) {
+  tbody2.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">엑셀 파일을 업로드하면 데이터가 표시됩니다</td></tr>';
+} else {
+  subProds.forEach(p => {
+    const pct    = subTotalSales > 0 ? (p.sales / subTotalSales * 100).toFixed(1) : '0.0';
+    const ltrVal = p.ltr != null && p.ltr > 0 ? p.ltr
+                 : (p.active + p.cancel > 0 ? p.active / (p.active + p.cancel) * 100 : 0);
+    tbody2.innerHTML += `<tr>
+      <td style="font-weight:600">${p.name}</td>
+      <td style="font-weight:700">${fmtKRW(p.sales)}</td>
+      <td><div class="mini-bar-wrap"><div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${pct}%;background:var(--blue)"></div></div><span style="font-size:11px;font-weight:700;min-width:36px;text-align:right">${pct}%</span></div></td>
+      <td style="color:var(--green);font-weight:700">${fmtNum(p.active)}건</td>
+      <td style="color:var(--red);font-weight:700">${fmtNum(p.cancel)}건</td>
+      <td style="font-weight:700">${ltrVal.toFixed(1)}%</td>
+    </tr>`;
+  });
+}
+
+// 섹션③ 배송 횟수 — 단일 복합 차트
+const delivery = latestAll?.delivery || [];
+destroyChart('deliveryChart');
+if (delivery.length) {
+  const totalDel = delivery.reduce((s,d) => s+(d.cnt||0), 0);
+  const BAR_COLORS = ['#2563EB','#0891B2','#059669','#7C3AED','#EA580C'];
+  charts['deliveryChart'] = new Chart(document.getElementById('deliveryChart'), {
+    type: 'bar',
+    data: {
+      labels: delivery.map(d => d.label + '회'),
+      datasets: [{ label:'신청 건수', data: delivery.map(d => d.cnt),
+        backgroundColor: delivery.map((_,i) => BAR_COLORS[i % BAR_COLORS.length]),
+        borderRadius: 6, borderSkipped: false }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => {
+          const ratio = totalDel > 0 ? (ctx.raw/totalDel*100).toFixed(1) : '0.0';
+          return ` ${fmtNum(ctx.raw)}건 (${ratio}%)`;
+        }}}
+      },
+      scales: {
+        x: { ticks: { font: { size:12, weight:'600' } } },
+        y: { beginAtZero:true, ticks: { font:{size:10}, callback: v => fmtNum(v)+'건' } }
+      }
+    },
+    plugins: [{
+      id: 'ratioLabel',
+      afterDatasetsDraw(chart) {
+        const { ctx, data } = chart;
+        const tot = data.datasets[0].data.reduce((s,v)=>s+v,0);
+        if (!tot) return;
+        ctx.save();
+        data.datasets[0].data.forEach((val, i) => {
+          const bar = chart.getDatasetMeta(0).data[i];
+          ctx.fillStyle = '#1E293B';
+          ctx.font = 'bold 11px Pretendard, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText((val/tot*100).toFixed(1)+'%', bar.x, bar.y - 6);
+        });
+        ctx.restore();
+      }
+    }]
+  });
+}
+} // renderS3 end
+
+// ─── 연간 카테고리별 매출 표 렌더링 (전역 함수) ──────────────
+function renderAnnualTable() {
+  const tbody = document.getElementById('annualBody');
+  if (!tbody) return;
+
+  // DATA.products 전체에서 연도별로 집계
+  // 현재 선택된 연도 기준
+  const allProds = DATA.products.filter(p => p.year == YEAR);
+  if (!allProds.length) {
+    tbody.innerHTML = '<tr><td colspan="15" style="text-align:center;color:var(--muted);padding:24px;">데이터 없음 — 해당 연도 엑셀을 업로드해주세요</td></tr>';
+    return;
+  }
+
+  // 카테고리 → 상품 목록 추출 (DATA.products 전체 기준)
+  const catOrder  = ['새벽배송','건강케어','질환케어','보충케어','이벤트/기타'];
+  const catColors = { '새벽배송':CAT_COLORS[0],'건강케어':CAT_COLORS[1],'질환케어':CAT_COLORS[2],'보충케어':CAT_COLORS[3],'이벤트/기타':CAT_COLORS[4] };
+
+  // 상품별 월별 매출 맵: {catName: {prodName: {month: sales}}}
+  const tree = {};
+  allProds.forEach(p => {
+    const cat  = p.category || '기타';
+    const name = p.name     || '–';
+    const m    = Number(p.month);
+    if (!tree[cat]) tree[cat] = {};
+    if (!tree[cat][name]) tree[cat][name] = {};
+    tree[cat][name][m] = (tree[cat][name][m] || 0) + (p.sales || 0);
+  });
+
+  // 전체 월별 합계 (합계 행용)
+  const totalByMonth = {};
+  for (let m=1; m<=12; m++) totalByMonth[m] = 0;
+  allProds.forEach(p => { totalByMonth[Number(p.month)] = (totalByMonth[Number(p.month)]||0) + (p.sales||0); });
+  const grandTotal = Object.values(totalByMonth).reduce((s,v)=>s+v,0);
+
+  // 데이터가 있는 월만 감지
+  const activeMths = [...Array(12).keys()].map(i=>i+1).filter(m => totalByMonth[m] > 0);
+
+  // 전월 비 계산 (1월이면 전년 12월과 비교)
+  const mmNow    = MONTH;
+  const mmPrev   = MONTH > 1 ? MONTH - 1 : 12;
+  const prevYear = MONTH > 1 ? YEAR : YEAR - 1;
+
+  // 전년도 데이터 트리 구성 (1월 선택 시 전년 12월 데이터용)
+  const prevProds = DATA.products.filter(p => p.year == prevYear);
+  const prevTree  = {};  // {cat: {name: {month: sales}}}
+  const prevTotalByMonth = {};
+  prevProds.forEach(p => {
+    const c = p.category || '기타', n = p.name || '–', m = Number(p.month);
+    if (!prevTree[c]) prevTree[c] = {};
+    if (!prevTree[c][n]) prevTree[c][n] = {};
+    prevTree[c][n][m] = (prevTree[c][n][m] || 0) + (p.sales || 0);
+    prevTotalByMonth[m] = (prevTotalByMonth[m] || 0) + (p.sales || 0);
+  });
+
+  // 전월 값 조회 헬퍼: 같은 연도면 tree에서, 전년도이면 prevTree에서
+  const getPrev = (treeNow, treePrev, cat, name) => {
+    if (MONTH > 1) return (treeNow[cat]?.[name]?.[mmPrev] || 0);
+    return (treePrev[cat]?.[name]?.[12] || 0);
+  };
+  const getCatPrev = (catMonthly, cat) => {
+    if (MONTH > 1) return catMonthly[mmPrev] || 0;
+    const pc = prevTree[cat];
+    if (!pc) return 0;
+    return Object.keys(pc).reduce((s, n) => s + (pc[n][12] || 0), 0);
+  };
+  const getTotPrev = () => {
+    if (MONTH > 1) return totalByMonth[mmPrev] || 0;
+    return prevTotalByMonth[12] || 0;
+  };
+
+  const fmtCell = v => v > 0 ? Math.round(v).toLocaleString('ko-KR')+'원' : '';
+  const momCell = (now, prev) => {
+    if (!prev || prev === 0) return '';
+    const pct = (now - prev) / prev * 100;
+    const color = pct >= 0 ? 'var(--green)' : 'var(--red)';
+    return `<span style="color:${color};font-weight:700">${pct>=0?'+':''}${pct.toFixed(1)}%</span>`;
+  };
+
+  let html = '';
+
+  // 합계 행
+  const totNow  = totalByMonth[mmNow] || 0;
+  const totPrev = getTotPrev();
+  html += `<tr style="font-weight:800;background:var(--bg);">
+    <td style="position:sticky;left:0;background:var(--bg);padding:9px 12px;font-weight:800;">합계</td>
+    <td style="font-weight:800;">${fmtCell(grandTotal)}</td>
+    ${[...Array(12).keys()].map(i=>`<td style="${i+1===mmNow?'background:#EFF6FF;font-weight:800;':''}">${fmtCell(totalByMonth[i+1])}</td>`).join('')}
+    <td style="background:#FFF7ED;">${momCell(totNow, totPrev)}</td>
+  </tr>`;
+
+  // 카테고리 → 상품
+  const renderCats = catOrder.filter(cat => tree[cat]);
+  renderCats.forEach(cat => {
+    const color = catColors[cat] || '#64748B';
+    const prods = Object.keys(tree[cat]).sort();
+
+    // 카테고리 소계 행
+    const catMonthly = {};
+    for (let m=1; m<=12; m++) {
+      catMonthly[m] = prods.reduce((s, name) => s + (tree[cat][name][m] || 0), 0);
+    }
+    const catTotal = Object.values(catMonthly).reduce((s,v)=>s+v,0);
+    const catNow   = catMonthly[mmNow] || 0;
+    const catPrev  = getCatPrev(catMonthly, cat);
+    html += `<tr style="background:var(--bg);">
+      <td style="position:sticky;left:0;background:var(--bg);padding:8px 12px;font-weight:800;color:${color};">${cat}</td>
+      <td style="font-weight:700;">${fmtCell(catTotal)}</td>
+      ${[...Array(12).keys()].map(i=>`<td style="${i+1===mmNow?'background:#EFF6FF;':''}">${fmtCell(catMonthly[i+1])}</td>`).join('')}
+      <td style="background:#FFF7ED;">${momCell(catNow, catPrev)}</td>
+    </tr>`;
+
+    // 상품 행
+    prods.forEach(name => {
+      const pm    = tree[cat][name];
+      const pTotal = Object.values(pm).reduce((s,v)=>s+v,0);
+      const pNow   = pm[mmNow] || 0;
+      const pPrev  = getPrev(tree, prevTree, cat, name);
+      html += `<tr>
+        <td style="position:sticky;left:0;background:var(--surface);padding:7px 12px 7px 22px;color:var(--text2);">${name}</td>
+        <td>${fmtCell(pTotal)}</td>
+        ${[...Array(12).keys()].map(i=>`<td style="${i+1===mmNow?'background:#EFF6FF;':''}">${fmtCell(pm[i+1]||0)}</td>`).join('')}
+        <td style="background:#FFF7ED;">${momCell(pNow, pPrev)}</td>
+      </tr>`;
+    });
+  });
+
+  tbody.innerHTML = html;
+}
+
+// ─── 요일별 탭 전환 ───
+function applyWdTab(tab) {
+  window._wdTab = tab;
+  if (!DATA._wd) return;
+  const { wdAll, wdOn, wdOff } = DATA._wd;
+  const vals = tab==='on' ? wdOn : tab==='off' ? wdOff : wdAll;
+  const maxV = Math.max(...vals) || 1;
+  const bestI = vals.indexOf(Math.max(...vals));
+
+  for (let i = 0; i < 7; i++) {
+    set('wdv-'+i, fmtKRW(Math.round(vals[i])));
+    const card   = document.getElementById('wd-'+i);
+    const nameEl = document.getElementById('wdn-'+i);
+    if (card)   card.classList.toggle('top', i===bestI);
+    if (nameEl) nameEl.classList.toggle('top-day', i===bestI);
+  }
+  set('s1-best-day', WD_FULL[bestI]);
+}
+
+function setWdTab(tab) {
+  window._wdTab = tab;
+  // 탭 버튼 스타일
+  ['all','on','off'].forEach(t => {
+    const btn = document.getElementById('wdTab-'+t);
+    if (!btn) return;
+    btn.className = 'wd-tab' + (t===tab ? ' active-'+t : '');
+  });
+  applyWdTab(tab);
+}
+
+// ─── Helpers ───
+function set(id, val) { const el=document.getElementById(id); if(el) el.textContent=val; }
+function setWidth(id, pct) { const el=document.getElementById(id); if(el) el.style.width=pct+'%'; }
+function destroyChart(id) { if(charts[id]) { charts[id].destroy(); delete charts[id]; } }
+
+function setYoy(id, curr, prev) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const str = yoyStr(curr, prev);
+  el.textContent = str;
+  el.className = curr >= prev ? 'tag-up' : 'tag-down';
+}
+
+// ─── Firebase 설정 ───────────────────────────────────────────
+// ⚠️ 아래 firebaseConfig를 본인의 Firebase 프로젝트 설정으로 교체하세요.
+// Firebase 콘솔 > 프로젝트 설정 > 앱 > firebaseConfig 복사
+const firebaseConfig = {
+  apiKey: "AIzaSyAm-Fnz1YKh7OKrPFKjAPO42BwTa3XPnOs",
+  authDomain: "sales-dashboard-d4939.firebaseapp.com",
+  projectId: "sales-dashboard-d4939",
+  storageBucket: "sales-dashboard-d4939.firebasestorage.app",
+  messagingSenderId: "996073785958",
+  appId: "1:996073785958:web:62ef7dee215121f4ae3ba7"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// ─── 업로드 데이터 기준 년/월 셀렉터 동적 업데이트 ───────────
+function updatePeriodSelector() {
+  // 업로드된 데이터에서 존재하는 연/월 조합 추출 (daily + products 모두 참조)
+  const periods = new Set();
+  DATA.daily.forEach(r => {
+    const d = new Date(r.date);
+    periods.add(`${d.getFullYear()}-${d.getMonth()+1}`);
+  });
+  DATA.products.forEach(p => {
+    if (p.year && p.month) periods.add(`${p.year}-${p.month}`);
+  });
+
+  if (!periods.size) return;
+
+  const years  = [...new Set([...periods].map(p => parseInt(p.split('-')[0])))].sort();
+  const selY   = document.getElementById('selYear');
+  const selM   = document.getElementById('selMonth');
+  const prevY  = selY.value, prevM = selM.value;
+
+  selY.innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join('');
+
+  const latestYear = years[years.length - 1];
+  selY.value = prevY && years.includes(parseInt(prevY)) ? prevY : latestYear;
+
+  updateMonthSelector([...periods]);
+
+  if (prevM && selM.querySelector(`option[value="${prevM}"]`)) {
+    selM.value = prevM;
+  }
+}
+
+function updateMonthSelector(periods) {
+  const selY = document.getElementById('selYear');
+  const selM = document.getElementById('selMonth');
+  const curY = parseInt(selY.value);
+  const months = periods
+    .filter(p => parseInt(p.split('-')[0]) === curY)
+    .map(p => parseInt(p.split('-')[1]))
+    .sort((a,b)=>a-b);
+  selM.innerHTML = months.map(m => `<option value="${m}">${m}월</option>`).join('');
+  selM.value = months[months.length - 1];
+}
+
+// ─── 년/월 셀렉터 이벤트 (단일 등록) ───
+document.getElementById('selYear').addEventListener('change', () => {
+  const periods = new Set();
+  DATA.daily.forEach(r => {
+    const d = new Date(r.date);
+    periods.add(`${d.getFullYear()}-${d.getMonth()+1}`);
+  });
+  DATA.products.forEach(p => {
+    if (p.year && p.month) periods.add(`${p.year}-${p.month}`);
+  });
+  if (periods.size) updateMonthSelector([...periods]);
+  onPeriodChange();
+});
+document.getElementById('selMonth').addEventListener('change', onPeriodChange);
+
+// ─── Firebase 저장 ──────────────────────────────────────────
+async function saveToFirebase(docId, data) {
+  try {
+    // Firestore 1문서 최대 1MB → 월별로 분할 저장
+    await db.collection('dashboard').doc(docId).set(data);
+    showToast('☁️ Firebase에 저장되었습니다');
+  } catch(e) {
+    showToast('❌ Firebase 저장 실패: ' + e.message);
+    console.error(e);
+  }
+}
+
+// ─── Firebase 전체 로드 ─────────────────────────────────────
+async function loadAllFromFirebase() {
+  try {
+    showToast('☁️ 서버에서 데이터를 불러오는 중...');
+    const snap = await db.collection('dashboard').get();
+    if (snap.empty) { showToast('ℹ️ 저장된 데이터가 없습니다. 엑셀을 업로드해주세요.'); return; }
+
+    // 모든 문서 병합
+    DATA.daily    = [];
+    DATA.d2c      = [];
+    DATA.cat      = [];
+    DATA.products = [];
+    DATA.subHistory = [];
+    DATA.monthTargets = null;
+
+    snap.forEach(doc => {
+      const d = doc.data();
+      if (d.daily)    DATA.daily    = DATA.daily.concat(d.daily);
+      if (d.d2c)      DATA.d2c      = DATA.d2c.concat(d.d2c);
+      if (d.cat)      DATA.cat      = DATA.cat.concat(d.cat);
+      if (d.products) DATA.products = DATA.products.concat(d.products);
+      if (d.products_daily) Object.assign(DATA.products_daily, d.products_daily);
+      if (d.subHistory) {
+        d.subHistory.forEach(entry => {
+          if (!DATA.subHistory) DATA.subHistory = [];
+          const exists = DATA.subHistory.find(h => h.year==entry.year && h.month==entry.month);
+          if (!exists) DATA.subHistory.push(entry);
+        });
+      } else if (d.sub) {
+        // 구버전 호환: sub 단일 객체
+        if (!DATA.subHistory) DATA.subHistory = [];
+        const exists = DATA.subHistory.find(h => d.sub && h.year==d.sub.year && h.month==d.sub.month);
+        if (!exists && d.sub.year) DATA.subHistory.push(d.sub);
+      }
+      if (d.monthTargets) DATA.monthTargets = d.monthTargets;
+    });
+
+    if (DATA.daily.length || DATA.products.length) {
+      document.getElementById('statusDot').style.background = '#4ADE80';
+      document.getElementById('statusDot').style.boxShadow = '0 0 0 3px rgba(74,222,128,0.3)';
+      document.getElementById('statusText').textContent = '✅ 서버 데이터 연동됨';
+      updatePeriodSelector();
+      onPeriodChange();
+      showToast('✅ 데이터를 불러왔습니다');
+    } else {
+      document.getElementById('statusText').textContent = '엑셀 파일을 업로드해주세요';
+      showToast('ℹ️ 저장된 데이터가 없습니다. 엑셀을 업로드해주세요.');
+    }
+  } catch(e) {
+    showToast('❌ Firebase 로드 실패: ' + e.message);
+    console.error(e);
+  }
+}
+
+// ─── Init ───
+onPeriodChange();
+loadAllFromFirebase();
+
+// ═══════════════════════════════════════════════════
+// ─── SLIDE 4: 이벤트 성과 ───────────────────────────
+// ═══════════════════════════════════════════════════
+
+// ── 이벤트 데이터 구조 ──
+// EVT_LIST: [{id, title, startDate, endDate, desc}]
+// EVT_DATA: {[id]: {daily:[{date,sales,orders}], products:[{name,sales,orders,prevSales}], prevTotal, prevOrders}}
+let EVT_LIST = [];
+let EVT_DATA = {};
+let EVT_CUR  = null; // 현재 선택된 이벤트 id
+
+// ── Firebase에서 이벤트 로드 ──
+async function loadEventsFromFirebase() {
+  try {
+    const snap = await db.collection('events').get();
+    EVT_LIST = [];
+    EVT_DATA = {};
+    snap.forEach(doc => {
+      const d = doc.data();
+      if (d.type === 'info') {
+        EVT_LIST.push({ id: doc.id, title: d.title, startDate: d.startDate, endDate: d.endDate, desc: d.desc });
+      } else if (d.type === 'data') {
+        EVT_DATA[doc.id.replace('data_','')] = d.payload;
+      }
+    });
+    EVT_LIST.sort((a,b) => (b.startDate||'').localeCompare(a.startDate||''));
+    renderEvtTabs();
+    // 로드 후 첫 번째 이벤트 자동 선택 → 새로고침해도 내용 복원
+    if (EVT_LIST.length > 0) selectEvt(EVT_LIST[0].id);
+  } catch(e) { console.error('이벤트 로드 실패', e); }
+}
+
+// ── 탭 렌더링 ──
+function renderEvtTabs() {
+  const wrap = document.getElementById('evtTabWrap');
+  if (!wrap) return;
+  const colors = ['#2563EB','#0891B2','#059669','#7C3AED','#EA580C','#D97706','#DB2777'];
+  wrap.innerHTML = '';
+  EVT_LIST.forEach((evt, i) => {
+    const color = colors[i % colors.length];
+    const btn = document.createElement('button');
+    btn.textContent = evt.title;
+    btn.style.cssText = `padding:6px 14px;border-radius:7px;border:1.5px solid ${EVT_CUR===evt.id?color:'var(--border)'};
+      background:${EVT_CUR===evt.id?color:'var(--surface)'};color:${EVT_CUR===evt.id?'#fff':'var(--text2)'};
+      font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all 0.18s;white-space:nowrap;`;
+    btn.onclick = () => selectEvt(evt.id);
+    wrap.appendChild(btn);
+  });
+
+  if (!EVT_LIST.length) {
+    document.getElementById('evtEmpty').style.display = 'block';
+    document.getElementById('evtInfoCard').style.display = 'none';
+    document.getElementById('evtDataSection').style.display = 'none';
+  }
+}
+
+// ── 이벤트 선택 ──
+function selectEvt(id) {
+  EVT_CUR = id;
+  const evt = EVT_LIST.find(e => e.id === id);
+  if (!evt) return;
+
+  document.getElementById('evtEmpty').style.display    = 'none';
+  document.getElementById('evtInfoCard').style.display = 'block';
+  document.getElementById('evtDataSection').style.display = 'block';
+
+  // 정보 카드
+  document.getElementById('evtTitle').textContent = evt.title;
+  document.getElementById('evtDate').textContent  = `📅 ${evt.startDate||''} ~ ${evt.endDate||''}`;
+  document.getElementById('evtDesc').textContent  = evt.desc || '';
+
+  // 기간 계산
+  if (evt.startDate && evt.endDate) {
+    const days = Math.round((new Date(evt.endDate)-new Date(evt.startDate))/(86400000)) + 1;
+    set('ev-period', `${evt.startDate} ~ ${evt.endDate}`);
+    set('ev-days',   `총 ${days}일`);
+  }
+
+  // 탭 재렌더 (선택 상태 반영)
+  renderEvtTabs();
+
+  // 데이터 렌더
+  renderEvtDashboard(id);
+}
+
+// ── 이벤트 대시보드 렌더 ──
+function renderEvtDashboard(id) {
+  const raw = EVT_DATA[id];
+  const layoutA = document.getElementById('evtLayoutA');
+  const layoutB = document.getElementById('evtLayoutB');
+
+  if (!raw || !raw.daily || !raw.daily.length) {
+    ['ev-total','ev-yoy','ev-orders','ev-orders-yoy','ev-aov'].forEach(i => set(i,'–'));
+    document.getElementById('evtUploadStatus').textContent = '데이터 없음 — 엑셀을 업로드해주세요';
+    layoutA.style.display = 'none';
+    layoutB.style.display = 'none';
+    ['evtDailyChart','evtDailyChartB','evtYoyChart'].forEach(k => destroyChart(k));
+    document.getElementById('evtProdBodyA').innerHTML =
+      '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px">이벤트 엑셀 파일을 업로드하면 데이터가 표시됩니다</td></tr>';
+    document.getElementById('evtProdBodyB').innerHTML =
+      '<tr><td colspan="6" style="text-align:center;color:var(--muted);padding:24px">이벤트 엑셀 파일을 업로드하면 데이터가 표시됩니다</td></tr>';
+    return;
+  }
+
+  const daily    = raw.daily;
+  const products = raw.products || [];
+  const prevTot  = raw.prevTotal  || 0;
+  const prevOrd  = raw.prevOrders || 0;
+  const thisTot  = daily.reduce((s,r)=>s+(r.sales||0),0);
+  const thisOrd  = daily.reduce((s,r)=>s+(r.orders||0),0);
+  const aov      = thisOrd > 0 ? thisTot / thisOrd : 0;
+  const hasYoy   = prevTot > 0;
+
+  // KPI
+  set('ev-total',  fmtKRW(thisTot));
+  set('ev-orders', fmtNum(thisOrd) + '건');
+  set('ev-aov',    fmtKRW(Math.round(aov)));
+  document.getElementById('evtUploadStatus').textContent = `✅ 데이터 연동됨 (${daily.length}일)`;
+
+  // YoY KPI 뱃지
+  const yoyEl = document.getElementById('ev-yoy');
+  if (hasYoy) {
+    const yoyPct = ((thisTot-prevTot)/prevTot*100);
+    yoyEl.textContent = (yoyPct>=0?'+':'')+yoyPct.toFixed(1)+'%';
+    yoyEl.className   = yoyPct>=0?'tag-up':'tag-down';
+  } else { yoyEl.textContent='–'; yoyEl.className='tag-up'; }
+  const yoyOrdEl = document.getElementById('ev-orders-yoy');
+  if (prevOrd > 0) {
+    const p = ((thisOrd-prevOrd)/prevOrd*100);
+    yoyOrdEl.textContent = (p>=0?'+':'')+p.toFixed(1)+'%';
+    yoyOrdEl.className   = p>=0?'tag-up':'tag-down';
+  } else { yoyOrdEl.textContent='–'; yoyOrdEl.className='tag-up'; }
+
+  // 차트 옵션 공통
+  const dailyChartOpts = (canvasId) => ({
+    type:'bar',
+    data:{
+      labels: daily.map(r=>(r.date||'').slice(5).replace('-','/')),
+      datasets:[
+        { label:'매출액',  data:daily.map(r=>r.sales||0),  backgroundColor:'rgba(37,99,235,0.7)', borderRadius:3, yAxisID:'y',  order:2 },
+        { label:'주문건수', data:daily.map(r=>r.orders||0), type:'line', borderColor:'#F59E0B',
+          backgroundColor:'transparent', borderWidth:2, tension:0.4, pointRadius:3, yAxisID:'y2', order:1 }
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{
+        legend:{display:true,position:'top',labels:{boxWidth:10,font:{size:10}}},
+        tooltip:{callbacks:{label:ctx=>ctx.dataset.label==='매출액'?fmtKRW(ctx.raw):fmtNum(ctx.raw)+'건'}}
+      },
+      scales:{
+        x:{ticks:{font:{size:10},maxRotation:45}},
+        y:{ticks:{callback:v=>Math.round(v/10000)+'만',font:{size:10}},position:'left'},
+        y2:{ticks:{font:{size:10}},position:'right',grid:{display:false}}
+      }
+    }
+  });
+
+  // 상품 행 생성 헬퍼
+  const prodRows = (includeYoy) => {
+    const sorted = [...products].sort((a,b)=>(b.sales||0)-(a.sales||0));
+    if (!sorted.length) {
+      const colspan = includeYoy ? 6 : 4;
+      return `<tr><td colspan="${colspan}" style="text-align:center;color:var(--muted);padding:20px">상품 데이터 없음</td></tr>`;
+    }
+    return sorted.map(p => {
+      const pct  = thisTot>0 ? (p.sales/thisTot*100).toFixed(1) : '0.0';
+      const bar  = `<div class="mini-bar-wrap"><div class="mini-bar-bg"><div class="mini-bar-fill" style="width:${pct}%;background:var(--blue)"></div></div><span style="font-size:11px;font-weight:700;min-width:36px">${pct}%</span></div>`;
+      let extra = '';
+      if (includeYoy) {
+        const diff = p.prevSales > 0 ? ((p.sales-p.prevSales)/p.prevSales*100) : null;
+        const diffHtml = diff!==null
+          ? `<span class="${diff>=0?'tag-up':'tag-down'}">${diff>=0?'+':''}${diff.toFixed(1)}%</span>`
+          : '<span style="color:var(--muted)">–</span>';
+        extra = `<td style="color:var(--muted)">${p.prevSales>0?fmtKRW(p.prevSales):'–'}</td><td>${diffHtml}</td>`;
+      }
+      return `<tr>
+        <td style="font-weight:600">${p.name||'–'}</td>
+        <td style="font-weight:700">${fmtKRW(p.sales||0)}</td>
+        <td>${bar}</td>
+        <td style="font-weight:700">${fmtNum(p.orders||0)}건</td>
+        ${extra}
+      </tr>`;
+    }).join('');
+  };
+
+  if (!hasYoy) {
+    // ── 레이아웃 A: 전년 없음 → 차트(좌) + 상품(우) ──
+    layoutA.style.display = 'grid';
+    layoutB.style.display = 'none';
+    ['evtDailyChartB','evtYoyChart'].forEach(k => destroyChart(k));
+
+    destroyChart('evtDailyChart');
+    charts['evtDailyChart'] = new Chart(
+      document.getElementById('evtDailyChart'), dailyChartOpts('evtDailyChart')
+    );
+    document.getElementById('evtProdBodyA').innerHTML = prodRows(false);
+
+  } else {
+    // ── 레이아웃 B: 전년 있음 → 차트(좌)+전년비교(우) + 상품 풀너비 ──
+    layoutA.style.display = 'none';
+    layoutB.style.display = 'block';
+    destroyChart('evtDailyChart');
+
+    destroyChart('evtDailyChartB');
+    charts['evtDailyChartB'] = new Chart(
+      document.getElementById('evtDailyChartB'), dailyChartOpts('evtDailyChartB')
+    );
+
+    set('ev-this-total', fmtKRW(thisTot));
+    set('ev-prev-total', fmtKRW(prevTot));
+    destroyChart('evtYoyChart');
+    charts['evtYoyChart'] = new Chart(document.getElementById('evtYoyChart'), {
+      type:'bar',
+      data:{
+        labels:['매출액','주문건수'],
+        datasets:[
+          { label:'올해', data:[thisTot,thisOrd], backgroundColor:'rgba(37,99,235,0.75)', borderRadius:4 },
+          { label:'전년', data:[prevTot,prevOrd],  backgroundColor:'rgba(148,163,184,0.5)', borderRadius:4 }
+        ]
+      },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{display:true,position:'top',labels:{boxWidth:10,font:{size:10}}},
+          tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+(ctx.dataIndex===0?fmtKRW(ctx.raw):fmtNum(ctx.raw)+'건')}}
+        },
+        scales:{ y:{ticks:{callback:v=>v>999?Math.round(v/10000)+'만':v,font:{size:10}}} }
+      }
+    });
+
+    document.getElementById('evtProdBodyB').innerHTML = prodRows(true);
+  }
+}
+
+// ── 이벤트 엑셀 업로드 ──
+function handleEvtFile(e) {
+  const file = e.target.files[0];
+  if (!file || !EVT_CUR) { showToast('⚠️ 먼저 이벤트를 선택해주세요'); return; }
+  const reader = new FileReader();
+  reader.onload = evt => {
+    try {
+      const wb   = XLSX.read(evt.target.result, { type:'array', cellDates:false });
+      const ws   = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { header:1, defval:'' });
+
+      // 파싱: 시트 구조
+      // [섹션1] 일자별: 날짜 | 매출액 | 주문건수 (헤더 포함)
+      // [섹션2] 상품별: 상품명 | 매출액 | 주문건수 | 전년매출 (헤더 포함)
+      // [섹션3] 전년합계: "전년합계" | 매출액 | 주문건수
+      let section = 0;
+      const daily=[], products=[];
+      let prevTotal=0, prevOrders=0;
+
+      for (let i=0; i<rows.length; i++) {
+        const r = rows[i];
+        const first = String(r[0]||'').trim();
+        if (first === '[일자별]')   { section=1; i++; continue; }
+        if (first === '[상품별]')   { section=2; i++; continue; }
+        if (first === '[전년합계]') { prevTotal=Number(r[1])||0; prevOrders=Number(r[2])||0; continue; }
+        if (!first) continue;
+
+        if (section===1) {
+          const dateVal = r[0];
+          let dateStr = '';
+          if (dateVal instanceof Date) dateStr = dateVal.toISOString().slice(0,10);
+          else { const d=new Date(dateVal); dateStr=isNaN(d)?String(dateVal).slice(0,10):d.toISOString().slice(0,10); }
+          const sales=Number(r[1])||0, orders=Number(r[2])||0;
+          if (dateStr) daily.push({date:dateStr, sales, orders});
+        } else if (section===2) {
+          const name=String(r[0]).trim();
+          if (name) products.push({ name, sales:Number(r[1])||0, orders:Number(r[2])||0, prevSales:Number(r[3])||0 });
+        }
+      }
+
+      EVT_DATA[EVT_CUR] = { daily, products, prevTotal, prevOrders };
+      renderEvtDashboard(EVT_CUR);
+      showToast('✅ 이벤트 데이터 업로드 완료!');
+
+      // Firebase 저장
+      db.collection('events').doc('data_'+EVT_CUR).set({
+        type:'data', payload:{ daily, products, prevTotal, prevOrders }
+      }).catch(e=>console.error(e));
+
+    } catch(err) { showToast('❌ 파일 오류: '+err.message); console.error(err); }
+  };
+  reader.readAsArrayBuffer(file);
+  e.target.value = '';
+}
+
+// ── 엑셀 양식 다운로드 ──
+function downloadEvtTemplate() {
+  const wb = XLSX.utils.book_new();
+  const data = [
+    ['[일자별]','',''],
+    ['날짜','매출액','주문건수'],
+    ['2026-01-10',1500000,12],
+    ['2026-01-11',2300000,18],
+    ['2026-01-12',1800000,14],
+    ['','',''],
+    ['[상품별]','','',''],
+    ['상품명','매출액','주문건수','전년매출(없으면0)'],
+    ['상품A',800000,8,750000],
+    ['상품B',600000,5,0],
+    ['','','',''],
+    ['[전년합계]',3500000,30],
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(data);
+  ws['!cols'] = [{wch:20},{wch:15},{wch:12},{wch:18}];
+  XLSX.utils.book_append_sheet(wb, ws, '이벤트성과');
+  XLSX.writeFile(wb, '이벤트성과_양식.xlsx');
+}
+
+// ── 모달: 추가 ──
+let _evtEditId = null;
+function openAddEventModal() {
+  _evtEditId = null;
+  document.getElementById('evtModalTitle').textContent = '이벤트 추가';
+  document.getElementById('evtInputTitle').value = '';
+  document.getElementById('evtInputStart').value = '';
+  document.getElementById('evtInputEnd').value   = '';
+  document.getElementById('evtInputDesc').value  = '';
+  document.getElementById('evtModal').style.display = 'flex';
+}
+
+function openEditEventModal() {
+  const evt = EVT_LIST.find(e => e.id === EVT_CUR);
+  if (!evt) return;
+  _evtEditId = evt.id;
+  document.getElementById('evtModalTitle').textContent = '이벤트 수정';
+  document.getElementById('evtInputTitle').value = evt.title   || '';
+  document.getElementById('evtInputStart').value = evt.startDate || '';
+  document.getElementById('evtInputEnd').value   = evt.endDate   || '';
+  document.getElementById('evtInputDesc').value  = evt.desc     || '';
+  document.getElementById('evtModal').style.display = 'flex';
+}
+
+function closeEvtModal() {
+  document.getElementById('evtModal').style.display = 'none';
+}
+
+async function saveEvtModal() {
+  const title = document.getElementById('evtInputTitle').value.trim();
+  const start = document.getElementById('evtInputStart').value.trim();
+  const end   = document.getElementById('evtInputEnd').value.trim();
+  const desc  = document.getElementById('evtInputDesc').value.trim();
+  if (!title) { showToast('⚠️ 이벤트 타이틀을 입력해주세요'); return; }
+
+  const id   = _evtEditId || 'evt_' + Date.now();
+  const info = { type:'info', title, startDate:start, endDate:end, desc };
+
+  try {
+    await db.collection('events').doc(id).set(info);
+    if (_evtEditId) {
+      const idx = EVT_LIST.findIndex(e=>e.id===id);
+      if (idx>=0) EVT_LIST[idx] = { id, title, startDate:start, endDate:end, desc };
+    } else {
+      EVT_LIST.unshift({ id, title, startDate:start, endDate:end, desc });
+    }
+    closeEvtModal();
+    EVT_CUR = id;
+    renderEvtTabs();
+    selectEvt(id);
+    showToast('✅ 이벤트가 저장되었습니다');
+  } catch(e) { showToast('❌ 저장 실패: '+e.message); }
+}
+
+async function deleteCurrentEvent() {
+  if (!EVT_CUR) return;
+  if (!confirm('이 이벤트를 삭제하시겠습니까?')) return;
+  try {
+    await db.collection('events').doc(EVT_CUR).delete();
+    await db.collection('events').doc('data_'+EVT_CUR).delete().catch(()=>{});
+    delete EVT_DATA[EVT_CUR];
+    EVT_LIST = EVT_LIST.filter(e=>e.id!==EVT_CUR);
+    EVT_CUR  = EVT_LIST.length ? EVT_LIST[0].id : null;
+    renderEvtTabs();
+    if (EVT_CUR) selectEvt(EVT_CUR);
+    else {
+      document.getElementById('evtInfoCard').style.display   = 'none';
+      document.getElementById('evtDataSection').style.display = 'none';
+      document.getElementById('evtEmpty').style.display      = 'block';
+    }
+    showToast('🗑 이벤트가 삭제되었습니다');
+  } catch(e) { showToast('❌ 삭제 실패: '+e.message); }
+}
+
+// 모달 외부 클릭 닫기
+document.getElementById('evtModal').addEventListener('click', function(e){
+  if (e.target === this) closeEvtModal();
+});
+
+// ─── Init ───
+onPeriodChange();
+loadAllFromFirebase();
+loadEventsFromFirebase();
+</script>
+</body>
+</html>
