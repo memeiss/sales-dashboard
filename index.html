@@ -1962,21 +1962,22 @@ function parseSubSheet(ws) {
     }
   }
 
-  // ■ 3. 배송 횟수 — '배송 횟수 구분' 헤더 탐색 (헤더 행 자체는 건너뜀)
+  // ■ 3. 배송 횟수 — '배송 횟수 구분' 헤더 탐색
+  // Row23: '■ 3. 배송 횟수 현황' (섹션 제목), Row24: '배송 횟수 구분' (실제 헤더)
+  // → '배송 횟수 구분'이 정확히 포함된 행을 헤더로 인식
   let delivHeaderRow = -1;
   for (let r = 0; r < 40; r++) {
     const v = cellS(ws, r, 0);
-    // '배송 횟수 구분' 또는 '배송 횟수'가 포함된 행 = 헤더 행
-    if (v && v.includes('배송 횟수')) { delivHeaderRow = r; break; }
+    if (v && v.includes('배송 횟수 구분')) { delivHeaderRow = r; break; }
   }
   const delivery = [];
   if (delivHeaderRow >= 0) {
     for (let r = delivHeaderRow + 1; r < delivHeaderRow + 15; r++) {
       const label = cellS(ws, r, 0);
-      if (!label || label === '합계' || label.includes('배송 횟수')) break;
-      // 숫자 또는 'N회' 형태만 데이터로 인정
+      if (!label || label === '합계') break;
+      // 숫자가 포함된 행만 데이터로 인정 (4회, 8회 등)
       if (!/\d/.test(label)) continue;
-      // 중복 '회' 방지: 이미 '회'로 끝나면 그대로, 아니면 붙이지 않음 (렌더링에서 처리)
+      // 중복 '회' 방지: label에서 '회' 제거 후 렌더링에서 다시 붙임
       delivery.push({ label: label.replace(/회$/, ''), cnt: cellV(ws, r, 1) || 0, ratio: cellV(ws, r, 2) || 0 });
     }
   }
