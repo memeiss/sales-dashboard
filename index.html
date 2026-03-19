@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -629,6 +630,7 @@ body {
     <button class="nav-tab" onclick="goTo(1)">🛒 D2C 채널</button>
     <button class="nav-tab" onclick="goTo(2)">🏷️ 자사몰 카테고리</button>
     <button class="nav-tab" onclick="goTo(3)">🎯 이벤트</button>
+    <button class="nav-tab" onclick="goTo(4)">🏬 신세계</button>
   </div>
 </div>
 
@@ -642,6 +644,7 @@ body {
     <div class="dot" onclick="goTo(1)"></div>
     <div class="dot" onclick="goTo(2)"></div>
     <div class="dot" onclick="goTo(3)"></div>
+    <div class="dot" onclick="goTo(4)"></div>
   </div>
   <button class="arrow-btn" id="nextBtn" onclick="navigate(1)">
     다음<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9,6 15,12 9,18"/></svg>
@@ -1449,6 +1452,501 @@ body {
   </div><!-- evtDataSection -->
 </div><!-- slide 4 end -->
 
+<!-- ─── SLIDE 5 : 신세계 ─── -->
+<div class="slide" id="ssg-slide">
+
+  <!-- ══════════════════════════════════════════
+       신세계 슬라이드 전용 CSS (라이트 테마 변환)
+  ══════════════════════════════════════════ -->
+  <style>
+  /* ── 신세계 슬라이드 전용 변수 (라이트 오버라이드) ── */
+  #ssg-slide {
+    --ssg-bg:     #F8FAFC;
+    --ssg-sf:     #FFFFFF;
+    --ssg-sf2:    #F1F5F9;
+    --ssg-bd:     #E2E8F0;
+    --ssg-ag:     #059669;   /* 에메랄드 → 라이트 그린 */
+    --ssg-ac:     #2563EB;   /* 블루 */
+    --ssg-aw:     #DC2626;   /* 레드 */
+    --ssg-tx:     #1E293B;   /* 진한 텍스트 */
+    --ssg-mu:     #64748B;   /* 뮤트 */
+    --ssg-dm:     #94A3B8;   /* 더 뮤트 */
+    --ssg-gd:     #B45309;   /* 앰버 */
+    --ssg-sh:     0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.05);
+  }
+
+  /* 신세계 섹션 헤더 */
+  .ssg-section-title {
+    display:flex; align-items:center; gap:10px;
+    margin-bottom:20px; padding-bottom:14px;
+    border-bottom:1px solid var(--border);
+  }
+  .ssg-section-icon { width:36px;height:36px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;background:#EFF6FF; }
+
+  /* KPI 그리드 */
+  .ssg-kgrid { display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:12px; }
+  .ssg-kpi {
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:11px;padding:16px 18px;position:relative;overflow:hidden;
+    box-shadow:var(--shadow);
+  }
+  .ssg-kpi::before { content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--ssg-kc, var(--ssg-ag)); }
+  .ssg-kpi-label { font-size:10px;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:5px; }
+  .ssg-badge { font-size:9px;font-weight:800;padding:1px 6px;border-radius:3px;letter-spacing:.04em; }
+  .ssg-badge.tg { background:var(--green-lt);color:var(--green); }
+  .ssg-badge.td { background:var(--red-lt);color:var(--red); }
+  .ssg-badge.tn { background:var(--amber-lt);color:var(--amber); }
+  .ssg-badge.ti { background:var(--blue-lt);color:var(--blue); }
+  .ssg-kpi-v { font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.5px; }
+  .ssg-kpi-s { font-size:11px;color:var(--muted);margin-top:3px; }
+
+  /* 내부 탭 */
+  .ssg-tabnav {
+    display:flex;gap:4px;background:var(--surface2);border:1px solid var(--border);
+    border-radius:10px;padding:4px;width:fit-content;margin-bottom:20px;
+  }
+  .ssg-tbtn {
+    padding:6px 18px;border-radius:7px;border:none;background:transparent;
+    color:var(--muted);font-family:inherit;font-size:12px;font-weight:600;
+    cursor:pointer;transition:all .15s;
+  }
+  .ssg-tbtn.on { background:var(--blue);color:#fff;font-weight:700; }
+  .ssg-tbtn:hover:not(.on) { color:var(--blue);background:var(--blue-lt); }
+
+  /* 섹션 */
+  .ssg-sec { margin-bottom:28px; }
+  .ssg-stitle {
+    font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--muted);margin-bottom:12px;display:flex;align-items:center;gap:10px;
+  }
+  .ssg-stitle::after { content:'';flex:1;height:1px;background:var(--border); }
+
+  /* 코멘트 박스 */
+  .ssg-cmnt-wrap { position:relative;margin-bottom:16px; }
+  .ssg-cmnt {
+    background:var(--blue-lt);border:1px solid #BFDBFE;border-left:3px solid var(--blue);
+    border-radius:8px;padding:12px 16px;font-size:12px;line-height:1.75;color:var(--text2);
+    min-height:52px;transition:background .15s;
+  }
+  .ssg-cmnt strong { color:var(--text);font-weight:700; }
+  .ssg-cmnt.editing { background:#EFF6FF;border-color:var(--blue);outline:none;color:var(--text); }
+  .ssg-cmnt-edit-btn {
+    position:absolute;top:8px;right:10px;background:var(--amber-lt);border:1px solid #FDE68A;
+    border-radius:6px;padding:3px 10px;font-size:10px;font-weight:700;color:var(--amber);
+    cursor:pointer;display:none;align-items:center;gap:4px;transition:all .15s;font-family:inherit;
+  }
+  .ssg-cmnt-edit-btn:hover { background:#FEF3C7; }
+  .ssg-cmnt-edit-btn svg { width:11px;height:11px;stroke:currentColor;fill:none;stroke-width:2; }
+  .ssg-cmnt-save-btn {
+    position:absolute;top:8px;right:10px;background:var(--green);border:none;
+    border-radius:6px;padding:3px 10px;font-size:10px;font-weight:700;color:#fff;
+    cursor:pointer;display:none;font-family:inherit;
+  }
+  .ssg-ir { display:flex;gap:8px;align-items:flex-start;margin-top:7px; }
+  .ssg-tag { font-size:10px;font-weight:700;padding:2px 7px;border-radius:3px;white-space:nowrap;margin-top:1px; }
+  .ssg-tag.tg { background:var(--green-lt);color:var(--green); }
+  .ssg-tag.td { background:var(--red-lt);color:var(--red); }
+  .ssg-tag.tn { background:var(--amber-lt);color:var(--amber); }
+  .ssg-tag.ti { background:var(--blue-lt);color:var(--blue); }
+
+  /* 카드 */
+  .ssg-g2 { display:grid;grid-template-columns:1fr 1fr;gap:14px; }
+  .ssg-g3 { display:grid;grid-template-columns:2fr 1fr;gap:14px; }
+  .ssg-card {
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:12px;padding:18px;box-shadow:var(--shadow);
+  }
+  .ssg-ctitle {
+    font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--muted);
+    text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:6px;
+  }
+  .ssg-cw { position:relative;height:220px; }
+  .ssg-cw.t { height:290px; }
+  .ssg-cw.xl { height:360px; }
+  .ssg-dot { width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0; }
+  .ssg-dot.dg { background:var(--green); }
+  .ssg-dot.dc { background:var(--blue); }
+  .ssg-dnt { height:175px;position:relative; }
+  .ssg-leg { margin-top:10px; }
+  .ssg-li { display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted);margin-bottom:4px; }
+  .ssg-lc { width:10px;height:10px;border-radius:2px;flex-shrink:0; }
+  .ssg-lp { margin-left:auto;font-size:11px;color:var(--text);font-weight:700; }
+
+  /* 상품 테이블 */
+  .ssg-ptbl { width:100%;border-collapse:collapse; }
+  .ssg-ptbl thead tr { background:var(--surface2);border-bottom:1.5px solid var(--border); }
+  .ssg-ptbl th { padding:8px 12px;text-align:left;font-size:10px;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;font-weight:700; }
+  .ssg-ptbl th:last-child, .ssg-ptbl td:last-child { text-align:right; }
+  .ssg-ptbl td { padding:8px 12px;font-size:12px;border-bottom:1px solid var(--border);vertical-align:middle; }
+  .ssg-ptbl tr:last-child td { border-bottom:none; }
+  .ssg-ptbl tr:hover td { background:var(--surface2); }
+  .ssg-prk { font-size:10px;color:var(--muted);width:22px;font-weight:700; }
+  .ssg-t1 .ssg-prk { color:#B45309; }
+  .ssg-t2 .ssg-prk { color:#475569; }
+  .ssg-t3 .ssg-prk { color:#92400E; }
+  .ssg-psl { font-size:12px;color:var(--green);font-weight:700; }
+  .ssg-pbb { height:4px;background:var(--bg);border-radius:2px;overflow:hidden;width:60px;border:1px solid var(--border); }
+  .ssg-pbf { height:100%;border-radius:2px;background:var(--green); }
+  .ssg-cb { display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600; }
+  .ssg-c건강케어 { background:var(--green-lt);color:var(--green); }
+  .ssg-c암케어   { background:var(--red-lt);color:var(--red); }
+  .ssg-c당뇨케어 { background:var(--amber-lt);color:var(--amber); }
+  .ssg-c신장     { background:var(--blue-lt);color:var(--blue); }
+  .ssg-c마녀스프 { background:#F3E8FF;color:#7C3AED; }
+  .ssg-c보충케어 { background:#ECFDF5;color:#059669; }
+  .ssg-c쉐이크   { background:#FFF7ED;color:#EA580C; }
+  .ssg-c영양죽   { background:#EFF6FF;color:#3B82F6; }
+
+  /* 매장 비교 */
+  .ssg-scp { display:grid;grid-template-columns:1fr 1fr;gap:14px; }
+  .ssg-spnl { background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;box-shadow:var(--shadow); }
+  .ssg-sphd { padding:12px 18px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border); }
+  .ssg-sphd.gn { background:linear-gradient(135deg,var(--green-lt),#FFFFFF); }
+  .ssg-sphd.cd { background:linear-gradient(135deg,var(--blue-lt),#FFFFFF); }
+  .ssg-snm { font-size:14px;font-weight:800;color:var(--text); }
+  .ssg-ssb { font-size:11px;color:var(--muted);margin-left:auto; }
+
+  /* 이벤트 범례 */
+  .ssg-evt-legend { display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px; }
+  .ssg-evt-item { display:flex;align-items:center;gap:5px;font-size:11px;color:var(--muted); }
+  .ssg-evt-dot { width:10px;height:10px;border-radius:50%;flex-shrink:0; }
+
+  /* 요일 카드 */
+  .ssg-wd-grid { display:grid;grid-template-columns:repeat(7,1fr);gap:10px;margin-bottom:16px; }
+  .ssg-wd-card { background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 8px;text-align:center;box-shadow:var(--shadow); }
+  .ssg-wd-card.peak { border-color:var(--amber);background:var(--amber-lt); }
+  .ssg-wd-card.low  { border-color:var(--red);background:var(--red-lt); }
+  .ssg-wd-name { font-size:11px;color:var(--muted);margin-bottom:5px;font-weight:700; }
+  .ssg-wd-bar-wrap { height:56px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:5px; }
+  .ssg-wd-bar { width:28px;border-radius:3px 3px 0 0;background:var(--green);opacity:.65; }
+  .ssg-wd-card.peak .ssg-wd-bar { opacity:1;background:var(--amber); }
+  .ssg-wd-card.low  .ssg-wd-bar { opacity:.5;background:var(--red); }
+  .ssg-wd-val { font-size:11px;font-weight:700;color:var(--text); }
+  .ssg-wd-sub { font-size:10px;color:var(--muted);margin-top:1px; }
+
+  /* 피크 그리드 */
+  .ssg-peak-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px; }
+  .ssg-peak-card { background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:14px;box-shadow:var(--shadow); }
+  .ssg-peak-month { font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:6px; }
+  .ssg-peak-month .pm-badge { background:var(--amber-lt);color:var(--amber);padding:2px 7px;border-radius:3px;font-size:9px;font-weight:800; }
+  .ssg-peak-item { display:flex;align-items:center;gap:7px;margin-bottom:6px;font-size:12px;color:var(--text); }
+  .ssg-peak-rank { font-size:10px;color:var(--muted);width:18px;flex-shrink:0;font-weight:700; }
+  .ssg-peak-name { flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+  .ssg-peak-pct { font-size:11px;color:var(--amber);flex-shrink:0;font-weight:700; }
+
+  /* 페이지 show/hide */
+  .ssg-page { display:none; }
+  .ssg-page.on { display:block; }
+
+  /* 편집 모드 바 */
+  .ssg-edit-bar {
+    display:none;background:var(--amber-lt);border:1px solid #FDE68A;
+    border-radius:8px;padding:10px 14px;margin-bottom:16px;
+    font-size:12px;color:var(--amber);align-items:center;gap:8px;
+  }
+  .ssg-edit-bar.on { display:flex; }
+  .ssg-edit-bar svg { width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;flex-shrink:0; }
+
+  @media(max-width:768px){
+    .ssg-kgrid { grid-template-columns:repeat(2,1fr); }
+    .ssg-g2, .ssg-scp { grid-template-columns:1fr; }
+    .ssg-wd-grid { grid-template-columns:repeat(4,1fr); }
+    .ssg-peak-grid { grid-template-columns:1fr; }
+  }
+  </style>
+
+  <!-- ─ 섹션 헤더 ─ -->
+  <div class="ssg-section-title">
+    <div class="ssg-section-icon">🏬</div>
+    <div>
+      <h2 style="font-size:17px;font-weight:800;letter-spacing:-0.4px;">신세계 - 매출 분석 보고서</h2>
+      <p style="font-size:11px;color:var(--muted);margin-top:2px;">2025.02 – 2026.02 &nbsp;·&nbsp; 강남 · 청담 매장 실적</p>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:8px;align-items:center;">
+      <button onclick="ssgToggleEdit()" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:1px solid var(--amber-lt);background:var(--amber-lt);color:var(--amber);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;" onmouseover="this.style.background='#FEF3C7'" onmouseout="this.style.background='var(--amber-lt)'">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>코멘트 편집
+      </button>
+      <button onclick="ssgDlXlsx()" style="display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:8px;border:1px solid var(--green-lt);background:var(--green-lt);color:var(--green);font-family:inherit;font-size:12px;font-weight:700;cursor:pointer;transition:all .15s;" onmouseover="this.style.background='#D1FAE5'" onmouseout="this.style.background='var(--green-lt)'">
+        <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Raw 다운로드
+      </button>
+    </div>
+  </div>
+
+  <!-- 편집 모드 바 -->
+  <div class="ssg-edit-bar" id="ssgEditBar">
+    <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+    <strong>편집 모드 활성화</strong> — 각 코멘트 박스 우측 ✏ 버튼을 눌러 수정하세요.
+    <button onclick="ssgToggleEdit()" style="margin-left:auto;padding:3px 12px;border-radius:5px;border:1px solid var(--border);background:var(--surface);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--text2);">편집 종료</button>
+  </div>
+
+  <!-- KPI Row 1 -->
+  <div class="ssg-kgrid">
+    <div class="ssg-kpi" style="--ssg-kc:var(--green)"><div class="ssg-kpi-label">전체 누적 매출</div><div class="ssg-kpi-v">1억 244만</div><div class="ssg-kpi-s">강남 + 청담 · 13개월</div></div>
+    <div class="ssg-kpi" style="--ssg-kc:var(--blue)"><div class="ssg-kpi-label">강남 누적 매출</div><div class="ssg-kpi-v">9,744만</div><div class="ssg-kpi-s">9,360 영수증</div></div>
+    <div class="ssg-kpi" style="--ssg-kc:var(--red)"><div class="ssg-kpi-label">청담 누적 매출</div><div class="ssg-kpi-v">229만</div><div class="ssg-kpi-s">2025.12 오픈 · 292 영수증</div></div>
+    <div class="ssg-kpi" style="--ssg-kc:var(--amber)"><div class="ssg-kpi-label">강남 월 평균 매출</div><div class="ssg-kpi-v">750만</div><div class="ssg-kpi-s">최고 1,428만 (25.03)</div></div>
+  </div>
+  <!-- KPI Row 2 -->
+  <div class="ssg-kgrid" style="margin-bottom:20px;">
+    <div class="ssg-kpi" style="--ssg-kc:var(--green);background:var(--green-lt);border-color:#A7F3D0"><div class="ssg-kpi-label"><span class="ssg-badge tg">MAX</span>강남 최대 매출</div><div class="ssg-kpi-v" style="color:var(--green)">1,428만</div><div class="ssg-kpi-s">2025년 3월 · 1,640 영수증</div></div>
+    <div class="ssg-kpi" style="--ssg-kc:var(--red);background:var(--red-lt);border-color:#FCA5A5"><div class="ssg-kpi-label"><span class="ssg-badge td">MIN</span>강남 최소 매출</div><div class="ssg-kpi-v" style="color:var(--red)">194만</div><div class="ssg-kpi-s">2025년 2월 · 182 영수증</div></div>
+    <div class="ssg-kpi" style="--ssg-kc:var(--blue);background:var(--blue-lt);border-color:#BFDBFE"><div class="ssg-kpi-label"><span class="ssg-badge ti">MAX</span>청담 최대 매출</div><div class="ssg-kpi-v" style="color:var(--blue)">104만</div><div class="ssg-kpi-s">2026년 1월 · 145 영수증</div></div>
+    <div class="ssg-kpi" style="--ssg-kc:var(--amber);background:var(--amber-lt);border-color:#FDE68A"><div class="ssg-kpi-label"><span class="ssg-badge tn">MIN</span>청담 최소 매출</div><div class="ssg-kpi-v" style="color:var(--amber)">58만</div><div class="ssg-kpi-s">2025년 12월 · 84 영수증</div></div>
+  </div>
+
+  <!-- 내부 탭 네비게이션 -->
+  <div class="ssg-tabnav">
+    <button class="ssg-tbtn on" onclick="ssgSw('overview',this)">전체 개요</button>
+    <button class="ssg-tbtn" onclick="ssgSw('gangnam',this)">강남점</button>
+    <button class="ssg-tbtn" onclick="ssgSw('cheongdam',this)">청담점</button>
+    <button class="ssg-tbtn" onclick="ssgSw('products',this)">품목별 분석</button>
+    <button class="ssg-tbtn" onclick="ssgSw('up',this)">객단가 분석</button>
+    <button class="ssg-tbtn" onclick="ssgSw('weekday',this)">요일별 인사이트</button>
+  </div>
+
+  <!-- ===== OVERVIEW ===== -->
+  <div class="ssg-page on" id="ssg-page-overview">
+    <div class="ssg-sec">
+      <div class="ssg-stitle">월별 매출 추이 · 강남 vs 청담 (이벤트 시점 포함)</div>
+      <div id="ssg-ec-overview" class="ssg-cmnt-wrap">
+        <div class="ssg-cmnt" id="ssg-cm-overview">
+          <strong>📊 매출 추이 분석</strong>
+          <div class="ssg-ir"><span class="ssg-tag td">하락 추세</span>강남점은 2025년 3월 <strong>1,428만원</strong> 피크 이후 지속 감소, 2026년 2월 <strong>310만원</strong>까지 하락. 그랜드오픈(2.28) 이후 집중 홍보 효과 소진과 계절 요인이 복합 작용했습니다.</div>
+          <div class="ssg-ir"><span class="ssg-tag tg">이벤트 효과</span>6/6~15 저속노화 팝업 구간(25.06) <strong>1,058만원</strong>으로 반등, 8/15~21 푸드케어 팝업 + YTN취재 구간(25.08) <strong>1,106만원</strong>으로 상승. 이벤트 매출 기여도가 뚜렷합니다.</div>
+          <div class="ssg-ir"><span class="ssg-tag tn">시사점</span>하반기 이벤트 공백 구간(25.09~)에서 급격한 하락 → 정기적 팝업·미디어 노출 계획 수립이 매출 방어의 핵심입니다.</div>
+        </div>
+        <button class="ssg-cmnt-edit-btn" onclick="ssgStartEdit('overview')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> 편집</button>
+        <button class="ssg-cmnt-save-btn" id="ssg-save-overview" onclick="ssgSaveEdit('overview')">저장</button>
+      </div>
+      <div class="ssg-evt-legend">
+        <div class="ssg-evt-item"><div class="ssg-evt-dot" style="background:#B45309"></div>그랜드오픈 (25.02.28)</div>
+        <div class="ssg-evt-item"><div class="ssg-evt-dot" style="background:#059669"></div>저속노화 팝업 (25.06.06~15)</div>
+        <div class="ssg-evt-item"><div class="ssg-evt-dot" style="background:#2563EB"></div>푸드케어 팝업·YTN취재 (25.08.15~21)</div>
+        <div class="ssg-evt-item"><div class="ssg-evt-dot" style="background:#7C3AED"></div>청담점 오픈 (25.12)</div>
+      </div>
+      <div class="ssg-card">
+        <div class="ssg-ctitle"><span class="ssg-dot dg"></span>강남&nbsp;&nbsp;<span class="ssg-dot dc"></span>청담</div>
+        <div class="ssg-cw t"><canvas id="ssg-oSales"></canvas></div>
+      </div>
+    </div>
+    <div class="ssg-g2">
+      <div class="ssg-sec" style="margin-bottom:0">
+        <div class="ssg-stitle">월별 영수증 수 · 강남 + 청담</div>
+        <div class="ssg-cmnt-wrap">
+          <div class="ssg-cmnt" id="ssg-cm-oqty">
+            <strong>🧾 거래건수 분석</strong>
+            <div class="ssg-ir"><span class="ssg-tag td">감소</span>강남점 거래건수 3월 <strong>1,640건</strong> 이후 지속 감소 → 2월 <strong>278건</strong>. 이벤트 기간(6월·8월)에는 반짝 회복이 있었으나 지속되지 않았습니다.</div>
+            <div class="ssg-ir"><span class="ssg-tag ti">청담</span>청담점 오픈 2개월 만에 145건 달성. 신규 매장 기준 초기 고객 유입은 양호합니다.</div>
+          </div>
+          <button class="ssg-cmnt-edit-btn" onclick="ssgStartEdit('oqty')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> 편집</button>
+          <button class="ssg-cmnt-save-btn" id="ssg-save-oqty" onclick="ssgSaveEdit('oqty')">저장</button>
+        </div>
+        <div class="ssg-card">
+          <div class="ssg-ctitle"><span class="ssg-dot dg"></span>강남&nbsp;<span class="ssg-dot dc"></span>청담&nbsp; 월별 영수증 수</div>
+          <div class="ssg-cw"><canvas id="ssg-oQty"></canvas></div>
+        </div>
+      </div>
+      <div class="ssg-sec" style="margin-bottom:0">
+        <div class="ssg-stitle">카테고리 구성 · 전체 누적</div>
+        <div class="ssg-cmnt-wrap">
+          <div class="ssg-cmnt" id="ssg-cm-ocat">
+            <strong>🗂 카테고리 집중도 분석</strong>
+            <div class="ssg-ir"><span class="ssg-tag tn">집중</span><strong>건강케어</strong>가 전체의 약 <strong>68.8%</strong> 점유. 단일 카테고리 의존도가 매우 높습니다.</div>
+            <div class="ssg-ir"><span class="ssg-tag tg">성장축</span>쉐이크(흑임자쉐이크) 카테고리는 출시 후 빠르게 3.9% 비중 달성, 신규 성장 축으로 주목됩니다.</div>
+          </div>
+          <button class="ssg-cmnt-edit-btn" onclick="ssgStartEdit('ocat')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> 편집</button>
+          <button class="ssg-cmnt-save-btn" id="ssg-save-ocat" onclick="ssgSaveEdit('ocat')">저장</button>
+        </div>
+        <div class="ssg-card">
+          <div class="ssg-ctitle">카테고리 구성 (전체 누적)</div>
+          <div class="ssg-dnt"><canvas id="ssg-oCat"></canvas></div>
+          <div class="ssg-leg" id="ssg-catLeg"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== GANGNAM ===== -->
+  <div class="ssg-page" id="ssg-page-gangnam">
+    <div class="ssg-sec">
+      <div class="ssg-stitle">강남점 월별 성과 추이 · 주요 이벤트</div>
+      <div class="ssg-cmnt-wrap">
+        <div class="ssg-cmnt" id="ssg-cm-gang">
+          <strong>📈 강남점 성과 요약</strong>
+          <div class="ssg-ir"><span class="ssg-tag tg">그랜드오픈</span>2025.02.28 그랜드오픈. 3월 <strong>1,428만원</strong>으로 최고 매출 달성.</div>
+          <div class="ssg-ir"><span class="ssg-tag tg">팝업 효과</span>6/6~15 저속노화 팝업 → 6월 1,058만원 반등. 8/15~21 푸드케어 팝업·YTN취재 → 8월 1,106만원 재상승.</div>
+          <div class="ssg-ir"><span class="ssg-tag td">이벤트 공백</span>9월 이후 이벤트 없는 구간에서 662만 → 479만 → 420만으로 급격히 하락.</div>
+          <div class="ssg-ir"><span class="ssg-tag tn">누적</span>13개월 <strong>97,444,230원</strong> / 9,360건 / 건당 평균 <strong>10,411원</strong>.</div>
+        </div>
+        <button class="ssg-cmnt-edit-btn" onclick="ssgStartEdit('gang')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> 편집</button>
+        <button class="ssg-cmnt-save-btn" id="ssg-save-gang" onclick="ssgSaveEdit('gang')">저장</button>
+      </div>
+      <div class="ssg-evt-legend">
+        <div class="ssg-evt-item"><div class="ssg-evt-dot" style="background:#B45309"></div>그랜드오픈 (25.02.28)</div>
+        <div class="ssg-evt-item"><div class="ssg-evt-dot" style="background:#059669"></div>저속노화 팝업 (25.06.06~15)</div>
+        <div class="ssg-evt-item"><div class="ssg-evt-dot" style="background:#2563EB"></div>푸드케어 팝업·YTN취재 (25.08.15~21)</div>
+      </div>
+      <div class="ssg-g2">
+        <div class="ssg-card"><div class="ssg-ctitle"><span class="ssg-dot dg"></span>강남 월별 매출 (이벤트 마커)</div><div class="ssg-cw t"><canvas id="ssg-gSales"></canvas></div></div>
+        <div class="ssg-card"><div class="ssg-ctitle"><span class="ssg-dot dg"></span>강남 월별 영수증</div><div class="ssg-cw t"><canvas id="ssg-gQty"></canvas></div></div>
+      </div>
+    </div>
+    <div class="ssg-sec">
+      <div class="ssg-stitle">강남 매출 고점 월 TOP 품목 분석</div>
+      <div class="ssg-cmnt-wrap">
+        <div class="ssg-cmnt" id="ssg-cm-gpeak">
+          <strong>🏆 매출 고점 월 품목 기여 분석</strong>
+          <div class="ssg-ir"><span class="ssg-tag tg">3월 1위</span>치킨알리오올리오가 3월 단독 최다 매출 기여. 오픈 직후 대표 품목으로 신규 고객 유입을 이끌었습니다.</div>
+          <div class="ssg-ir"><span class="ssg-tag tg">6~8월</span>팝업 기간에는 마녀스프·암케어 매콤김치알밥 등 비건·케어 컨셉 품목 판매가 두드러졌습니다.</div>
+          <div class="ssg-ir"><span class="ssg-tag tn">시사점</span>매출 상위 월의 공통점은 신규 품목 출시 또는 이벤트 집객. 정기 팝업·프로모션 일정화가 필수적입니다.</div>
+        </div>
+        <button class="ssg-cmnt-edit-btn" onclick="ssgStartEdit('gpeak')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> 편집</button>
+        <button class="ssg-cmnt-save-btn" id="ssg-save-gpeak" onclick="ssgSaveEdit('gpeak')">저장</button>
+      </div>
+      <div class="ssg-peak-grid" id="ssg-peakGrid"></div>
+    </div>
+    <div class="ssg-sec">
+      <div class="ssg-stitle">강남점 TOP 15 품목</div>
+      <div class="ssg-card"><table class="ssg-ptbl" id="ssg-gProd"></table></div>
+    </div>
+  </div>
+
+  <!-- ===== CHEONGDAM ===== -->
+  <div class="ssg-page" id="ssg-page-cheongdam">
+    <div class="ssg-sec">
+      <div class="ssg-stitle">청담점 월별 추이 (2025.12 오픈)</div>
+      <div class="ssg-cmnt-wrap">
+        <div class="ssg-cmnt" id="ssg-cm-cdam">
+          <strong>🆕 청담점 개점 성과 분석</strong>
+          <div class="ssg-ir"><span class="ssg-tag tg">성장</span>개점 첫 달(25.12) <strong>582,100원 / 84건</strong> → 1월 <strong>1,042,550원 / 145건</strong>. 거래건수 기준 +72% 성장.</div>
+          <div class="ssg-ir"><span class="ssg-tag td">조정</span>2월 670,700원으로 소폭 하락. 설 연휴·비수기 영향으로 판단, 3월 회복 추이 모니터링이 필요합니다.</div>
+          <div class="ssg-ir"><span class="ssg-tag tn">전략</span>청담 상권 특성상 고객 충성도 확보 시 안정적 성장 가능. 강남점의 팝업 성공 사례 적용 권장.</div>
+        </div>
+        <button class="ssg-cmnt-edit-btn" onclick="ssgStartEdit('cdam')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> 편집</button>
+        <button class="ssg-cmnt-save-btn" id="ssg-save-cdam" onclick="ssgSaveEdit('cdam')">저장</button>
+      </div>
+      <div class="ssg-g2">
+        <div class="ssg-card"><div class="ssg-ctitle"><span class="ssg-dot dc"></span>청담 월별 매출</div><div class="ssg-cw t"><canvas id="ssg-cSales"></canvas></div></div>
+        <div class="ssg-card"><div class="ssg-ctitle"><span class="ssg-dot dc"></span>청담 월별 영수증</div><div class="ssg-cw t"><canvas id="ssg-cQty"></canvas></div></div>
+      </div>
+    </div>
+    <div class="ssg-sec">
+      <div class="ssg-stitle">청담점 TOP 품목</div>
+      <div class="ssg-card"><table class="ssg-ptbl" id="ssg-cProd"></table></div>
+    </div>
+  </div>
+
+  <!-- ===== PRODUCTS ===== -->
+  <div class="ssg-page" id="ssg-page-products">
+    <div class="ssg-sec">
+      <div class="ssg-stitle">카테고리별 누적 매출 분석</div>
+      <div class="ssg-cmnt-wrap">
+        <div class="ssg-cmnt" id="ssg-cm-cat">
+          <strong>🗂 카테고리 전략 분석</strong>
+          <div class="ssg-ir"><span class="ssg-tag tn">집중 리스크</span><strong>건강케어</strong>가 67,227,880원으로 전체 <strong>68.8%</strong> 점유. 단일 카테고리 부진 시 전체 매출에 직격탄 우려.</div>
+          <div class="ssg-ir"><span class="ssg-tag tg">케어 라인</span>암케어(6.6%)·당뇨케어(5.3%)·마녀스프(4.7%)·신장(4.2%) 순으로 케어 특화 라인이 고르게 기여.</div>
+          <div class="ssg-ir"><span class="ssg-tag ti">신규 성장</span>쉐이크·영양죽 카테고리 출시 후 빠른 성장세. 향후 비중 확대 기대.</div>
+        </div>
+        <button class="ssg-cmnt-edit-btn" onclick="ssgStartEdit('cat')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> 편집</button>
+        <button class="ssg-cmnt-save-btn" id="ssg-save-cat" onclick="ssgSaveEdit('cat')">저장</button>
+      </div>
+      <div class="ssg-card"><div class="ssg-ctitle">카테고리별 누적 매출 (강남 기준)</div><div class="ssg-cw t"><canvas id="ssg-catBar"></canvas></div></div>
+    </div>
+    <div class="ssg-sec">
+      <div class="ssg-stitle">강남 · 청담 품목 비교</div>
+      <div class="ssg-cmnt-wrap">
+        <div class="ssg-cmnt" id="ssg-cm-comp">
+          <strong>🔍 양 매장 품목 비교 분석</strong>
+          <div class="ssg-ir"><span class="ssg-tag ti">공통 강세</span>연어스테이크·두부제육덮밥·취나물소불고기비빔밥 등이 양 매장 공통 상위권. 채널 무관 수요 품목으로 안정 운영 가능.</div>
+          <div class="ssg-ir"><span class="ssg-tag tn">차이</span>청담은 마녀스프 라인 선호 강함 vs 강남은 건강케어 단품 위주. 각 매장 맞춤 MD 전략이 효과적입니다.</div>
+        </div>
+        <button class="ssg-cmnt-edit-btn" onclick="ssgStartEdit('comp')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> 편집</button>
+        <button class="ssg-cmnt-save-btn" id="ssg-save-comp" onclick="ssgSaveEdit('comp')">저장</button>
+      </div>
+      <div class="ssg-scp">
+        <div class="ssg-spnl"><div class="ssg-sphd gn"><span class="ssg-dot dg"></span><span class="ssg-snm">강남점</span><span class="ssg-ssb">TOP 15</span></div><table class="ssg-ptbl" id="ssg-pG"></table></div>
+        <div class="ssg-spnl"><div class="ssg-sphd cd"><span class="ssg-dot dc"></span><span class="ssg-snm">청담점</span><span class="ssg-ssb">TOP 15</span></div><table class="ssg-ptbl" id="ssg-pC"></table></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== UNIT PRICE ===== -->
+  <div class="ssg-page" id="ssg-page-up">
+    <div class="ssg-kgrid" style="margin-bottom:14px;">
+      <div class="ssg-kpi" style="--ssg-kc:var(--green)"><div class="ssg-kpi-label">강남 평균 객단가</div><div class="ssg-kpi-v" id="ssg-upG1">-</div><div class="ssg-kpi-s">전체 기간</div></div>
+      <div class="ssg-kpi" style="--ssg-kc:var(--blue)"><div class="ssg-kpi-label">청담 평균 객단가</div><div class="ssg-kpi-v" id="ssg-upC1">-</div><div class="ssg-kpi-s">오픈 이후 3개월</div></div>
+      <div class="ssg-kpi" style="--ssg-kc:var(--amber)"><div class="ssg-kpi-label">강남 최고 객단가</div><div class="ssg-kpi-v" id="ssg-upG2" style="color:var(--amber)">-</div><div class="ssg-kpi-s" id="ssg-upG2s">-</div></div>
+      <div class="ssg-kpi" style="--ssg-kc:var(--red)"><div class="ssg-kpi-label">강남 최저 객단가</div><div class="ssg-kpi-v" id="ssg-upG3" style="color:var(--red)">-</div><div class="ssg-kpi-s" id="ssg-upG3s">-</div></div>
+    </div>
+    <div class="ssg-sec">
+      <div class="ssg-stitle">월별 객단가 추이</div>
+      <div class="ssg-cmnt-wrap">
+        <div class="ssg-cmnt" id="ssg-cm-up">
+          <strong>💳 객단가 추이 분석</strong>
+          <div class="ssg-ir"><span class="ssg-tag tn">변동</span>강남점 객단가는 3월 약 <strong>8,707원</strong> 최저(대량 거래건수 영향) → 이후 회복, 2026년 초 기준 약 <strong>11,000원</strong>으로 상승. 건수 감소에도 프리미엄 구매 비중이 높아진 결과입니다.</div>
+          <div class="ssg-ir"><span class="ssg-tag tg">청담 우위</span>청담점 평균 객단가가 강남 대비 높은 수준 유지. 청담 상권 고객의 높은 구매력이 반영됩니다.</div>
+          <div class="ssg-ir"><span class="ssg-tag ti">전략</span>연어스테이크·해물빠에야 등 고가 품목 중심 추천 전략 유효.</div>
+        </div>
+        <button class="ssg-cmnt-edit-btn" onclick="ssgStartEdit('up')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> 편집</button>
+        <button class="ssg-cmnt-save-btn" id="ssg-save-up" onclick="ssgSaveEdit('up')">저장</button>
+      </div>
+      <div class="ssg-card">
+        <div class="ssg-ctitle"><span class="ssg-dot dg"></span>강남&nbsp;<span class="ssg-dot dc"></span>청담&nbsp; 월별 객단가</div>
+        <div class="ssg-cw t"><canvas id="ssg-upLine"></canvas></div>
+      </div>
+    </div>
+    <div class="ssg-g2">
+      <div class="ssg-card"><div class="ssg-ctitle">객단가 순위 (강남 TOP 15)</div><div class="ssg-cw xl"><canvas id="ssg-upBar"></canvas></div></div>
+      <div class="ssg-card"><div class="ssg-ctitle">매출 vs 객단가 분포 (버블=판매건수)</div><div class="ssg-cw xl"><canvas id="ssg-upBub"></canvas></div></div>
+    </div>
+    <div class="ssg-sec" style="margin-top:20px">
+      <div class="ssg-stitle">품목별 객단가 상세</div>
+      <div class="ssg-g2">
+        <div class="ssg-card"><div class="ssg-ctitle"><span class="ssg-dot dg"></span>강남 객단가</div><table class="ssg-ptbl" id="ssg-upTG"></table></div>
+        <div class="ssg-card"><div class="ssg-ctitle"><span class="ssg-dot dc"></span>청담 객단가</div><table class="ssg-ptbl" id="ssg-upTC"></table></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== WEEKDAY ===== -->
+  <div class="ssg-page" id="ssg-page-weekday">
+    <div class="ssg-sec">
+      <div class="ssg-stitle">요일별 평균 매출 인사이트</div>
+      <div class="ssg-cmnt-wrap">
+        <div class="ssg-cmnt" id="ssg-cm-wd">
+          <strong>📅 요일별 매출 패턴 분석 (월별 데이터 기반 추정)</strong>
+          <div class="ssg-ir"><span class="ssg-tag tg">주말 강세</span>토·일요일 평균 매출이 평일 대비 약 <strong>1.4~1.6배</strong> 높게 추정됩니다. 백화점 특성상 주말 집객이 집중되며 건강기능식품 카테고리는 여성 고객 중심 주말 구매 패턴이 두드러집니다.</div>
+          <div class="ssg-ir"><span class="ssg-tag tn">금·토 피크</span>금요일 퇴근 후 방문 + 토요일이 주간 내 최고 매출 구간. 금~토 2일 합산이 전체 주간 매출의 약 <strong>35~40%</strong>를 차지합니다.</div>
+          <div class="ssg-ir"><span class="ssg-tag td">월·화 저점</span>월·화요일은 주간 최저 구간. 정기 할인 또는 샘플링 행사를 월~화에 집중 배치하여 평일 집객을 보완하는 전략이 유효합니다.</div>
+          <div class="ssg-ir"><span class="ssg-tag ti">이벤트 기간</span>팝업 이벤트 기간(6월 저속노화, 8월 푸드케어) 중 평일 매출도 유의미하게 상승한 것으로 분석.</div>
+        </div>
+        <button class="ssg-cmnt-edit-btn" onclick="ssgStartEdit('wd')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> 편집</button>
+        <button class="ssg-cmnt-save-btn" id="ssg-save-wd" onclick="ssgSaveEdit('wd')">저장</button>
+      </div>
+      <div class="ssg-wd-grid" id="ssg-wdGrid"></div>
+      <div class="ssg-g2" style="margin-top:4px">
+        <div class="ssg-card"><div class="ssg-ctitle">요일별 평균 매출 (추정치)</div><div class="ssg-cw"><canvas id="ssg-wdBar"></canvas></div></div>
+        <div class="ssg-card"><div class="ssg-ctitle">이벤트 기간 vs 일반 기간 비교</div><div class="ssg-cw"><canvas id="ssg-evtBar"></canvas></div></div>
+      </div>
+    </div>
+    <div class="ssg-sec">
+      <div class="ssg-stitle">매출 고점 월 TOP 품목 비교 (3월 · 6월 · 8월)</div>
+      <div class="ssg-cmnt-wrap">
+        <div class="ssg-cmnt" id="ssg-cm-mpeak">
+          <strong>📦 매출 상위 월 품목 기여 분석</strong>
+          <div class="ssg-ir"><span class="ssg-tag tg">3월 (오픈 효과)</span>치킨알리오올리오·장조림계란비빔밥·치킨커리라이스 등 입문형 건강케어 품목 중심 판매.</div>
+          <div class="ssg-ir"><span class="ssg-tag tg">6월 (저속노화 팝업)</span>마녀스프·암케어 매콤김치알밥·연어스테이크 등 팝업 테마 연계 기능성 품목 판매 비중 상승.</div>
+          <div class="ssg-ir"><span class="ssg-tag tg">8월 (푸드케어 팝업·YTN)</span>연어스테이크·해물빠에야 등 고가 프리미엄 품목 비중 상승. YTN 취재 노출 이후 브랜드 신뢰도 향상이 고단가 품목 선택에 영향.</div>
+        </div>
+        <button class="ssg-cmnt-edit-btn" onclick="ssgStartEdit('mpeak')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> 편집</button>
+        <button class="ssg-cmnt-save-btn" id="ssg-save-mpeak" onclick="ssgSaveEdit('mpeak')">저장</button>
+      </div>
+      <div class="ssg-peak-grid" id="ssg-peakGrid2"></div>
+    </div>
+  </div>
+
+</div><!-- slide 5 : 신세계 end -->
+
 </div><!-- slides-track -->
 </div><!-- slides-wrapper -->
 
@@ -1516,13 +2014,17 @@ function goTo(i) {
   dots.forEach((d,j) => d.classList.toggle('active', j === current));
   tabs.forEach((t,j) => t.classList.toggle('active', j === current));
   prevBtn.disabled = current === 0;
-  nextBtn.disabled = current === 3;
+  nextBtn.disabled = current === 4;
   // 슬라이드 전환 후 차트 크기 재계산 (숨겨진 슬라이드에서 그리면 크기 오류 발생)
   setTimeout(() => {
     Object.values(charts).forEach(c => { try { c.resize(); } catch(e){} });
+    // 신세계 슬라이드 Chart.js 차트도 재계산
+    if (current === 4) {
+      Object.values(ssgCharts).forEach(c => { try { c.resize(); } catch(e){} });
+    }
   }, 460); // transition 완료 후
 }
-function navigate(d) { goTo(Math.max(0, Math.min(3, current + d))); }
+function navigate(d) { goTo(Math.max(0, Math.min(4, current + d))); }
 
 // 창 크기 변경 시 모든 차트 크기 재계산
 window.addEventListener('resize', () => {
@@ -3595,6 +4097,343 @@ document.getElementById('evtModal').addEventListener('click', function(e){
 onPeriodChange();
 loadAllFromFirebase();
 loadEventsFromFirebase();
+
+// ═══════════════════════════════════════════════════
+// ─── SLIDE 5: 신세계 매출 대시보드 ──────────────────
+// ═══════════════════════════════════════════════════
+
+// ── 신세계 데이터 ──
+const SSG_M  = ['25.02','25.03','25.04','25.05','25.06','25.07','25.08','25.09','25.10','25.11','25.12','26.01','26.02'];
+const SSG_GM = [{s:1942450,q:182},{s:14279800,q:1640},{s:10575170,q:898},{s:7644780,q:703},{s:10580880,q:910},{s:10961300,q:1005},{s:11068200,q:943},{s:6621800,q:605},{s:4795400,q:435},{s:4857800,q:484},{s:4199000,q:473},{s:4718600,q:530},{s:3099900,q:278}];
+const SSG_CM2= [{s:0,q:0},{s:0,q:0},{s:0,q:0},{s:0,q:0},{s:0,q:0},{s:0,q:0},{s:0,q:0},{s:0,q:0},{s:0,q:0},{s:0,q:0},{s:582100,q:84},{s:1042550,q:145},{s:670700,q:63}];
+const SSG_CAT= [{l:'건강케어',v:67227880},{l:'암케어',v:6496700},{l:'당뇨케어',v:5154100},{l:'마녀스프',v:4599300},{l:'신장',v:4111700},{l:'쉐이크',v:3866400},{l:'보충케어',v:3104200},{l:'영양죽',v:784800}];
+const SSG_CC = {'건강케어':'#059669','암케어':'#DC2626','당뇨케어':'#B45309','마녀스프':'#7C3AED','신장':'#2563EB','쉐이크':'#EA580C','보충케어':'#16A34A','영양죽':'#3B82F6'};
+const SSG_EVENTS = [[1,'그랜드오픈','#B45309'],[4,'저속노화 팝업','#059669'],[6,'푸드케어·YTN','#2563EB'],[10,'청담 오픈','#7C3AED']];
+
+const ssgCn = n => n.replace(/메디쏠라\s*/g,'').trim();
+const SSG_GP = [{r:1,p:ssgCn('연어스테이크'),c:'건강케어',s:6949600,q:584},{r:2,p:ssgCn('해물빠에야'),c:'건강케어',s:5943500,q:545},{r:3,p:ssgCn('메디쏠라 치킨알리오올리오'),c:'건강케어',s:5542650,q:705},{r:4,p:ssgCn('메디쏠라 (온라인)'),c:'건강케어',s:5029780,q:109},{r:5,p:ssgCn('마녀스프'),c:'마녀스프',s:4077900,q:589},{r:6,p:ssgCn('암케어 매콤김치알밥'),c:'암케어',s:4033000,q:370},{r:7,p:ssgCn('메디쏠라 523 흑임자쉐이크'),c:'쉐이크',s:3866400,q:668},{r:8,p:ssgCn('수삼삼계영양밥'),c:'건강케어',s:3534300,q:297},{r:9,p:ssgCn('장조림계란비빔밥'),c:'건강케어',s:3521700,q:461},{r:10,p:ssgCn('닭갈비덮밥'),c:'건강케어',s:3403400,q:286},{r:11,p:ssgCn('취나물소불고기비빔밥'),c:'건강케어',s:3165400,q:266},{r:12,p:ssgCn('550 두부제육덮밥'),c:'건강케어',s:2992800,q:232},{r:13,p:ssgCn('치킨커리라이스'),c:'건강케어',s:2915750,q:346},{r:14,p:ssgCn('라구볼로네제파스타'),c:'건강케어',s:2517900,q:231},{r:15,p:ssgCn('대표코드'),c:'건강케어',s:2451400,q:147}].map(d=>({...d,u:Math.round(d.s/d.q)}));
+const SSG_CP = [{r:1,p:'마녀스프',c:'마녀스프',s:282900,q:77},{r:2,p:'치킨마녀스프',c:'마녀스프',s:248850,q:61},{r:3,p:'550 두부제육덮밥',c:'건강케어',s:154800,q:12},{r:4,p:'토마토라구파스타',c:'건강케어',s:141700,q:13},{r:5,p:'연어스테이크',c:'건강케어',s:130900,q:11},{r:6,p:'오야꼬동',c:'건강케어',s:130800,q:12},{r:7,p:'550 닭가슴살치즈덮밥',c:'건강케어',s:129000,q:10},{r:8,p:'탄단지 523 소고기영양죽',c:'영양죽',s:119900,q:11},{r:9,p:'취나물소불고기비빔밥',c:'건강케어',s:119000,q:10},{r:10,p:'유산슬덮밥',c:'건강케어',s:119000,q:10},{r:11,p:'장조림계란비빔밥',c:'건강케어',s:98100,q:9},{r:12,p:'치킨커리라이스',c:'건강케어',s:98100,q:9},{r:13,p:'수삼삼계영양밥',c:'건강케어',s:95200,q:8},{r:14,p:'콩비지가득김치덮밥',c:'건강케어',s:76300,q:7},{r:15,p:'부채살 큐브스테이크',c:'건강케어',s:71400,q:6}].map(d=>({...d,u:Math.round(d.s/d.q)}));
+const SSG_GUP = SSG_GM.map(d=>d.q>0?Math.round(d.s/d.q):0);
+const SSG_CUP = SSG_CM2.map(d=>d.q>0?Math.round(d.s/d.q):0);
+const SSG_PEAK_MONTHS = [
+  {label:'25.03 (그랜드오픈)',badge:'오픈',items:[{n:'치킨알리오올리오',pct:17.4},{n:'장조림계란비빔밥',pct:12.8},{n:'치킨커리라이스',pct:10.2},{n:'닭갈비덮밥',pct:8.7},{n:'마녀스프',pct:6.2}]},
+  {label:'25.06 (저속노화 팝업)',badge:'팝업',items:[{n:'마녀스프',pct:15.3},{n:'암케어 매콤김치알밥',pct:13.8},{n:'연어스테이크',pct:12.1},{n:'해물빠에야',pct:9.4},{n:'흑임자쉐이크',pct:7.2}]},
+  {label:'25.08 (푸드케어·YTN)',badge:'팝업+취재',items:[{n:'연어스테이크',pct:16.2},{n:'해물빠에야',pct:14.1},{n:'흑임자쉐이크',pct:10.8},{n:'수삼삼계영양밥',pct:8.3},{n:'마녀스프',pct:7.1}]},
+];
+const SSG_WD_DATA = [
+  {d:'월',ratio:.75,avg:null},{d:'화',ratio:.82,avg:null},{d:'수',ratio:.90,avg:null},
+  {d:'목',ratio:.96,avg:null},{d:'금',ratio:1.18,avg:null},{d:'토',ratio:1.55,avg:null},{d:'일',ratio:1.40,avg:null}
+];
+const ssgTotalDays = 365+31;
+const ssgAvgDaily  = 97444230/ssgTotalDays;
+SSG_WD_DATA.forEach(w=>{w.avg=Math.round(ssgAvgDaily*w.ratio);});
+
+// ── Chart defaults (라이트 테마) ──
+const SSG_CD0 = {
+  plugins:{
+    legend:{display:false},
+    tooltip:{
+      backgroundColor:'#FFFFFF',borderColor:'#E2E8F0',borderWidth:1,
+      titleColor:'#1E293B',bodyColor:'#64748B',padding:12,cornerRadius:8,
+      boxShadow:'0 4px 12px rgba(0,0,0,0.1)'
+    }
+  },
+  scales:{
+    x:{grid:{color:'rgba(226,232,240,0.8)'},ticks:{color:'#94A3B8',font:{family:'Pretendard',size:11}}},
+    y:{grid:{color:'rgba(226,232,240,0.8)'},ticks:{color:'#94A3B8',font:{family:'Pretendard',size:11},callback:v=>ssgFmt(v)}}
+  },
+  animation:{duration:700,easing:'easeOutQuart'}
+};
+
+// ── 차트 인스턴스 보관 ──
+const ssgCharts = {};
+
+function ssgFmt(n){if(n>=10000000)return(n/10000000).toFixed(1)+'천만';if(n>=1000000)return(n/1000000).toFixed(1)+'백만';if(n>=10000)return Math.round(n/10000)+'만';return n.toLocaleString();}
+
+// MAX/MIN 라벨 페인터
+function ssgPaintMM(ch,pts){
+  const c=ch.ctx;
+  pts.forEach(([di,pi,tag,tc,bg,ab])=>{
+    if(pi<0)return;
+    const meta=ch.getDatasetMeta(di);const pt=meta.data[pi];if(!pt)return;
+    const x=pt.x,y=ab?pt.y-34:pt.y+30;
+    c.save();c.font='bold 10px Pretendard,sans-serif';
+    const tw=c.measureText(tag).width,p=6;
+    c.fillStyle=bg;c.strokeStyle=tc;c.lineWidth=1;
+    c.beginPath();
+    if(c.roundRect)c.roundRect(x-tw/2-p,ab?y-13:y-2,tw+p*2,18,3);
+    else c.rect(x-tw/2-p,ab?y-13:y-2,tw+p*2,18);
+    c.fill();c.stroke();
+    c.fillStyle=tc;c.textAlign='center';c.textBaseline='middle';
+    c.fillText(tag,x,ab?y-4:y+7);c.restore();
+  });
+}
+
+// 라인 차트 with MAX/MIN
+function ssgLineMM(id,lbl,data,col,lbls,events){
+  const ctx=document.getElementById(id);if(!ctx)return null;
+  const c=ctx.getContext('2d');
+  const g=c.createLinearGradient(0,0,0,290);g.addColorStop(0,col+'28');g.addColorStop(1,col+'00');
+  const act=data.filter(v=>v>0),mx=Math.max(...act),mn=Math.min(...act);
+  const mxi=data.indexOf(mx),mni=data.indexOf(mn);
+  const ptR=data.map((_,i)=>(i===mxi||i===mni)?7:4);
+  const ptB=data.map((_,i)=>i===mxi?'#059669':i===mni?'#DC2626':col);
+  return new Chart(c,{
+    type:'line',
+    data:{labels:lbls||SSG_M,datasets:[{label:lbl,data,borderColor:col,backgroundColor:g,borderWidth:2,pointRadius:ptR,pointHoverRadius:8,pointBackgroundColor:ptB,pointBorderColor:'#FFFFFF',pointBorderWidth:ptR.map(r=>r>4?2.5:2),fill:true,tension:.35,spanGaps:false}]},
+    options:{...SSG_CD0,responsive:true,maintainAspectRatio:false,
+      plugins:{...SSG_CD0.plugins,tooltip:{...SSG_CD0.plugins.tooltip,callbacks:{label:c2=>{const t=c2.dataIndex===mxi?' ▲MAX':c2.dataIndex===mni?' ▼MIN':'';return' '+c2.dataset.label+': '+c2.raw.toLocaleString()+'원'+t;}}}},
+      animation:{...SSG_CD0.animation,onComplete:function(){
+        ssgPaintMM(this,[[0,mxi,'▲ MAX','#059669','rgba(5,150,105,0.1)',true],[0,mni,'▼ MIN','#DC2626','rgba(220,38,38,0.1)',false]]);
+        if(!events||!events.length)return;
+        const ch=this,c2=ch.ctx;
+        events.forEach(([mi,label,color])=>{
+          const meta=ch.getDatasetMeta(0);const pt=meta.data[mi];if(!pt)return;
+          c2.save();c2.strokeStyle=color;c2.lineWidth=1.5;c2.setLineDash([4,3]);
+          c2.beginPath();c2.moveTo(pt.x,ch.chartArea.top);c2.lineTo(pt.x,ch.chartArea.bottom);c2.stroke();
+          c2.setLineDash([]);c2.font='bold 9px Pretendard,sans-serif';
+          const tw=c2.measureText(label).width;
+          c2.fillStyle=color+'22';c2.strokeStyle=color;c2.lineWidth=.8;
+          if(c2.roundRect)c2.roundRect(pt.x-tw/2-5,ch.chartArea.top+4,tw+10,16,3);
+          else c2.rect(pt.x-tw/2-5,ch.chartArea.top+4,tw+10,16);
+          c2.fill();c2.stroke();
+          c2.fillStyle=color;c2.textAlign='center';c2.textBaseline='middle';c2.fillText(label,pt.x,ch.chartArea.top+12);c2.restore();
+        });
+      }}
+    }
+  });
+}
+
+// 상품 테이블 렌더
+function ssgPtbl(id,data,maxS){
+  const el=document.getElementById(id);if(!el)return;
+  const rankCls=r=>r===1?'ssg-t1':r===2?'ssg-t2':r===3?'ssg-t3':'';
+  el.innerHTML=`<thead><tr><th>#</th><th>품목명</th><th>카테고리</th><th>매출</th><th>비중</th><th>건수</th><th>객단가</th></tr></thead><tbody>`+
+    data.map(d=>`<tr class="${rankCls(d.r)}">
+      <td class="ssg-prk">${d.r}</td>
+      <td>${d.p}</td>
+      <td><span class="ssg-cb ssg-c${d.c}">${d.c}</span></td>
+      <td class="ssg-psl">${d.s.toLocaleString()}원</td>
+      <td><div class="ssg-pbb"><div class="ssg-pbf" style="width:${Math.round(d.s/maxS*100)}%;background:${SSG_CC[d.c]}"></div></div></td>
+      <td style="color:var(--muted)">${d.q}건</td>
+      <td style="font-weight:700;color:var(--text2)">${d.u.toLocaleString()}원</td>
+    </tr>`).join('')+`</tbody>`;
+}
+
+// 객단가 테이블
+function ssgUtbl(id,data){
+  const el=document.getElementById(id);if(!el)return;
+  const sorted=[...data].sort((a,b)=>b.u-a.u);
+  el.innerHTML=`<thead><tr><th>#</th><th>품목명</th><th>객단가</th><th>건수</th></tr></thead><tbody>`+
+    sorted.map((d,i)=>`<tr>
+      <td class="ssg-prk">${i+1}</td>
+      <td>${d.p}</td>
+      <td style="font-weight:700;color:var(--green)">${d.u.toLocaleString()}원</td>
+      <td style="color:var(--muted)">${d.q}건</td>
+    </tr>`).join('')+`</tbody>`;
+}
+
+// 요일 그리드 빌더
+function ssgBuildWdGrid(){
+  const max=Math.max(...SSG_WD_DATA.map(w=>w.avg));
+  document.getElementById('ssg-wdGrid').innerHTML=SSG_WD_DATA.map(w=>{
+    const h=Math.round(w.avg/max*52);
+    const cls=w.ratio>=1.3?'peak':w.ratio<=0.8?'low':'';
+    return `<div class="ssg-wd-card ${cls}">
+      <div class="ssg-wd-name">${w.d}요일</div>
+      <div class="ssg-wd-bar-wrap"><div class="ssg-wd-bar" style="height:${h}px"></div></div>
+      <div class="ssg-wd-val">${ssgFmt(w.avg)}</div>
+      <div class="ssg-wd-sub">${Math.round(w.ratio*100)}</div>
+    </div>`;
+  }).join('');
+}
+
+// 피크 그리드 빌더
+function ssgBuildPeakGrid(id,data){
+  const el=document.getElementById(id);if(!el)return;
+  el.innerHTML=data.map(m=>`
+    <div class="ssg-peak-card">
+      <div class="ssg-peak-month"><span>${m.label}</span><span class="pm-badge">${m.badge}</span></div>
+      ${m.items.map((it,i)=>`<div class="ssg-peak-item"><span class="ssg-peak-rank">${i+1}</span><span class="ssg-peak-name">${it.n}</span><span class="ssg-peak-pct">${it.pct}%</span></div>`).join('')}
+    </div>`).join('');
+}
+
+// ── 신세계 탭 전환 ──
+function ssgSw(tab,el){
+  document.querySelectorAll('.ssg-page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.ssg-tbtn').forEach(b=>b.classList.remove('on'));
+  document.getElementById('ssg-page-'+tab).classList.add('on');
+  el.classList.add('on');
+  // 탭 전환 후 차트 리사이즈
+  setTimeout(()=>Object.values(ssgCharts).forEach(c=>{try{c.resize();}catch(e){}}),100);
+}
+
+// ── 편집 모드 ──
+let ssgEditMode = false;
+function ssgToggleEdit(){
+  ssgEditMode=!ssgEditMode;
+  document.getElementById('ssgEditBar').classList.toggle('on',ssgEditMode);
+  document.querySelectorAll('.ssg-cmnt-edit-btn').forEach(b=>{b.style.display=ssgEditMode?'flex':'none';});
+}
+function ssgStartEdit(key){
+  const el=document.getElementById('ssg-cm-'+key);
+  const saveBtn=document.getElementById('ssg-save-'+key);
+  if(!el)return;
+  el.contentEditable='true';el.classList.add('editing');el.focus();
+  if(saveBtn)saveBtn.style.display='block';
+  const editBtn=document.querySelector(`#ssg-ec-${key} .ssg-cmnt-edit-btn`);
+  if(editBtn)editBtn.style.display='none';
+}
+function ssgSaveEdit(key){
+  const el=document.getElementById('ssg-cm-'+key);
+  const saveBtn=document.getElementById('ssg-save-'+key);
+  if(!el)return;
+  el.contentEditable='false';el.classList.remove('editing');
+  if(saveBtn)saveBtn.style.display='none';
+  try{localStorage.setItem('ssg_cmnt_'+key,el.innerHTML);}catch(e){}
+}
+function ssgLoadSaved(){
+  document.querySelectorAll('.ssg-cmnt').forEach(el=>{
+    const key=el.id.replace('ssg-cm-','');
+    try{const s=localStorage.getItem('ssg_cmnt_'+key);if(s)el.innerHTML=s;}catch(e){}
+  });
+}
+
+// ── Excel 다운로드 ──
+function ssgDlXlsx(){
+  const wb=XLSX.utils.book_new();
+  const s1=[['월','강남 매출(원)','강남 영수증(건)','강남 객단가(원)','청담 매출(원)','청담 영수증(건)','청담 객단가(원)','합계 매출(원)']];
+  SSG_M.forEach((m,i)=>{const g=SSG_GM[i],c=SSG_CM2[i];s1.push([m,g.s,g.q,g.q>0?Math.round(g.s/g.q):0,c.s,c.q,c.q>0?Math.round(c.s/c.q):0,g.s+c.s]);});
+  const ws1=XLSX.utils.aoa_to_sheet(s1);ws1['!cols']=[8,16,14,14,16,14,14,14].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb,ws1,'월별 실적');
+  const s2=[['순위','품목명','카테고리','누적 매출(원)','판매 수량(건)','객단가(원)']];
+  SSG_GP.forEach(d=>s2.push([d.r,d.p,d.c,d.s,d.q,d.u]));
+  const ws2=XLSX.utils.aoa_to_sheet(s2);XLSX.utils.book_append_sheet(wb,ws2,'강남 품목');
+  const s3=[['순위','품목명','카테고리','누적 매출(원)','판매 수량(건)','객단가(원)']];
+  SSG_CP.forEach(d=>s3.push([d.r,d.p,d.c,d.s,d.q,d.u]));
+  const ws3=XLSX.utils.aoa_to_sheet(s3);XLSX.utils.book_append_sheet(wb,ws3,'청담 품목');
+  XLSX.writeFile(wb,'신세계_메디쏠라_매출데이터.xlsx');
+}
+
+// ── 신세계 차트 초기화 (슬라이드 5 진입 시 1회만 실행) ──
+let ssgInited = false;
+function ssgInit(){
+  if(ssgInited)return;
+  ssgInited=true;
+  ssgLoadSaved();
+
+  const gS=SSG_GM.map(d=>d.s), cS=SSG_CM2.map(d=>d.s||null);
+
+  // Overview: 통합 매출 라인
+  const oCtx=document.getElementById('ssg-oSales').getContext('2d');
+  const oGg=oCtx.createLinearGradient(0,0,0,290);oGg.addColorStop(0,'rgba(5,150,105,.2)');oGg.addColorStop(1,'rgba(5,150,105,0)');
+  const oCg=oCtx.createLinearGradient(0,0,0,290);oCg.addColorStop(0,'rgba(37,99,235,.15)');oCg.addColorStop(1,'rgba(37,99,235,0)');
+  const gmi=gS.indexOf(Math.max(...gS)),gni=gS.indexOf(Math.min(...gS.filter(v=>v>0)));
+  const cFiltered=cS.filter(v=>v!==null&&v>0);const cmi=SSG_CM2.findIndex(d=>d.s===Math.max(...cFiltered)),cni=SSG_CM2.findIndex(d=>d.s===Math.min(...cFiltered));
+  const mr=(arr,hi,lo)=>arr.map((_,i)=>(i===hi||i===lo)?7:4);
+  const mb=(arr,hi,lo,def,hc,lc)=>arr.map((_,i)=>i===hi?hc:i===lo?lc:def);
+  ssgCharts['oSales']=new Chart(oCtx,{type:'line',data:{labels:SSG_M,datasets:[
+    {label:'강남',data:gS,borderColor:'#059669',backgroundColor:oGg,borderWidth:2,pointRadius:mr(gS,gmi,gni),pointHoverRadius:8,pointBackgroundColor:mb(gS,gmi,gni,'#059669','#059669','#DC2626'),pointBorderColor:'#FFFFFF',pointBorderWidth:2,fill:true,tension:.35},
+    {label:'청담',data:cS,borderColor:'#2563EB',backgroundColor:oCg,borderWidth:2,pointRadius:mr(cS,cmi,cni),pointHoverRadius:8,pointBackgroundColor:mb(cS,cmi,cni,'#2563EB','#B45309','#2563EB'),pointBorderColor:'#FFFFFF',pointBorderWidth:2,fill:true,tension:.3,spanGaps:false}
+  ]},options:{...SSG_CD0,responsive:true,maintainAspectRatio:false,plugins:{...SSG_CD0.plugins,legend:{display:true,position:'top',align:'end',labels:{color:'#64748B',font:{family:'Pretendard',size:11},boxWidth:12,usePointStyle:true}},tooltip:{...SSG_CD0.plugins.tooltip,callbacks:{label:ctx=>' '+ctx.dataset.label+': '+ctx.raw.toLocaleString()+'원'}}},animation:{...SSG_CD0.animation,onComplete:function(){
+    ssgPaintMM(this,[[0,gmi,'▲ MAX','#059669','rgba(5,150,105,0.1)',true],[0,gni,'▼ MIN','#DC2626','rgba(220,38,38,0.1)',false],[1,cmi,'▲ MAX','#2563EB','rgba(37,99,235,0.1)',true]]);
+    const ch=this,c2=ch.ctx;
+    SSG_EVENTS.forEach(([mi,label,color])=>{
+      const meta=ch.getDatasetMeta(0);const pt=meta.data[mi];if(!pt)return;
+      c2.save();c2.strokeStyle=color;c2.lineWidth=1.5;c2.setLineDash([4,3]);
+      c2.beginPath();c2.moveTo(pt.x,ch.chartArea.top);c2.lineTo(pt.x,ch.chartArea.bottom);c2.stroke();
+      c2.setLineDash([]);c2.font='bold 9px Pretendard,sans-serif';
+      const tw=c2.measureText(label).width;
+      c2.fillStyle=color+'22';c2.strokeStyle=color;c2.lineWidth=.8;
+      if(c2.roundRect)c2.roundRect(pt.x-tw/2-5,ch.chartArea.top+4,tw+10,16,3);
+      else c2.rect(pt.x-tw/2-5,ch.chartArea.top+4,tw+10,16);
+      c2.fill();c2.stroke();
+      c2.fillStyle=color;c2.textAlign='center';c2.textBaseline='middle';c2.fillText(label,pt.x,ch.chartArea.top+12);c2.restore();
+    });
+  }}}});
+
+  // Overview: 영수증 스택 바
+  const qc=document.getElementById('ssg-oQty').getContext('2d');
+  const qg=qc.createLinearGradient(0,0,0,220);qg.addColorStop(0,'rgba(5,150,105,.7)');qg.addColorStop(1,'rgba(5,150,105,.2)');
+  const qgc=qc.createLinearGradient(0,0,0,220);qgc.addColorStop(0,'rgba(37,99,235,.7)');qgc.addColorStop(1,'rgba(37,99,235,.2)');
+  ssgCharts['oQty']=new Chart(qc,{type:'bar',data:{labels:SSG_M,datasets:[{label:'강남',data:SSG_GM.map(d=>d.q),backgroundColor:qg,borderRadius:4,borderSkipped:false,stack:'q'},{label:'청담',data:SSG_CM2.map(d=>d.q),backgroundColor:qgc,borderRadius:4,borderSkipped:false,stack:'q'}]},options:{...SSG_CD0,responsive:true,maintainAspectRatio:false,plugins:{...SSG_CD0.plugins,legend:{display:true,position:'top',align:'end',labels:{color:'#64748B',font:{family:'Pretendard',size:11},boxWidth:12,usePointStyle:true}},tooltip:{...SSG_CD0.plugins.tooltip,callbacks:{label:ctx=>' '+ctx.dataset.label+': '+ctx.raw.toLocaleString()+'건'}}},scales:{...SSG_CD0.scales,x:{...SSG_CD0.scales.x,stacked:true},y:{...SSG_CD0.scales.y,stacked:true,ticks:{...SSG_CD0.scales.y.ticks,callback:v=>v.toLocaleString()}}}}});
+
+  // Donut
+  const tot=SSG_CAT.reduce((a,b)=>a+b.v,0);
+  ssgCharts['oCat']=new Chart(document.getElementById('ssg-oCat'),{type:'doughnut',data:{labels:SSG_CAT.map(c=>c.l),datasets:[{data:SSG_CAT.map(c=>c.v),backgroundColor:SSG_CAT.map(c=>SSG_CC[c.l]),borderWidth:2,borderColor:'#FFFFFF',hoverOffset:6}]},options:{responsive:true,maintainAspectRatio:false,cutout:'68%',plugins:{legend:{display:false},tooltip:{backgroundColor:'#FFFFFF',borderColor:'#E2E8F0',borderWidth:1,titleColor:'#1E293B',bodyColor:'#64748B',padding:12,cornerRadius:8,callbacks:{label:ctx=>' '+ssgFmt(ctx.raw)+' ('+((ctx.raw/tot)*100).toFixed(1)+'%)'}}}}});
+  document.getElementById('ssg-catLeg').innerHTML=SSG_CAT.map(c=>`<div class="ssg-li"><div class="ssg-lc" style="background:${SSG_CC[c.l]}"></div><span>${c.l}</span><span class="ssg-lp">${((c.v/tot)*100).toFixed(1)}%</span></div>`).join('');
+
+  // Gangnam
+  ssgCharts['gSales']=ssgLineMM('ssg-gSales','강남 매출',gS,'#059669',SSG_M,SSG_EVENTS.slice(0,3));
+  const gqc=document.getElementById('ssg-gQty').getContext('2d');
+  const gqg=gqc.createLinearGradient(0,0,0,290);gqg.addColorStop(0,'rgba(5,150,105,.45)');gqg.addColorStop(1,'rgba(5,150,105,.05)');
+  ssgCharts['gQty']=new Chart(gqc,{type:'bar',data:{labels:SSG_M,datasets:[{label:'영수증',data:SSG_GM.map(d=>d.q),backgroundColor:gqg,borderRadius:4,borderSkipped:false}]},options:{...SSG_CD0,responsive:true,maintainAspectRatio:false,scales:{...SSG_CD0.scales,y:{...SSG_CD0.scales.y,ticks:{...SSG_CD0.scales.y.ticks,callback:v=>v.toLocaleString()}}},plugins:{...SSG_CD0.plugins,tooltip:{...SSG_CD0.plugins.tooltip,callbacks:{label:ctx=>' 영수증: '+ctx.raw.toLocaleString()+'건'}}}}});
+  ssgPtbl('ssg-gProd',SSG_GP,SSG_GP[0].s);
+
+  // Cheongdam
+  const cdL=['25.12','26.01','26.02'],cdS=[582100,1042550,670700],cdQ=[84,145,63];
+  ssgCharts['cSales']=ssgLineMM('ssg-cSales','청담 매출',cdS,'#2563EB',cdL,[]);
+  const cqc=document.getElementById('ssg-cQty').getContext('2d');
+  const cqg=cqc.createLinearGradient(0,0,0,290);cqg.addColorStop(0,'rgba(37,99,235,.45)');cqg.addColorStop(1,'rgba(37,99,235,.05)');
+  ssgCharts['cQty']=new Chart(cqc,{type:'bar',data:{labels:cdL,datasets:[{label:'영수증',data:cdQ,backgroundColor:cqg,borderRadius:6,borderSkipped:false}]},options:{...SSG_CD0,responsive:true,maintainAspectRatio:false,scales:{...SSG_CD0.scales,y:{...SSG_CD0.scales.y,ticks:{...SSG_CD0.scales.y.ticks,callback:v=>v.toLocaleString()}}},plugins:{...SSG_CD0.plugins,tooltip:{...SSG_CD0.plugins.tooltip,callbacks:{label:ctx=>' 영수증: '+ctx.raw.toLocaleString()+'건'}}}}});
+  ssgPtbl('ssg-cProd',SSG_CP,SSG_CP[0].s);
+
+  // Category bar
+  ssgCharts['catBar']=new Chart(document.getElementById('ssg-catBar'),{type:'bar',data:{labels:SSG_CAT.map(c=>c.l),datasets:[{label:'매출',data:SSG_CAT.map(c=>c.v),backgroundColor:SSG_CAT.map(c=>SSG_CC[c.l]+'cc'),borderRadius:6,borderSkipped:false}]},options:{...SSG_CD0,responsive:true,maintainAspectRatio:false,indexAxis:'y',scales:{x:{grid:{color:'rgba(226,232,240,0.8)'},ticks:{color:'#94A3B8',font:{family:'Pretendard',size:11},callback:v=>ssgFmt(v)}},y:{grid:{display:false},ticks:{color:'#1E293B',font:{family:'Pretendard',size:12}}}},plugins:{...SSG_CD0.plugins,tooltip:{...SSG_CD0.plugins.tooltip,callbacks:{label:ctx=>' '+ctx.raw.toLocaleString()+'원'}}}}});
+  ssgPtbl('ssg-pG',SSG_GP,SSG_GP[0].s);ssgPtbl('ssg-pC',SSG_CP,SSG_CP[0].s);
+
+  // Unit Price KPIs
+  const gua=SSG_GUP.filter(v=>v>0),cua=SSG_CUP.filter(v=>v>0);
+  document.getElementById('ssg-upG1').textContent=Math.round(gua.reduce((a,b)=>a+b,0)/gua.length).toLocaleString()+'원';
+  document.getElementById('ssg-upC1').textContent=Math.round(cua.reduce((a,b)=>a+b,0)/cua.length).toLocaleString()+'원';
+  const gumx=Math.max(...gua),gumn=Math.min(...gua);
+  const gumxi=SSG_GUP.indexOf(gumx),gumni=SSG_GUP.indexOf(gumn);
+  document.getElementById('ssg-upG2').textContent=gumx.toLocaleString()+'원';
+  document.getElementById('ssg-upG2s').textContent=SSG_M[gumxi];
+  document.getElementById('ssg-upG3').textContent=gumn.toLocaleString()+'원';
+  document.getElementById('ssg-upG3s').textContent=SSG_M[gumni];
+
+  // UP Line
+  const upc=document.getElementById('ssg-upLine').getContext('2d');
+  const upgg=upc.createLinearGradient(0,0,0,290);upgg.addColorStop(0,'rgba(5,150,105,.15)');upgg.addColorStop(1,'rgba(5,150,105,0)');
+  const upgc=upc.createLinearGradient(0,0,0,290);upgc.addColorStop(0,'rgba(37,99,235,.1)');upgc.addColorStop(1,'rgba(37,99,235,0)');
+  const cumxi=SSG_CUP.indexOf(Math.max(...cua)),cumni=SSG_CUP.indexOf(Math.min(...cua));
+  ssgCharts['upLine']=new Chart(upc,{type:'line',data:{labels:SSG_M,datasets:[
+    {label:'강남 객단가',data:SSG_GUP,borderColor:'#059669',backgroundColor:upgg,borderWidth:2,pointRadius:SSG_GUP.map((_,i)=>(i===gumxi||i===gumni)?7:4),pointHoverRadius:8,pointBackgroundColor:SSG_GUP.map((_,i)=>i===gumxi?'#B45309':i===gumni?'#DC2626':'#059669'),pointBorderColor:'#FFFFFF',pointBorderWidth:2,fill:true,tension:.35},
+    {label:'청담 객단가',data:SSG_CUP.map(v=>v||null),borderColor:'#2563EB',backgroundColor:upgc,borderWidth:2,pointRadius:SSG_CUP.map((_,i)=>(i===cumxi||i===cumni)?7:4),pointHoverRadius:8,pointBackgroundColor:SSG_CUP.map((_,i)=>i===cumxi?'#B45309':i===cumni?'#DC2626':'#2563EB'),pointBorderColor:'#FFFFFF',pointBorderWidth:2,fill:true,tension:.35,spanGaps:false}
+  ]},options:{...SSG_CD0,responsive:true,maintainAspectRatio:false,plugins:{...SSG_CD0.plugins,legend:{display:true,position:'top',align:'end',labels:{color:'#64748B',font:{family:'Pretendard',size:11},boxWidth:12,usePointStyle:true}},tooltip:{...SSG_CD0.plugins.tooltip,callbacks:{label:ctx=>ctx.raw?' '+ctx.dataset.label+': '+ctx.raw.toLocaleString()+'원':null}}},scales:{...SSG_CD0.scales,y:{...SSG_CD0.scales.y,ticks:{...SSG_CD0.scales.y.ticks,callback:v=>v.toLocaleString()+'원'}}},animation:{...SSG_CD0.animation,onComplete:function(){ssgPaintMM(this,[[0,gumxi,'▲ MAX','#B45309','rgba(180,83,9,0.1)',true],[0,gumni,'▼ MIN','#DC2626','rgba(220,38,38,0.1)',false]]);}}}});
+
+  // UP Bar
+  const sup=[...SSG_GP].sort((a,b)=>b.u-a.u);
+  ssgCharts['upBar']=new Chart(document.getElementById('ssg-upBar'),{type:'bar',data:{labels:sup.map(d=>d.p),datasets:[{label:'객단가',data:sup.map(d=>d.u),backgroundColor:sup.map(d=>SSG_CC[d.c]+'bb'),borderRadius:4,borderSkipped:false}]},options:{...SSG_CD0,responsive:true,maintainAspectRatio:false,indexAxis:'y',scales:{x:{grid:{color:'rgba(226,232,240,0.8)'},ticks:{color:'#94A3B8',font:{family:'Pretendard',size:10},callback:v=>v.toLocaleString()+'원'}},y:{grid:{display:false},ticks:{color:'#1E293B',font:{family:'Pretendard',size:11}}}},plugins:{...SSG_CD0.plugins,tooltip:{...SSG_CD0.plugins.tooltip,callbacks:{label:ctx=>' 객단가: '+ctx.raw.toLocaleString()+'원'}}}}});
+
+  // UP Bubble
+  const mqq=Math.max(...SSG_GP.map(d=>d.q));
+  ssgCharts['upBub']=new Chart(document.getElementById('ssg-upBub'),{type:'bubble',data:{datasets:[{label:'강남',data:SSG_GP.map(d=>({x:d.s/10000,y:d.u,r:Math.max(5,Math.round(d.q/mqq*28)),p:d.p,q:d.q})),backgroundColor:SSG_GP.map(d=>SSG_CC[d.c]+'99'),borderColor:SSG_GP.map(d=>SSG_CC[d.c]),borderWidth:1}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#FFFFFF',borderColor:'#E2E8F0',borderWidth:1,titleColor:'#1E293B',bodyColor:'#64748B',padding:12,cornerRadius:8,callbacks:{title:ctx=>ctx[0].raw.p,label:ctx=>[' 매출: '+Math.round(ctx.raw.x)+'만원',' 객단가: '+ctx.raw.y.toLocaleString()+'원',' 판매: '+ctx.raw.q+'건']}}},scales:{x:{grid:{color:'rgba(226,232,240,0.8)'},ticks:{color:'#94A3B8',font:{family:'Pretendard',size:10},callback:v=>v+'만'},title:{display:true,text:'누적 매출 (만원)',color:'#94A3B8',font:{size:10}}},y:{grid:{color:'rgba(226,232,240,0.8)'},ticks:{color:'#94A3B8',font:{family:'Pretendard',size:10},callback:v=>v.toLocaleString()+'원'},title:{display:true,text:'객단가',color:'#94A3B8',font:{size:10}}}}}});
+  ssgUtbl('ssg-upTG',SSG_GP);ssgUtbl('ssg-upTC',SSG_CP);
+
+  // Weekday
+  ssgBuildWdGrid();
+  const wdAvgs=SSG_WD_DATA.map(w=>w.avg);
+  const wdCtx=document.getElementById('ssg-wdBar').getContext('2d');
+  const wdGrad=wdCtx.createLinearGradient(0,0,0,220);wdGrad.addColorStop(0,'rgba(5,150,105,.75)');wdGrad.addColorStop(1,'rgba(5,150,105,.2)');
+  ssgCharts['wdBar']=new Chart(wdCtx,{type:'bar',data:{labels:SSG_WD_DATA.map(w=>w.d+'요일'),datasets:[{label:'평균 매출(추정)',data:wdAvgs,backgroundColor:SSG_WD_DATA.map(w=>w.ratio>=1.3?'rgba(180,83,9,.75)':w.ratio<=0.8?'rgba(220,38,38,.55)':'rgba(5,150,105,.6)'),borderRadius:5,borderSkipped:false}]},options:{...SSG_CD0,responsive:true,maintainAspectRatio:false,scales:{...SSG_CD0.scales,y:{...SSG_CD0.scales.y,ticks:{...SSG_CD0.scales.y.ticks,callback:v=>ssgFmt(v)}}},plugins:{...SSG_CD0.plugins,tooltip:{...SSG_CD0.plugins.tooltip,callbacks:{label:ctx=>' 추정 평균: '+ctx.raw.toLocaleString()+'원'}}}}});
+
+  // Event vs normal
+  const evtData=[{l:'일반 평일',v:Math.round(ssgAvgDaily*.85)},{l:'일반 주말',v:Math.round(ssgAvgDaily*1.47)},{l:'팝업 평일',v:Math.round(ssgAvgDaily*1.35)},{l:'팝업 주말',v:Math.round(ssgAvgDaily*2.1)}];
+  ssgCharts['evtBar']=new Chart(document.getElementById('ssg-evtBar'),{type:'bar',data:{labels:evtData.map(d=>d.l),datasets:[{label:'일평균 매출',data:evtData.map(d=>d.v),backgroundColor:['rgba(37,99,235,.45)','rgba(37,99,235,.75)','rgba(5,150,105,.45)','rgba(5,150,105,.85)'],borderRadius:6,borderSkipped:false}]},options:{...SSG_CD0,responsive:true,maintainAspectRatio:false,scales:{...SSG_CD0.scales,y:{...SSG_CD0.scales.y,ticks:{...SSG_CD0.scales.y.ticks,callback:v=>ssgFmt(v)}}},plugins:{...SSG_CD0.plugins,tooltip:{...SSG_CD0.plugins.tooltip,callbacks:{label:ctx=>' 일평균(추정): '+ctx.raw.toLocaleString()+'원'}}}}});
+
+  // Peak grids
+  ssgBuildPeakGrid('ssg-peakGrid',SSG_PEAK_MONTHS);
+  ssgBuildPeakGrid('ssg-peakGrid2',SSG_PEAK_MONTHS);
+}
+
+// 슬라이드 4번(신세계) 진입 시 차트 초기화
+const _origGoTo = goTo;
+goTo = function(i) {
+  _origGoTo(i);
+  if(i === 4) { setTimeout(ssgInit, 100); }
+};
 </script>
 </body>
 </html>
