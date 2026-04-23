@@ -1801,13 +1801,6 @@ body {
   ══════════════════════════════════════════ -->
   <div class="own-page" id="own-page-customer">
 
-    <!-- ① 건강도 스코어카드 -->
-    <div class="ch-label-wrap">
-      <div class="ch-label" style="flex:1;">고객 지표 건강도</div>
-      <button class="ch-comment-toggle" id="toggle-s2-health" onclick="toggleComment('s2-health')" title="코멘트 추가">＋</button>
-    </div>
-    <div class="ch-comment-area" id="area-s2-health" style="display:none;"></div>
-
 
     <!-- ② 핵심 KPI -->
     <div class="ch-label-wrap">
@@ -6361,74 +6354,12 @@ function ssgInit(){
 // ── 건강케어 TOP 20 데이터 (이미지 기반) ──
 // {rank, name, qty, plans(식단 구성), expo(노출당 선택량), importance(중요도 별점 1~4), prevRank(전월 수량순 순위)}
 // ※ prevRank: 전월 '수량 기준' 순위. null이면 NEW(신규 진입)
-let BEST_HEALTH = [
-  {rank:1,  name:'왕돼지구이연근밥',       qty:1510, plans:5, expo:302, importance:3, prevRank:3},
-  {rank:2,  name:'해물빠에야',             qty:1500, plans:5, expo:300, importance:3, prevRank:1},
-  {rank:3,  name:'김치알밥',               qty:550,  plans:2, expo:275, importance:2, prevRank:6},
-  {rank:4,  name:'알리오올리오리오리소',   qty:1354, plans:5, expo:271, importance:3, prevRank:4},
-  {rank:5,  name:'새우로제파스타',         qty:1326, plans:5, expo:265, importance:3, prevRank:2},
-  {rank:6,  name:'두부제육덮밥',           qty:1552, plans:6, expo:259, importance:4, prevRank:7},
-  {rank:7,  name:'연어스테이크',           qty:2294, plans:9, expo:255, importance:4, prevRank:5},
-  {rank:8,  name:'두부새우덮밥',           qty:1612, plans:7, expo:230, importance:4, prevRank:8},
-  {rank:9,  name:'닭갈비덮밥',             qty:888,  plans:4, expo:222, importance:3, prevRank:11},
-  {rank:10, name:'수삼삼계영양밥',         qty:1292, plans:6, expo:215, importance:4, prevRank:9},
-  {rank:11, name:'치킨알리오올리오',       qty:1288, plans:6, expo:215, importance:4, prevRank:10},
-  {rank:12, name:'해물볶음영양밥',         qty:413,  plans:2, expo:207, importance:2, prevRank:14},
-  {rank:13, name:'소고기 고추장체성밥',    qty:334,  plans:2, expo:167, importance:2, prevRank:12},
-  {rank:14, name:'해물소불고기덮밥',       qty:500,  plans:3, expo:167, importance:2, prevRank:16},
-  {rank:15, name:'닭가슴살영양밥',         qty:993,  plans:6, expo:166, importance:4, prevRank:13},
-  {rank:16, name:'들깨버섯두부밥',         qty:1008, plans:6, expo:165, importance:4, prevRank:15},
-  {rank:17, name:'갈릭머스터드토마토파스타', qty:464, plans:3, expo:155, importance:2, prevRank:null},
-  {rank:18, name:'제육오징어덮밥',         qty:615,  plans:4, expo:154, importance:3, prevRank:18},
-  {rank:19, name:'치킨커리라이스',         qty:448,  plans:3, expo:149, importance:2, prevRank:17},
-  {rank:20, name:'짜장영양밥',             qty:578,  plans:4, expo:145, importance:3, prevRank:22},
-];
-
-// ── 당뇨케어 TOP 10 ──
-let BEST_DIABETES = [
-  {rank:1,  name:'닭백연어스테이크',  qty:502, prevRank:2},
-  {rank:2,  name:'소불고기가득해물덮밥', qty:496, prevRank:1},
-  {rank:3,  name:'해물가득영양밥',    qty:467, prevRank:3},
-  {rank:4,  name:'로찌닭가슴살영양밥', qty:441, prevRank:6},
-  {rank:5,  name:'매콤오징어제육덮밥', qty:427, prevRank:4},
-  {rank:6,  name:'저당 안심덮밥',      qty:411, prevRank:5},
-  {rank:7,  name:'저당 안심 짜장영양밥', qty:406, prevRank:null},
-  {rank:8,  name:'치즈닭가슴살덮밥',   qty:362, prevRank:7},
-  {rank:9,  name:'간장돼지구이연근밥', qty:354, prevRank:8},
-  {rank:10, name:'소불고기고소버섯덮밥', qty:320, prevRank:9},
-];
-
-// ── 신장케어 TOP 10 ──
-let BEST_KIDNEY = [
-  {rank:1,  name:'삼색소고기밥',       qty:625, prevRank:1},
-  {rank:2,  name:'닭백한연어스테이크', qty:610, prevRank:3},
-  {rank:3,  name:'돼지고기 안심 짜장밥', qty:603, prevRank:2},
-  {rank:4,  name:'소고기덮밥',         qty:574, prevRank:4},
-  {rank:5,  name:'돼지불고기덮밥',     qty:539, prevRank:7},
-  {rank:6,  name:'모짜렐라치킨라이스', qty:498, prevRank:5},
-  {rank:7,  name:'치킨돈부리',         qty:484, prevRank:6},
-  {rank:8,  name:'해물가득빠에야',     qty:467, prevRank:9},
-  {rank:9,  name:'매콤 안심고추장밥',  qty:467, prevRank:8},
-  {rank:10, name:'취나물가득소불고기덮밥', qty:460, prevRank:null},
-];
-
-// ── 암케어 TOP 10 ──
-let BEST_CANCER = [
-  {rank:1, name:'닭백한돈부새우영양밥', qty:402, prevRank:1},
-  {rank:2, name:'연어소불고기영양밥',   qty:373, prevRank:3},
-  {rank:3, name:'닭백한연어영양밥',     qty:355, prevRank:2},
-  {rank:4, name:'닭백한닭가슴살영양밥', qty:354, prevRank:5},
-  {rank:5, name:'매콤제육부부연근밥',   qty:298, prevRank:4},
-  {rank:6, name:'고소한들깨파스타',      qty:288, prevRank:6},
-  {rank:7, name:'유산슬치찌영양밥',     qty:288, prevRank:8},
-  {rank:8, name:'닭고가득덮밥',         qty:288, prevRank:7},
-  {rank:9, name:'닭백한치킨알리오올리오', qty:267, prevRank:null},
-  {rank:10, name:'들깨가득버섯밥',      qty:229, prevRank:9},
-];
-
-// ── 상태 ──
-// ※ 실제 건강케어 전체 메뉴 수 (대시보드에는 TOP 20만 표시). 필요시 값 변경 가능.
-let BEST_HEALTH_TOTAL = 45;
+// ── 엑셀 업로드 전 빈 상태 유지 — 하드코딩 샘플 제거 ──
+let BEST_HEALTH   = [];
+let BEST_DIABETES = [];
+let BEST_KIDNEY   = [];
+let BEST_CANCER   = [];
+let BEST_HEALTH_TOTAL = 0;
 
 let bestSortMode = 'qty';      // 기본: 수량순
 let bestSearchQuery = '';
@@ -6466,6 +6397,17 @@ function bestChgBadge(currentRank, prevRank) {
 
 // ── 건강케어 렌더 ──
 function bestRenderHealth() {
+  // 데이터 없을 때 안내
+  if (!BEST_HEALTH.length) {
+    const goldEl = document.getElementById('health-body-gold');
+    if (goldEl) goldEl.innerHTML = `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:32px;">엑셀 파일을 업로드하면 데이터가 표시됩니다</td></tr>`;
+    const silverEl = document.getElementById('health-body-silver');
+    if (silverEl) silverEl.innerHTML = '';
+    const normalEl = document.getElementById('health-body-normal');
+    if (normalEl) normalEl.innerHTML = '';
+    return;
+  }
+
   const q = bestSearchQuery.trim().toLowerCase();
   const searching = q.length > 0;
 
@@ -6571,6 +6513,15 @@ function bestRenderAllDiseases() {
 
 // ── Summary KPI 렌더 ──
 function bestRenderKpi() {
+  if (!BEST_HEALTH.length) {
+    ['best-kpi-top1','best-kpi-top1-sub','best-kpi-avg-expo','best-kpi-share'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = '–';
+    });
+    const totalEl = document.getElementById('best-kpi-total');
+    if (totalEl) totalEl.textContent = '–';
+    return;
+  }
   const sortKey = bestSortMode === 'expo' ? 'expo' : 'qty';
   const ranked = [...BEST_HEALTH].sort((a,b) => b[sortKey] - a[sortKey]);
   const top1 = ranked[0];
