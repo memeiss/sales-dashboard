@@ -14,7 +14,7 @@
 <style>
 /* ───────────────────────────────────────
    DESIGN SYSTEM
-   Primary   : #2563EB  (blue  – actions, active state)
+   Primary   : #25347A  (blue  – actions, active state)
    Positive  : #16A34A  (green – up, good)
    Negative  : #DC2626  (red   – down, warning)
    Neutral   : #1E293B  (text)
@@ -23,7 +23,7 @@
    Border    : #E2E8F0
 ──────────────────────────────────────── */
 :root {
-  --blue:    #2563EB;
+  --blue:    #25347A;
   --blue-lt: #EFF6FF;
   --green:   #16A34A;
   --green-lt:#F0FDF4;
@@ -42,7 +42,7 @@
   --shadow-md: 0 4px 8px rgba(0,0,0,0.08);
 
   /* Category palette – only used for chart segments */
-  --cat1: #2563EB;
+  --cat1: #25347A;
   --cat2: #0891B2;
   --cat3: #059669;
   --cat4: #7C3AED;
@@ -75,7 +75,7 @@ body {
 .upload-inner {
   display: flex; align-items: center;
   justify-content: space-between;
-  padding: 11px 28px;
+  padding: 11px 40px;
   position: relative; z-index:1;
   gap: 16px; flex-wrap: wrap;
 }
@@ -112,7 +112,7 @@ body {
 /* ── Header ── */
 .header {
   display:flex; align-items:center; justify-content:space-between;
-  padding: 12px 28px;
+  padding: 12px 40px;
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   box-shadow: var(--shadow);
@@ -153,7 +153,7 @@ body {
 /* ── Nav Tabs ── */
 .nav-container {
   display:flex; align-items:center; justify-content:center;
-  padding:16px 28px 0; gap:12px;
+  padding:16px 40px 0; gap:12px;
 }
 .nav-tabs {
   display:flex; background:var(--surface);
@@ -172,7 +172,7 @@ body {
 /* ── Arrow Nav ── */
 .arrow-nav {
   display:flex; align-items:center; justify-content:space-between;
-  padding:12px 28px;
+  padding:12px 40px;
 }
 .arrow-btn {
   display:flex; align-items:center; gap:6px;
@@ -193,6 +193,8 @@ body {
   overflow: hidden;
   width: 100%;
   position: relative;
+  max-width: 1600px;
+  margin: 0 auto;
 }
 .slides-track {
   display: flex;
@@ -203,7 +205,7 @@ body {
   min-width: 100%;
   width: 100%;
   flex-shrink: 0;
-  padding: 0 28px 36px;
+  padding: 0 40px 36px;
   box-sizing: border-box;
   /* 차트가 슬라이드 밖으로 나가지 않도록 */
   overflow: hidden;
@@ -299,7 +301,7 @@ body {
   border:none; background:var(--blue); color:#fff;
   font-size:11px; font-weight:700; cursor:pointer; font-family:inherit; transition:all 0.15s;
 }
-.comment-save-btn:hover { background:#1d4ed8; }
+.comment-save-btn:hover { background:#1a2d6b; }
 .comment-save-btn.saved { background:var(--green); }
 
 /* 저장 완료 후 읽기 모드 */
@@ -447,7 +449,7 @@ body {
   background:var(--surface);color:var(--text2);transition:all 0.18s;
 }
 .wd-tab.active-all   { background:var(--text);  color:#fff;border-color:var(--text); }
-.wd-tab.active-on    { background:#2563EB;       color:#fff;border-color:#2563EB; }
+.wd-tab.active-on    { background:#25347A;       color:#fff;border-color:#25347A; }
 .wd-tab.active-off   { background:#F59E0B;       color:#fff;border-color:#F59E0B; }
 /* 3-bar 모드 sub-labels */
 .weekday-sub-vals { display:flex;gap:3px;justify-content:center;flex-wrap:wrap;margin-top:2px; }
@@ -522,7 +524,7 @@ body {
   .grid-4  { grid-template-columns:repeat(2,1fr); }
   .grid-7  { grid-template-columns:repeat(4,1fr); }
   .sub-grid{ grid-template-columns:repeat(2,1fr); }
-  .slide,.header,.arrow-nav,.nav-container,.upload-inner { padding-left:14px;padding-right:14px; }
+  .slide,.header,.arrow-nav,.nav-container,.upload-inner { padding-left:20px;padding-right:20px; }
 
   /* ── 모바일에서 1열로 쌓이는 grid ── */
   .grid-stack {
@@ -560,7 +562,7 @@ body {
 <div class="upload-banner">
   <div class="upload-inner">
     <div class="upload-left">
-      <div class="upload-icon">📂</div>
+      <div class="upload-icon" style="font-size:18px;">📂</div>
       <div class="upload-text">
         <h3>엑셀 데이터 연동</h3>
         <p>제공된 엑셀 양식을 업로드하면 대시보드가 자동으로 업데이트됩니다</p>
@@ -587,7 +589,7 @@ body {
 <!-- Drop Overlay -->
 <div class="drop-overlay" id="dropOverlay">
   <div class="drop-box">
-    <div style="font-size:44px">📊</div>
+    <div style="font-size:44px"></div>
     <h2>파일을 여기에 놓으세요</h2>
     <p>엑셀 파일(.xlsx)을 드래그 앤 드롭하여 업로드</p>
   </div>
@@ -599,9 +601,9 @@ body {
 <!-- Header -->
 <div class="header">
   <div class="header-left">
-    <div class="logo-badge">OD</div>
+    <div class="logo-badge">G</div>
     <div>
-      <div class="header-title">OMNI Sales Dashboard</div>
+      <div class="header-title">Sales Dashboard</div>
       <div class="header-meta">OMNI 채널 통합 매출 분석 시스템</div>
     </div>
   </div>
@@ -618,7 +620,7 @@ body {
       </select>
     </div>
     <div class="period-badge" id="periodBadge">01.01 – 01.31</div>
-    <a href="daily-dashboard.html" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--blue);color:#fff;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;transition:all .15s;" onmouseover="this.style.background='#1d4ed8'" onmouseout="this.style.background='var(--blue)'">📅 일자·주차 분석</a>
+    <a href="daily-dashboard.html" style="display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--blue);color:#fff;border-radius:8px;font-size:12px;font-weight:700;text-decoration:none;transition:all .15s;" onmouseover="this.style.background='#1a2d6b'" onmouseout="this.style.background='var(--blue)'"> 일자·주차 분석</a>
     <div class="live-dot"></div>
   </div>
 </div>
@@ -626,11 +628,11 @@ body {
 <!-- Nav -->
 <div class="nav-container">
   <div class="nav-tabs">
-    <button class="nav-tab active" onclick="goTo(0)">📊 OMNI 매출</button>
-    <button class="nav-tab" onclick="goTo(1)">🛒 자사몰</button>
-    <button class="nav-tab" onclick="goTo(2)">🏬 신세계</button>
-    <button class="nav-tab" id="tab-event" onclick="goTo(3)" style="display:none">🎯 이벤트</button>
-    <button class="nav-tab" onclick="goTo(4)">⭐ 베스트 메뉴</button>
+    <button class="nav-tab active" onclick="goTo(0)">OMNI</button>
+    <button class="nav-tab" onclick="goTo(1)">자사몰</button>
+    <button class="nav-tab" onclick="goTo(2)" style="display:none"> 신세계</button>
+    <button class="nav-tab" id="tab-event" onclick="goTo(3)" style="display:none"> 이벤트</button>
+    <button class="nav-tab" onclick="goTo(4)" style="display:none">Top Sel</button>
   </div>
 </div>
 
@@ -642,9 +644,9 @@ body {
   <div class="slide-indicator">
     <div class="dot active" onclick="goTo(0)"></div>
     <div class="dot" onclick="goTo(1)"></div>
-    <div class="dot" onclick="goTo(2)"></div>
+    <div class="dot" onclick="goTo(2)" style="display:none"></div>
     <div class="dot" id="dot-event" onclick="goTo(3)" style="display:none"></div>
-    <div class="dot" onclick="goTo(4)"></div>
+    <div class="dot" onclick="goTo(4)" style="display:none"></div>
   </div>
   <button class="arrow-btn" id="nextBtn" onclick="navigate(1)">
     다음<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9,6 15,12 9,18"/></svg>
@@ -660,7 +662,7 @@ body {
 <!-- ─── SLIDE 1 : OMNI ─── -->
 <div class="slide">
   <div class="section-title">
-    <div class="section-icon" style="background:var(--blue-lt)">📊</div>
+    <div class="section-icon" style="background:var(--blue-lt);display:none;"></div>
     <div>
       <h2>OMNI - 월별 매출 대시보드</h2>
       <p id="s1-period-label">전체 채널 통합 매출 현황</p>
@@ -709,7 +711,7 @@ body {
   <!-- 최고/최저 매출일 -->
   <div class="grid-2">
     <div class="daystat-card">
-      <div class="daystat-icon max-icon">🏆</div>
+      <div class="daystat-icon max-icon" style="display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5" width="18" height="18"><polyline points="18 15 12 9 6 15"/></svg></div>
       <div class="daystat-body">
         <div class="daystat-label">최고 매출일</div>
         <div class="daystat-amount max" id="s1-max-amount">–</div>
@@ -717,7 +719,7 @@ body {
       </div>
     </div>
     <div class="daystat-card">
-      <div class="daystat-icon min-icon">📉</div>
+      <div class="daystat-icon min-icon" style="display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></div>
       <div class="daystat-body">
         <div class="daystat-label">최저 매출일</div>
         <div class="daystat-amount min" id="s1-min-amount">–</div>
@@ -743,7 +745,7 @@ body {
   <div class="grid-2 grid-stack" style="margin-bottom:12px;">
     <div class="chart-card" style="margin-bottom:0;position:relative;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0;">
-        <div class="chart-card-title" style="color:var(--blue);margin-bottom:0;">🌐 온라인 채널</div>
+        <div class="chart-card-title" style="color:var(--blue);margin-bottom:0;">온라인 채널</div>
         <button class="ch-comment-toggle" id="toggle-s1-online" onclick="toggleComment('s1-online')" title="코멘트 추가">＋</button>
       </div>
       <div class="ch-comment-area" id="area-s1-online" style="display:none;"></div>
@@ -755,7 +757,7 @@ body {
       </div>
       <div class="grid-2" style="gap:8px;">
         <div class="daystat-card" style="padding:10px 12px;gap:8px;">
-          <div class="daystat-icon max-icon" style="width:30px;height:30px;font-size:14px;">🏆</div>
+          <div class="daystat-icon max-icon" style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5" width="14" height="14"><polyline points="18 15 12 9 6 15"/></svg></div>
           <div class="daystat-body">
             <div class="daystat-label">최고</div>
             <div class="daystat-amount max xs" id="s1-online-max-amt">–</div>
@@ -763,7 +765,7 @@ body {
           </div>
         </div>
         <div class="daystat-card" style="padding:10px 12px;gap:8px;">
-          <div class="daystat-icon min-icon" style="width:30px;height:30px;font-size:14px;">📉</div>
+          <div class="daystat-icon min-icon" style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg></div>
           <div class="daystat-body">
             <div class="daystat-label">최저</div>
             <div class="daystat-amount min xs" id="s1-online-min-amt">–</div>
@@ -774,7 +776,7 @@ body {
     </div>
     <div class="chart-card" style="margin-bottom:0;position:relative;">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0;">
-        <div class="chart-card-title" style="color:var(--amber);margin-bottom:0;">🏪 오프라인 채널</div>
+        <div class="chart-card-title" style="color:var(--amber);margin-bottom:0;">오프라인 채널</div>
         <button class="ch-comment-toggle" id="toggle-s1-offline" onclick="toggleComment('s1-offline')" title="코멘트 추가">＋</button>
       </div>
       <div class="ch-comment-area" id="area-s1-offline" style="display:none;"></div>
@@ -786,7 +788,7 @@ body {
       </div>
       <div class="grid-2" style="gap:8px;">
         <div class="daystat-card" style="padding:10px 12px;gap:8px;">
-          <div class="daystat-icon max-icon" style="width:30px;height:30px;font-size:14px;">🏆</div>
+          <div class="daystat-icon max-icon" style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5" width="14" height="14"><polyline points="18 15 12 9 6 15"/></svg></div>
           <div class="daystat-body">
             <div class="daystat-label">최고</div>
             <div class="daystat-amount max xs" id="s1-offline-max-amt">–</div>
@@ -794,7 +796,7 @@ body {
           </div>
         </div>
         <div class="daystat-card" style="padding:10px 12px;gap:8px;">
-          <div class="daystat-icon min-icon" style="width:30px;height:30px;font-size:14px;">📉</div>
+          <div class="daystat-icon min-icon" style="width:30px;height:30px;display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.5" width="14" height="14"><polyline points="6 9 12 15 18 9"/></svg></div>
           <div class="daystat-body">
             <div class="daystat-label">최저</div>
             <div class="daystat-amount min xs" id="s1-offline-min-amt">–</div>
@@ -834,8 +836,8 @@ body {
   <!-- 탭 -->
   <div class="wd-tabs">
     <button class="wd-tab active-all" id="wdTab-all"  onclick="setWdTab('all')">전체</button>
-    <button class="wd-tab"            id="wdTab-on"   onclick="setWdTab('on')">🌐 온라인</button>
-    <button class="wd-tab"            id="wdTab-off"  onclick="setWdTab('off')">🏪 오프라인</button>
+    <button class="wd-tab"            id="wdTab-on"   onclick="setWdTab('on')"> 온라인</button>
+    <button class="wd-tab"            id="wdTab-off"  onclick="setWdTab('off')"> 오프라인</button>
   </div>
 
   <div style="display:flex;gap:12px;">
@@ -845,7 +847,7 @@ body {
         <div class="weekday-name" id="wdn-0">월</div>
         <div class="weekday-bar">
           <div class="weekday-bar-inner" id="wdb-all-0" style="background:#64748B"></div>
-          <div class="weekday-bar-inner" id="wdb-on-0"  style="background:#2563EB"></div>
+          <div class="weekday-bar-inner" id="wdb-on-0"  style="background:#25347A"></div>
           <div class="weekday-bar-inner" id="wdb-off-0" style="background:#F59E0B"></div>
         </div>
         <div class="weekday-val" id="wdv-0">–</div>
@@ -854,7 +856,7 @@ body {
         <div class="weekday-name" id="wdn-1">화</div>
         <div class="weekday-bar">
           <div class="weekday-bar-inner" id="wdb-all-1" style="background:#64748B"></div>
-          <div class="weekday-bar-inner" id="wdb-on-1"  style="background:#2563EB"></div>
+          <div class="weekday-bar-inner" id="wdb-on-1"  style="background:#25347A"></div>
           <div class="weekday-bar-inner" id="wdb-off-1" style="background:#F59E0B"></div>
         </div>
         <div class="weekday-val" id="wdv-1">–</div>
@@ -863,7 +865,7 @@ body {
         <div class="weekday-name" id="wdn-2">수</div>
         <div class="weekday-bar">
           <div class="weekday-bar-inner" id="wdb-all-2" style="background:#64748B"></div>
-          <div class="weekday-bar-inner" id="wdb-on-2"  style="background:#2563EB"></div>
+          <div class="weekday-bar-inner" id="wdb-on-2"  style="background:#25347A"></div>
           <div class="weekday-bar-inner" id="wdb-off-2" style="background:#F59E0B"></div>
         </div>
         <div class="weekday-val" id="wdv-2">–</div>
@@ -872,7 +874,7 @@ body {
         <div class="weekday-name" id="wdn-3">목</div>
         <div class="weekday-bar">
           <div class="weekday-bar-inner" id="wdb-all-3" style="background:#64748B"></div>
-          <div class="weekday-bar-inner" id="wdb-on-3"  style="background:#2563EB"></div>
+          <div class="weekday-bar-inner" id="wdb-on-3"  style="background:#25347A"></div>
           <div class="weekday-bar-inner" id="wdb-off-3" style="background:#F59E0B"></div>
         </div>
         <div class="weekday-val" id="wdv-3">–</div>
@@ -881,7 +883,7 @@ body {
         <div class="weekday-name" id="wdn-4">금</div>
         <div class="weekday-bar">
           <div class="weekday-bar-inner" id="wdb-all-4" style="background:#64748B"></div>
-          <div class="weekday-bar-inner" id="wdb-on-4"  style="background:#2563EB"></div>
+          <div class="weekday-bar-inner" id="wdb-on-4"  style="background:#25347A"></div>
           <div class="weekday-bar-inner" id="wdb-off-4" style="background:#F59E0B"></div>
         </div>
         <div class="weekday-val" id="wdv-4">–</div>
@@ -890,7 +892,7 @@ body {
         <div class="weekday-name" id="wdn-5">토</div>
         <div class="weekday-bar">
           <div class="weekday-bar-inner" id="wdb-all-5" style="background:#64748B"></div>
-          <div class="weekday-bar-inner" id="wdb-on-5"  style="background:#2563EB"></div>
+          <div class="weekday-bar-inner" id="wdb-on-5"  style="background:#25347A"></div>
           <div class="weekday-bar-inner" id="wdb-off-5" style="background:#F59E0B"></div>
         </div>
         <div class="weekday-val" id="wdv-5">–</div>
@@ -899,7 +901,7 @@ body {
         <div class="weekday-name" id="wdn-6">일</div>
         <div class="weekday-bar">
           <div class="weekday-bar-inner" id="wdb-all-6" style="background:#64748B"></div>
-          <div class="weekday-bar-inner" id="wdb-on-6"  style="background:#2563EB"></div>
+          <div class="weekday-bar-inner" id="wdb-on-6"  style="background:#25347A"></div>
           <div class="weekday-bar-inner" id="wdb-off-6" style="background:#F59E0B"></div>
         </div>
         <div class="weekday-val" id="wdv-6">–</div>
@@ -917,7 +919,7 @@ body {
         <div class="stat-sub" id="s1-weekend-diff">–</div>
       </div>
       <div class="stat-card c-blue" style="flex:1">
-        <div class="stat-label">🏆 최고 요일</div>
+        <div class="stat-label"> 최고 요일</div>
         <div class="stat-value sm hi" id="s1-best-day">–</div>
       </div>
     </div>
@@ -929,7 +931,7 @@ body {
       <div style="width:10px;height:10px;border-radius:2px;background:#64748B;flex-shrink:0;"></div>전체
     </div>
     <div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:var(--text2);">
-      <div style="width:10px;height:10px;border-radius:2px;background:#2563EB;flex-shrink:0;"></div>온라인
+      <div style="width:10px;height:10px;border-radius:2px;background:#25347A;flex-shrink:0;"></div>온라인
     </div>
     <div style="display:flex;align-items:center;gap:5px;font-size:10px;font-weight:700;color:var(--text2);">
       <div style="width:10px;height:10px;border-radius:2px;background:#F59E0B;flex-shrink:0;"></div>오프라인
@@ -1036,7 +1038,7 @@ body {
     content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--ac-color, var(--blue));
   }
   #own-slide .arpu-kpi.arpu::before  { background:#94A3B8; }
-  #own-slide .arpu-kpi.arppu::before { background:#2563EB; }
+  #own-slide .arpu-kpi.arppu::before { background:#25347A; }
   #own-slide .arpu-kpi.gap::before   { background:#F59E0B; }
   #own-slide .arpu-kpi.cvr::before   { background:#059669; }
   #own-slide .arpu-kpi-label {
@@ -1086,7 +1088,7 @@ body {
     transition:left .8s ease;
   }
   #own-slide .dumbbell-dot.arpu  { background:#94A3B8; }
-  #own-slide .dumbbell-dot.arppu { background:#2563EB; }
+  #own-slide .dumbbell-dot.arppu { background:#25347A; }
   /* 연결선 */
   #own-slide .dumbbell-line {
     position:absolute;top:50%;height:4px;
@@ -1203,11 +1205,303 @@ body {
     #own-slide .health-score-left { flex:none;padding-right:0;padding-bottom:16px;border-right:none;border-bottom:1px dashed var(--border); }
     #own-slide .health-score-items { grid-template-columns:1fr; }
   }
-  </style>
+  
+  /* ── Top Sel 전용 CSS ──
+  /* ── Summary KPI ── */
+  #own-slide .best-kpi-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px; }
+  #own-slide .best-kpi {
+    background:var(--surface);border:1px solid var(--border);border-radius:11px;
+    padding:16px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+  }
+  #own-slide .best-kpi::before {
+    content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--blue);
+  }
+  #own-slide .best-kpi.gold::before { background:#F59E0B; }
+  #own-slide .best-kpi.silver::before { background:#94A3B8; }
+  #own-slide .best-kpi.bronze::before { background:#D97706; }
+  #own-slide .best-kpi-label { font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:7px; }
+  #own-slide .best-kpi-val { font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.4px;line-height:1.1; }
+  #own-slide .best-kpi-sub { font-size:11px;color:var(--muted);margin-top:4px; }
+
+  /* ── 검색/필터 바 ── */
+  #own-slide .best-toolbar {
+    background:var(--surface);border:1px solid var(--border);border-radius:10px;
+    padding:10px 14px;display:flex;gap:14px;align-items:center;
+    margin-bottom:10px;box-shadow:var(--shadow);flex-wrap:wrap;
+  }
+  #own-slide .best-search {
+    flex:0 0 320px;min-width:260px;display:flex;align-items:center;gap:8px;
+    background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+    padding:7px 12px;transition:border-color .15s;
+  }
+  #own-slide .best-search:focus-within { border-color:var(--blue); background:#fff; }
+  #own-slide .best-search svg { width:14px;height:14px;color:var(--muted);flex-shrink:0; }
+  #own-slide .best-search input {
+    flex:1;border:none;outline:none;background:transparent;
+    font-size:13px;font-family:inherit;color:var(--text);
+  }
+  #own-slide .best-search input::placeholder { color:var(--muted); }
+
+  /* ── 검색 힌트 ── */
+  #own-slide .best-search-hint {
+    display:flex;align-items:center;gap:6px;
+    font-size:11.5px;color:var(--text2);font-weight:500;
+    padding:0 4px;
+  }
+  #own-slide .best-search-hint-icon {
+    font-size:13px;flex-shrink:0;
+  }
+
+  /* ── 순위 변동 배지 ── */
+  #own-slide .chg-badge {
+    display:inline-flex;align-items:center;gap:2px;
+    padding:2px 7px;border-radius:5px;
+    font-size:11px;font-weight:800;line-height:1;min-width:34px;justify-content:center;
+    font-family:'DM Mono',Menlo,monospace;
+  }
+  #own-slide .chg-badge.up {
+    background:#DCFCE7;color:#15803D;border:1px solid #86EFAC;
+  }
+  #own-slide .chg-badge.down {
+    background:#FEE2E2;color:#B91C1C;border:1px solid #FCA5A5;
+  }
+  #own-slide .chg-badge.same {
+    background:var(--surface2);color:var(--muted);border:1px solid var(--border);
+  }
+  #own-slide .chg-badge.new {
+    background:#EEF2FF;color:#4338CA;border:1px solid #C7D2FE;font-weight:800;
+  }
+  #own-slide .chg-arrow {
+    font-size:9px;line-height:1;
+  }
+  #own-slide .best-filter-label { font-size:11px;color:var(--muted);font-weight:700; }
+  #own-slide .best-sort-btn {
+    padding:7px 14px;border-radius:7px;border:1px solid var(--border);
+    background:var(--surface);color:var(--text2);font-size:12px;font-weight:600;
+    font-family:inherit;cursor:pointer;transition:all .15s;
+  }
+  #own-slide .best-sort-btn:hover { border-color:var(--blue);color:var(--blue);background:var(--blue-lt); }
+  #own-slide .best-sort-btn.active { background:var(--blue);color:#fff;border-color:var(--blue); }
+
+  /* ── 순위 기준 선택 패널 (강조) ── */
+  #own-slide .best-sort-panel {
+    background:linear-gradient(135deg, var(--blue-lt) 0%, #F0F9FF 100%);
+    border:1.5px solid #BFDBFE;border-radius:12px;
+    padding:14px 18px;margin-bottom:20px;
+    display:flex;align-items:center;gap:18px;
+    box-shadow:0 2px 6px rgba(37,99,235,0.06);
+    flex-wrap:wrap;
+  }
+  #own-slide .best-sort-panel-left {
+    display:flex;align-items:center;gap:12px;flex:1;min-width:220px;
+  }
+  #own-slide .best-sort-icon {
+    width:42px;height:42px;border-radius:10px;
+    background:var(--blue);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px;flex-shrink:0;
+    box-shadow:0 3px 8px rgba(37,99,235,0.3);
+  }
+  #own-slide .best-sort-panel-title {
+    font-size:14px;font-weight:800;color:var(--blue);
+    letter-spacing:-0.2px;margin-bottom:2px;
+  }
+  #own-slide .best-sort-panel-desc {
+    font-size:11px;color:var(--text2);font-weight:500;
+  }
+  #own-slide .best-sort-options {
+    display:flex;gap:8px;flex-wrap:wrap;
+  }
+  #own-slide .best-sort-big {
+    padding:10px 18px;border-radius:10px;
+    border:1.5px solid var(--border);background:#fff;
+    font-family:inherit;cursor:pointer;transition:all .18s;
+    text-align:left;min-width:160px;
+  }
+  #own-slide .best-sort-big:hover {
+    border-color:var(--blue);background:var(--blue-lt);
+    transform:translateY(-1px);
+    box-shadow:0 4px 10px rgba(37,99,235,0.12);
+  }
+  #own-slide .best-sort-big.active {
+    background:var(--blue);border-color:var(--blue);
+    box-shadow:0 4px 12px rgba(37,99,235,0.3);
+  }
+  #own-slide .best-sort-big-title {
+    font-size:13px;font-weight:800;color:var(--text);
+    letter-spacing:-0.2px;margin-bottom:2px;
+  }
+  #own-slide .best-sort-big.active .best-sort-big-title { color:#fff; }
+  #own-slide .best-sort-big-sub {
+    font-size:10px;color:var(--muted);font-weight:500;
+  }
+  #own-slide .best-sort-big.active .best-sort-big-sub { color:rgba(255,255,255,.85); }
+
+  /* ── 섹션 타이틀 ── */
+  #own-slide .best-section-title {
+    display:flex;align-items:center;gap:10px;
+    margin:22px 0 14px;padding-bottom:12px;
+    border-bottom:1px solid var(--border);
+  }
+  #own-slide .best-section-icon {
+    width:34px;height:34px;border-radius:9px;
+    display:flex;align-items:center;justify-content:center;font-size:15px;
+    background:var(--blue-lt);
+  }
+  #own-slide .best-section-title h3 { font-size:16px;font-weight:800;letter-spacing:-0.3px;color:var(--text); }
+  #own-slide .best-section-title p { font-size:11px;color:var(--muted);margin-top:2px; }
+  #own-slide .best-section-badge {
+    margin-left:auto;background:var(--blue);color:#fff;
+    padding:4px 11px;border-radius:6px;font-size:11px;font-weight:700;
+  }
+
+  /* ── 티어 섹션 (TOP 5/10/20) ── */
+  #own-slide .tier-section { margin-bottom:14px; }
+  #own-slide .tier-header {
+    display:flex;align-items:center;gap:10px;
+    padding:10px 14px;border-radius:9px 9px 0 0;
+    font-size:12px;font-weight:800;letter-spacing:.3px;
+  }
+  #own-slide .tier-header.gold {
+    background:linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+    color:#92400E;border:1px solid #FCD34D;border-bottom:none;
+  }
+  #own-slide .tier-header.silver {
+    background:linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%);
+    color:#475569;border:1px solid #CBD5E0;border-bottom:none;
+  }
+  #own-slide .tier-header.normal {
+    background:var(--surface2);color:var(--text2);
+    border:1px solid var(--border);border-bottom:none;
+  }
+  #own-slide .tier-icon { font-size:15px; }
+  #own-slide .tier-count {
+    margin-left:auto;font-size:11px;font-weight:700;opacity:.8;
+  }
+
+  #own-slide .tier-body {
+    background:var(--surface);border:1px solid var(--border);border-top:none;
+    border-radius:0 0 9px 9px;overflow:hidden;box-shadow:var(--shadow);
+  }
+  #own-slide .tier-body.gold { border-color:#FCD34D; }
+  #own-slide .tier-body.silver { border-color:#CBD5E0; }
+
+  /* ── 메뉴 테이블 ── */
+  #own-slide .menu-table { width:100%;border-collapse:collapse; }
+  #own-slide .menu-table thead th {
+    font-size:10px;color:var(--muted);font-weight:700;
+    text-transform:uppercase;letter-spacing:.3px;
+    padding:9px 12px;text-align:left;
+    background:var(--surface2);border-bottom:2px solid var(--border);
+    white-space:nowrap;
+  }
+  #own-slide .menu-table tbody td {
+    padding:9px 12px;font-size:12px;
+    border-bottom:1px solid var(--border);
+    vertical-align:middle;
+  }
+  #own-slide .menu-table tbody tr:last-child td { border-bottom:none; }
+  #own-slide .menu-table tbody tr:hover td { background:var(--blue-lt); }
+
+  /* ── 골드 티어 row ── */
+  #own-slide tr.row-gold td {
+    background:linear-gradient(90deg, #FFFBEB 0%, #FFFFFF 100%);
+    font-weight:600;
+  }
+  #own-slide tr.row-gold:hover td { background:#FEF3C7 !important; }
+  #own-slide tr.row-silver td { background:#FAFBFC; }
+  #own-slide tr.row-silver:hover td { background:#F1F5F9 !important; }
+
+  /* ── 순위 배지 ── */
+  #own-slide .rank-b {
+    display:inline-flex;align-items:center;justify-content:center;
+    width:26px;height:26px;border-radius:8px;
+    font-size:11px;font-weight:800;
+    background:var(--surface2);color:var(--muted);border:1px solid var(--border);
+  }
+  #own-slide .rank-b.gold {
+    background:linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+    color:#fff;border-color:#D97706;
+    box-shadow:0 2px 6px rgba(245,158,11,0.35);
+  }
+  #own-slide .rank-b.silver {
+    background:linear-gradient(135deg, #CBD5E0 0%, #94A3B8 100%);
+    color:#fff;border-color:#94A3B8;
+    box-shadow:0 2px 4px rgba(148,163,184,0.3);
+  }
+  #own-slide .rank-b.bronze {
+    background:linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%);
+    color:#92400E;border-color:#F59E0B;
+  }
+
+  /* 메뉴명 */
+  #own-slide .menu-name { font-weight:700;color:var(--text); }
+  #own-slide tr.row-gold .menu-name { color:#78350F; }
+
+  /* 수량 */
+  #own-slide .qty-val { font-family:'DM Mono',Menlo,monospace;font-weight:700;color:var(--text); }
+
+  /* 노출당 선택량 막대 */
+  #own-slide .expo-cell { min-width:160px;display:flex;align-items:center;gap:8px; }
+  #own-slide .expo-bar-wrap { flex:1;height:7px;background:var(--bg);border-radius:4px;overflow:hidden;border:1px solid var(--border); }
+  #own-slide .expo-bar-fill {
+    height:100%;border-radius:4px;
+    background:linear-gradient(90deg, var(--blue) 0%, #60A5FA 100%);
+    transition:width .6s ease;
+  }
+  #own-slide tr.row-gold .expo-bar-fill {
+    background:linear-gradient(90deg, #D97706 0%, #F59E0B 100%);
+  }
+  #own-slide tr.row-silver .expo-bar-fill {
+    background:linear-gradient(90deg, #64748B 0%, #94A3B8 100%);
+  }
+  #own-slide .expo-val { font-size:11px;font-weight:700;color:var(--text2);min-width:42px;text-align:right; }
+  #own-slide tr.row-gold .expo-val { color:#92400E; }
+
+  /* 식단 구성 / 중요도 */
+  #own-slide .plan-pill {
+    display:inline-block;padding:2px 8px;border-radius:10px;
+    font-size:11px;font-weight:700;
+    background:var(--blue-lt);color:var(--blue);
+  }
+  #own-slide tr.row-gold .plan-pill { background:#FEF3C7;color:#92400E; }
+  #own-slide .star-rating { font-size:11px;letter-spacing:1px;color:#F59E0B; }
+  #own-slide .star-dim { color:#E2E8F0; }
+
+  /* ── 질환케어 탭 ── */
+  #own-slide .disease-tabs {
+    display:flex;gap:5px;background:var(--surface);
+    border:1px solid var(--border);border-radius:10px;padding:4px;
+    width:fit-content;margin-bottom:14px;box-shadow:var(--shadow);
+  }
+  #own-slide .disease-tab {
+    padding:7px 18px;border-radius:7px;border:none;background:transparent;
+    color:var(--muted);font-family:inherit;font-size:13px;font-weight:600;
+    cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;
+  }
+  #own-slide .disease-tab:hover:not(.on) { color:var(--blue);background:var(--blue-lt); }
+  #own-slide .disease-tab.on { background:var(--blue);color:#fff;font-weight:700; }
+  #own-slide .disease-tab .pill {
+    background:rgba(255,255,255,.3);padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;
+  }
+  #own-slide .disease-tab:not(.on) .pill { background:var(--bg);color:var(--muted); }
+
+  #own-slide .disease-page { display:none; }
+  #own-slide .disease-page.on { display:block; }
+
+  /* 하이라이트 (검색) */
+  #own-slide .hl { background:#FEF3C7;padding:0 2px;border-radius:2px;font-weight:800; }
+
+  @media(max-width:768px) {
+    #own-slide .best-kpi-grid { grid-template-columns:repeat(2,1fr); }
+    #own-slide .menu-table thead th:nth-child(4),
+    #own-slide .menu-table tbody td:nth-child(4) { display:none; } /* 식단 구성 숨김 */
+  }
+</style>
 
   <!-- ─ 섹션 헤더 ─ -->
   <div class="section-title">
-    <div class="section-icon" style="background:var(--green-lt)">🛒</div>
+    <div class="section-icon" style="background:var(--green-lt);display:none;"></div>
     <div>
       <h2>자사몰 대시보드</h2>
       <p id="s2-period-label">자사몰 매출 및 고객 지표 분석</p>
@@ -1216,8 +1510,9 @@ body {
 
   <!-- 서브탭 -->
   <div class="own-subtabs">
-    <button class="own-subtab on" onclick="ownSwTab('sales', this)">📊 매출</button>
-    <button class="own-subtab" onclick="ownSwTab('customer', this)">👥 고객 지표</button>
+    <button class="own-subtab on" onclick="ownSwTab('sales', this)">매출</button>
+    <button class="own-subtab" onclick="ownSwTab('customer', this)">고객</button>
+    <button class="own-subtab" onclick="ownSwTab('topsel', this)">Top Sel</button>
   </div>
 
   <!-- ══════════════════════════════════════════
@@ -1253,7 +1548,7 @@ body {
     </div>
     <div class="grid-2">
       <div class="daystat-card">
-        <div class="daystat-icon max-icon">🏆</div>
+        <div class="daystat-icon max-icon" style="display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" fill="none" stroke="#16A34A" stroke-width="2.5" width="18" height="18"><polyline points="18 15 12 9 6 15"/></svg></div>
         <div class="daystat-body">
           <div class="daystat-label">최고 매출일</div>
           <div class="daystat-amount max" id="s2-max-amount">–</div>
@@ -1261,7 +1556,7 @@ body {
         </div>
       </div>
       <div class="daystat-card">
-        <div class="daystat-icon min-icon">📉</div>
+        <div class="daystat-icon min-icon" style="display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" fill="none" stroke="#DC2626" stroke-width="2.5" width="18" height="18"><polyline points="6 9 12 15 18 9"/></svg></div>
         <div class="daystat-body">
           <div class="daystat-label">최저 매출일</div>
           <div class="daystat-amount min" id="s2-min-amount">–</div>
@@ -1285,7 +1580,7 @@ body {
     ══════════════════════════════════════════ -->
     <div style="margin-top:32px;padding-top:24px;border-top:2px dashed var(--border);">
       <div class="section-title" style="margin-bottom:14px;">
-        <div class="section-icon" style="background:var(--amber-lt)">🏷️</div>
+        <div class="section-icon" style="background:var(--amber-lt);display:none;"></div>
         <div>
           <h2 style="font-size:16px;">상품 분석</h2>
           <p style="font-size:11px;color:var(--muted);">카테고리 · 식단별 · 정기결제 심층 분석</p>
@@ -1317,7 +1612,7 @@ body {
       <div class="stat-value krw" id="s3-daily">–</div>
     </div>
     <div class="stat-card">
-      <div class="stat-label">🏆 TOP 카테고리</div>
+      <div class="stat-label"> TOP 카테고리</div>
       <div class="stat-value sm" id="s3-top-cat">–</div>
       <div class="stat-sub" id="s3-top-cat-val">–</div>
     </div>
@@ -1392,7 +1687,7 @@ body {
 
   <!-- ════ 정기결제 현황 ════ -->
   <div class="sub-header">
-    <div class="section-icon" style="background:#EFF6FF;width:32px;height:32px;font-size:14px;">🔄</div>
+    <div class="section-icon" style="background:#EFF6FF;width:32px;height:32px;font-size:14px;;display:none;"></div>
     <h3>정기결제 현황</h3>
     <span class="sub-badge">Subscription</span>
   </div>
@@ -1512,42 +1807,7 @@ body {
       <button class="ch-comment-toggle" id="toggle-s2-health" onclick="toggleComment('s2-health')" title="코멘트 추가">＋</button>
     </div>
     <div class="ch-comment-area" id="area-s2-health" style="display:none;"></div>
-    <div class="health-score-card">
-      <div class="health-score-left">
-        <div class="health-score-label">종합 건강도</div>
-        <div class="health-score-big" id="s2-health-score">–</div>
-        <div class="health-score-desc" id="s2-health-desc">—</div>
-      </div>
-      <div class="health-score-items">
-        <div class="health-item" id="s2-health-return">
-          <div class="health-item-top">
-            <span class="health-item-dot"></span>
-            <span class="health-item-name">재방문율</span>
-            <span class="health-item-status">–</span>
-          </div>
-          <div class="health-item-val" id="s2-health-return-val">–</div>
-          <div class="health-item-target">목표: 40% 이상</div>
-        </div>
-        <div class="health-item" id="s2-health-cvr">
-          <div class="health-item-top">
-            <span class="health-item-dot"></span>
-            <span class="health-item-name">구매 전환율</span>
-            <span class="health-item-status">–</span>
-          </div>
-          <div class="health-item-val" id="s2-health-cvr-val">–</div>
-          <div class="health-item-target">목표: 2~4% 적정</div>
-        </div>
-        <div class="health-item" id="s2-health-gap">
-          <div class="health-item-top">
-            <span class="health-item-dot"></span>
-            <span class="health-item-name">ARPU·ARPPU 괴리</span>
-            <span class="health-item-status">–</span>
-          </div>
-          <div class="health-item-val" id="s2-health-gap-val">–</div>
-          <div class="health-item-target">목표: 4배 이하</div>
-        </div>
-      </div>
-    </div>
+
 
     <!-- ② 핵심 KPI -->
     <div class="ch-label-wrap">
@@ -1567,7 +1827,7 @@ body {
         <div class="arpu-kpi-sub">매출 ÷ 구매 고객 수</div>
       </div>
       <div class="arpu-kpi gap">
-        <div class="arpu-kpi-label">ARPU vs ARPPU 괴리 <span class="arpu-kpi-tag gap">Gap</span></div>
+        <div class="arpu-kpi-label">ARPU vs ARPPU 전환 격차 <span class="arpu-kpi-tag gap">Gap</span></div>
         <div class="arpu-kpi-val" id="s2-gap">–</div>
         <div class="arpu-kpi-sub" id="s2-gap-sub">구매 전환 개선 여지</div>
       </div>
@@ -1604,13 +1864,13 @@ body {
 
     <!-- ② 2단계: Dumbbell Chart -->
     <div class="ch-label-wrap">
-      <div class="ch-label" style="flex:1;">ARPU ↔ ARPPU 괴리 시각화</div>
+      <div class="ch-label" style="flex:1;">ARPU ↔ ARPPU 전환 격차 시각화</div>
       <button class="ch-comment-toggle" id="toggle-s2-dumbbell" onclick="toggleComment('s2-dumbbell')" title="코멘트 추가">＋</button>
     </div>
     <div class="ch-comment-area" id="area-s2-dumbbell" style="display:none;"></div>
     <div class="dumbbell-card">
-      <div class="dumbbell-title">🎯 현재 ARPU-ARPPU 포지션</div>
-      <div class="dumbbell-desc">두 점 사이 거리가 '괴리(Gap)'의 크기를 나타냅니다 — 좁아질수록 구매 전환율이 개선된 것</div>
+      <div class="dumbbell-title"> 현재 ARPU-ARPPU 포지션</div>
+      <div class="dumbbell-desc">두 점 사이 거리가 '전환 격차(Gap)'의 크기를 나타냅니다 — 좁아질수록 구매 전환율이 개선된 것</div>
 
       <div class="dumbbell-wrap">
         <div class="dumbbell-track">
@@ -1632,10 +1892,10 @@ body {
       </div>
 
       <div class="dumbbell-help">
-        <div class="dumbbell-help-icon">💡</div>
+        <div class="dumbbell-help-icon"></div>
         <div class="dumbbell-help-text" id="s2-dumb-insight">
           위 그래프는 <strong>ARPU(좌, 회색)</strong>와 <strong>ARPPU(우, 파란색)</strong>의 포지션을 보여줍니다.
-          두 점 사이 <strong>주황색 점선 거리</strong>가 괴리의 크기이며, 이 거리가 좁을수록 전체 방문자가 구매자로 잘 전환되고 있다는 뜻입니다.
+          두 점 사이 <strong>주황색 점선 거리</strong>가 전환 격차의 크기이며, 이 거리가 좁을수록 전체 방문자가 구매자로 잘 전환되고 있다는 뜻입니다.
         </div>
       </div>
     </div>
@@ -1647,7 +1907,7 @@ body {
     </div>
     <div class="ch-comment-area" id="area-s2-trend" style="display:none;"></div>
     <div class="chart-card">
-      <div class="chart-card-title">ARPU vs ARPPU 월별 추세 (괴리 변화 추적)</div>
+      <div class="chart-card-title">ARPU vs ARPPU 월별 추세 (전환 격차 변화 추적)</div>
       <div style="height:240px;position:relative"><canvas id="s2-arpu-trend-chart"></canvas></div>
     </div>
 
@@ -1661,7 +1921,7 @@ body {
       <div class="chart-card-title">방문자(신규/재방문 스택) + 전환율 라인 통합 비교</div>
       <div style="height:290px;position:relative"><canvas id="s2-combined-trend-chart"></canvas></div>
       <div style="margin-top:10px;padding:10px 14px;background:var(--blue-lt);border:1px solid #BFDBFE;border-radius:8px;font-size:11.5px;color:var(--text2);line-height:1.6;">
-        💡 방문자 피크 시점과 전환율 피크 시점이 <strong>일치하는지</strong> 확인해보세요. 트래픽이 늘어도 전환율이 떨어진다면 <strong>구매 경험 개선</strong>이 필요한 신호입니다.
+         방문자 피크 시점과 전환율 피크 시점이 <strong>일치하는지</strong> 확인해보세요. 트래픽이 늘어도 전환율이 떨어진다면 <strong>구매 경험 개선</strong>이 필요한 신호입니다.
       </div>
     </div>
 
@@ -1734,6 +1994,202 @@ body {
 
   </div><!-- own-page-customer end -->
 
+  <!-- ══════ Top Sel 페이지 ══════ -->
+  <div class="own-page" id="own-page-topsel">
+
+  <!-- Summary KPI (앞 2개: 필터에 따라 변경 / 뒤 2개: 고정) -->
+  <div class="best-kpi-grid">
+    <div class="best-kpi gold">
+      <div class="best-kpi-label">TOP 1 메뉴</div>
+      <div class="best-kpi-val" id="best-kpi-top1">–</div>
+      <div class="best-kpi-sub" id="best-kpi-top1-sub">–</div>
+    </div>
+    <div class="best-kpi bronze">
+      <div class="best-kpi-label">TOP 5 점유율</div>
+      <div class="best-kpi-val" id="best-kpi-share">–</div>
+      <div class="best-kpi-sub" id="best-kpi-share-sub">–</div>
+    </div>
+    <div class="best-kpi">
+      <div class="best-kpi-label">전체 건강케어 메뉴</div>
+      <div class="best-kpi-val" id="best-kpi-total">–</div>
+      <div class="best-kpi-sub">상위 20개 노출 중</div>
+    </div>
+    <div class="best-kpi silver">
+      <div class="best-kpi-label">평균 노출당 선택량</div>
+      <div class="best-kpi-val" id="best-kpi-avg-expo">–</div>
+      <div class="best-kpi-sub">건강케어 TOP 20</div>
+    </div>
+  </div>
+
+  <!-- 순위 기준 선택 영역 (강조) -->
+  <div class="best-sort-panel">
+    <div class="best-sort-panel-left">
+      <div class="best-sort-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
+      <div class="best-sort-panel-text">
+        <div class="best-sort-panel-title">순위 기준 선택</div>
+        <div class="best-sort-panel-desc">선택한 기준으로 메뉴 순위가 매겨집니다</div>
+      </div>
+    </div>
+    <div class="best-sort-options">
+      <button class="best-sort-big active" data-sort="qty" onclick="bestSetSort('qty', this)">
+        <div class="best-sort-big-title">수량 순</div>
+        <div class="best-sort-big-sub">총 판매 수량이 많은 순</div>
+      </button>
+      <button class="best-sort-big" data-sort="expo" onclick="bestSetSort('expo', this)">
+        <div class="best-sort-big-title">노출당 순</div>
+        <div class="best-sort-big-sub">노출 대비 선택량이 높은 순</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════ 건강케어 ══════ -->
+  <div class="best-section-title" style="flex-wrap:wrap;gap:12px;align-items:center;">
+    <div class="best-section-icon" style="display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#25347A" stroke-width="2" width="16" height="16"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+    </div>
+    <div style="flex:1;min-width:0;">
+      <h3>건강케어</h3>
+      <p>식단 구성 수에 따른 노출당 선택량의 메뉴 선호도 분석</p>
+    </div>
+    <div class="best-section-badge" style="flex-shrink:0;">TOP 20</div>
+    <div class="best-health-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="best-search-input" placeholder="건강케어 메뉴 검색...">
+    </div>
+  </div>
+
+  <!-- TOP 5 (Gold) -->
+  <div class="tier-section" id="health-tier-gold">
+    <div class="tier-header gold">
+      <span class="tier-icon"></span>
+      <span>TOP 5 · 최상위 선호 메뉴</span>
+      <span class="tier-count">가장 핵심 메뉴</span>
+    </div>
+    <div class="tier-body gold">
+      <table class="menu-table">
+        <thead><tr>
+          <th style="width:52px">순위</th>
+          <th style="width:64px;text-align:center">전월 대비</th>
+          <th>메뉴명</th>
+          <th style="width:72px;text-align:right">수량</th>
+          <th style="width:90px;text-align:center">식단 구성</th>
+          <th style="width:200px">노출당 선택량</th>
+          <th style="width:90px;text-align:center">중요도</th>
+        </tr></thead>
+        <tbody id="health-body-gold"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TOP 6~10 (Silver) -->
+  <div class="tier-section" id="health-tier-silver">
+    <div class="tier-header silver">
+      <span class="tier-icon"></span>
+      <span>TOP 6~10 · 상위 메뉴</span>
+      <span class="tier-count">안정적 선호</span>
+    </div>
+    <div class="tier-body silver">
+      <table class="menu-table">
+        <thead><tr>
+          <th style="width:52px">순위</th>
+          <th style="width:64px;text-align:center">전월 대비</th>
+          <th>메뉴명</th>
+          <th style="width:72px;text-align:right">수량</th>
+          <th style="width:90px;text-align:center">식단 구성</th>
+          <th style="width:200px">노출당 선택량</th>
+          <th style="width:90px;text-align:center">중요도</th>
+        </tr></thead>
+        <tbody id="health-body-silver"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TOP 11~20 (Normal) -->
+  <div class="tier-section" id="health-tier-normal">
+    <div class="tier-header normal">
+      <span class="tier-icon"></span>
+      <span>TOP 11~20 · 기타 메뉴</span>
+      <span class="tier-count">관심 메뉴</span>
+    </div>
+    <div class="tier-body">
+      <table class="menu-table">
+        <thead><tr>
+          <th style="width:52px">순위</th>
+          <th style="width:64px;text-align:center">전월 대비</th>
+          <th>메뉴명</th>
+          <th style="width:72px;text-align:right">수량</th>
+          <th style="width:90px;text-align:center">식단 구성</th>
+          <th style="width:200px">노출당 선택량</th>
+          <th style="width:90px;text-align:center">중요도</th>
+        </tr></thead>
+        <tbody id="health-body-normal"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════ 질환케어 ══════ -->
+  <div class="best-section-title">
+    <div class="best-section-icon" style="background:#FEE2E2"></div>
+    <div>
+      <h3>질환케어</h3>
+      <p>당뇨 · 신장 · 암 케어 메뉴별 선호도 TOP 10</p>
+    </div>
+    <div class="best-section-badge" style="background:#DC2626">TOP 10</div>
+  </div>
+
+  <!-- 질환 탭 -->
+  <div class="disease-tabs">
+    <button class="disease-tab on" onclick="bestSwDisease('dia', this)">당뇨케어</button>
+    <button class="disease-tab" onclick="bestSwDisease('kid', this)">신장케어</button>
+    <button class="disease-tab" onclick="bestSwDisease('can', this)">암케어</button>
+  </div>
+
+  <!-- 당뇨 -->
+  <div class="disease-page on" id="disease-dia">
+    <div class="tier-body" style="border-radius:10px;border:1px solid var(--border);">
+      <table class="menu-table">
+        <thead><tr>
+          <th style="width:52px">순위</th>
+          <th style="width:64px;text-align:center">전월 대비</th>
+          <th>메뉴명</th>
+          <th style="width:90px;text-align:right">수량</th>
+        </tr></thead>
+        <tbody id="dia-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 신장 -->
+  <div class="disease-page" id="disease-kid">
+    <div class="tier-body" style="border-radius:10px;border:1px solid var(--border);">
+      <table class="menu-table">
+        <thead><tr>
+          <th style="width:52px">순위</th>
+          <th style="width:64px;text-align:center">전월 대비</th>
+          <th>메뉴명</th>
+          <th style="width:90px;text-align:right">수량</th>
+        </tr></thead>
+        <tbody id="kid-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 암 -->
+  <div class="disease-page" id="disease-can">
+    <div class="tier-body" style="border-radius:10px;border:1px solid var(--border);">
+      <table class="menu-table">
+        <thead><tr>
+          <th style="width:52px">순위</th>
+          <th style="width:64px;text-align:center">전월 대비</th>
+          <th>메뉴명</th>
+          <th style="width:90px;text-align:right">수량</th>
+        </tr></thead>
+        <tbody id="can-body"></tbody>
+      </table>
+    </div>
+  </div>
+  </div><!-- own-page-topsel end -->
+
 </div><!-- slide 2 : 자사몰 end -->
 
 <!-- ─── SLIDE 4 : 신세계 ─── -->
@@ -1750,7 +2206,7 @@ body {
     --ssg-sf2:    #F1F5F9;
     --ssg-bd:     #E2E8F0;
     --ssg-ag:     #059669;   /* 에메랄드 → 라이트 그린 */
-    --ssg-ac:     #2563EB;   /* 블루 */
+    --ssg-ac:     #25347A;   /* 블루 */
     --ssg-aw:     #DC2626;   /* 레드 */
     --ssg-tx:     #1E293B;   /* 진한 텍스트 */
     --ssg-mu:     #64748B;   /* 뮤트 */
@@ -1937,11 +2393,303 @@ body {
     .ssg-wd-grid { grid-template-columns:repeat(4,1fr); }
     .ssg-peak-grid { grid-template-columns:1fr; }
   }
-  </style>
+  
+  /* ── Top Sel 전용 CSS ──
+  /* ── Summary KPI ── */
+  #own-slide .best-kpi-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px; }
+  #own-slide .best-kpi {
+    background:var(--surface);border:1px solid var(--border);border-radius:11px;
+    padding:16px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+  }
+  #own-slide .best-kpi::before {
+    content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--blue);
+  }
+  #own-slide .best-kpi.gold::before { background:#F59E0B; }
+  #own-slide .best-kpi.silver::before { background:#94A3B8; }
+  #own-slide .best-kpi.bronze::before { background:#D97706; }
+  #own-slide .best-kpi-label { font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:7px; }
+  #own-slide .best-kpi-val { font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.4px;line-height:1.1; }
+  #own-slide .best-kpi-sub { font-size:11px;color:var(--muted);margin-top:4px; }
+
+  /* ── 검색/필터 바 ── */
+  #own-slide .best-toolbar {
+    background:var(--surface);border:1px solid var(--border);border-radius:10px;
+    padding:10px 14px;display:flex;gap:14px;align-items:center;
+    margin-bottom:10px;box-shadow:var(--shadow);flex-wrap:wrap;
+  }
+  #own-slide .best-search {
+    flex:0 0 320px;min-width:260px;display:flex;align-items:center;gap:8px;
+    background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+    padding:7px 12px;transition:border-color .15s;
+  }
+  #own-slide .best-search:focus-within { border-color:var(--blue); background:#fff; }
+  #own-slide .best-search svg { width:14px;height:14px;color:var(--muted);flex-shrink:0; }
+  #own-slide .best-search input {
+    flex:1;border:none;outline:none;background:transparent;
+    font-size:13px;font-family:inherit;color:var(--text);
+  }
+  #own-slide .best-search input::placeholder { color:var(--muted); }
+
+  /* ── 검색 힌트 ── */
+  #own-slide .best-search-hint {
+    display:flex;align-items:center;gap:6px;
+    font-size:11.5px;color:var(--text2);font-weight:500;
+    padding:0 4px;
+  }
+  #own-slide .best-search-hint-icon {
+    font-size:13px;flex-shrink:0;
+  }
+
+  /* ── 순위 변동 배지 ── */
+  #own-slide .chg-badge {
+    display:inline-flex;align-items:center;gap:2px;
+    padding:2px 7px;border-radius:5px;
+    font-size:11px;font-weight:800;line-height:1;min-width:34px;justify-content:center;
+    font-family:'DM Mono',Menlo,monospace;
+  }
+  #own-slide .chg-badge.up {
+    background:#DCFCE7;color:#15803D;border:1px solid #86EFAC;
+  }
+  #own-slide .chg-badge.down {
+    background:#FEE2E2;color:#B91C1C;border:1px solid #FCA5A5;
+  }
+  #own-slide .chg-badge.same {
+    background:var(--surface2);color:var(--muted);border:1px solid var(--border);
+  }
+  #own-slide .chg-badge.new {
+    background:#EEF2FF;color:#4338CA;border:1px solid #C7D2FE;font-weight:800;
+  }
+  #own-slide .chg-arrow {
+    font-size:9px;line-height:1;
+  }
+  #own-slide .best-filter-label { font-size:11px;color:var(--muted);font-weight:700; }
+  #own-slide .best-sort-btn {
+    padding:7px 14px;border-radius:7px;border:1px solid var(--border);
+    background:var(--surface);color:var(--text2);font-size:12px;font-weight:600;
+    font-family:inherit;cursor:pointer;transition:all .15s;
+  }
+  #own-slide .best-sort-btn:hover { border-color:var(--blue);color:var(--blue);background:var(--blue-lt); }
+  #own-slide .best-sort-btn.active { background:var(--blue);color:#fff;border-color:var(--blue); }
+
+  /* ── 순위 기준 선택 패널 (강조) ── */
+  #own-slide .best-sort-panel {
+    background:linear-gradient(135deg, var(--blue-lt) 0%, #F0F9FF 100%);
+    border:1.5px solid #BFDBFE;border-radius:12px;
+    padding:14px 18px;margin-bottom:20px;
+    display:flex;align-items:center;gap:18px;
+    box-shadow:0 2px 6px rgba(37,99,235,0.06);
+    flex-wrap:wrap;
+  }
+  #own-slide .best-sort-panel-left {
+    display:flex;align-items:center;gap:12px;flex:1;min-width:220px;
+  }
+  #own-slide .best-sort-icon {
+    width:42px;height:42px;border-radius:10px;
+    background:var(--blue);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px;flex-shrink:0;
+    box-shadow:0 3px 8px rgba(37,99,235,0.3);
+  }
+  #own-slide .best-sort-panel-title {
+    font-size:14px;font-weight:800;color:var(--blue);
+    letter-spacing:-0.2px;margin-bottom:2px;
+  }
+  #own-slide .best-sort-panel-desc {
+    font-size:11px;color:var(--text2);font-weight:500;
+  }
+  #own-slide .best-sort-options {
+    display:flex;gap:8px;flex-wrap:wrap;
+  }
+  #own-slide .best-sort-big {
+    padding:10px 18px;border-radius:10px;
+    border:1.5px solid var(--border);background:#fff;
+    font-family:inherit;cursor:pointer;transition:all .18s;
+    text-align:left;min-width:160px;
+  }
+  #own-slide .best-sort-big:hover {
+    border-color:var(--blue);background:var(--blue-lt);
+    transform:translateY(-1px);
+    box-shadow:0 4px 10px rgba(37,99,235,0.12);
+  }
+  #own-slide .best-sort-big.active {
+    background:var(--blue);border-color:var(--blue);
+    box-shadow:0 4px 12px rgba(37,99,235,0.3);
+  }
+  #own-slide .best-sort-big-title {
+    font-size:13px;font-weight:800;color:var(--text);
+    letter-spacing:-0.2px;margin-bottom:2px;
+  }
+  #own-slide .best-sort-big.active .best-sort-big-title { color:#fff; }
+  #own-slide .best-sort-big-sub {
+    font-size:10px;color:var(--muted);font-weight:500;
+  }
+  #own-slide .best-sort-big.active .best-sort-big-sub { color:rgba(255,255,255,.85); }
+
+  /* ── 섹션 타이틀 ── */
+  #own-slide .best-section-title {
+    display:flex;align-items:center;gap:10px;
+    margin:22px 0 14px;padding-bottom:12px;
+    border-bottom:1px solid var(--border);
+  }
+  #own-slide .best-section-icon {
+    width:34px;height:34px;border-radius:9px;
+    display:flex;align-items:center;justify-content:center;font-size:15px;
+    background:var(--blue-lt);
+  }
+  #own-slide .best-section-title h3 { font-size:16px;font-weight:800;letter-spacing:-0.3px;color:var(--text); }
+  #own-slide .best-section-title p { font-size:11px;color:var(--muted);margin-top:2px; }
+  #own-slide .best-section-badge {
+    margin-left:auto;background:var(--blue);color:#fff;
+    padding:4px 11px;border-radius:6px;font-size:11px;font-weight:700;
+  }
+
+  /* ── 티어 섹션 (TOP 5/10/20) ── */
+  #own-slide .tier-section { margin-bottom:14px; }
+  #own-slide .tier-header {
+    display:flex;align-items:center;gap:10px;
+    padding:10px 14px;border-radius:9px 9px 0 0;
+    font-size:12px;font-weight:800;letter-spacing:.3px;
+  }
+  #own-slide .tier-header.gold {
+    background:linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+    color:#92400E;border:1px solid #FCD34D;border-bottom:none;
+  }
+  #own-slide .tier-header.silver {
+    background:linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%);
+    color:#475569;border:1px solid #CBD5E0;border-bottom:none;
+  }
+  #own-slide .tier-header.normal {
+    background:var(--surface2);color:var(--text2);
+    border:1px solid var(--border);border-bottom:none;
+  }
+  #own-slide .tier-icon { font-size:15px; }
+  #own-slide .tier-count {
+    margin-left:auto;font-size:11px;font-weight:700;opacity:.8;
+  }
+
+  #own-slide .tier-body {
+    background:var(--surface);border:1px solid var(--border);border-top:none;
+    border-radius:0 0 9px 9px;overflow:hidden;box-shadow:var(--shadow);
+  }
+  #own-slide .tier-body.gold { border-color:#FCD34D; }
+  #own-slide .tier-body.silver { border-color:#CBD5E0; }
+
+  /* ── 메뉴 테이블 ── */
+  #own-slide .menu-table { width:100%;border-collapse:collapse; }
+  #own-slide .menu-table thead th {
+    font-size:10px;color:var(--muted);font-weight:700;
+    text-transform:uppercase;letter-spacing:.3px;
+    padding:9px 12px;text-align:left;
+    background:var(--surface2);border-bottom:2px solid var(--border);
+    white-space:nowrap;
+  }
+  #own-slide .menu-table tbody td {
+    padding:9px 12px;font-size:12px;
+    border-bottom:1px solid var(--border);
+    vertical-align:middle;
+  }
+  #own-slide .menu-table tbody tr:last-child td { border-bottom:none; }
+  #own-slide .menu-table tbody tr:hover td { background:var(--blue-lt); }
+
+  /* ── 골드 티어 row ── */
+  #own-slide tr.row-gold td {
+    background:linear-gradient(90deg, #FFFBEB 0%, #FFFFFF 100%);
+    font-weight:600;
+  }
+  #own-slide tr.row-gold:hover td { background:#FEF3C7 !important; }
+  #own-slide tr.row-silver td { background:#FAFBFC; }
+  #own-slide tr.row-silver:hover td { background:#F1F5F9 !important; }
+
+  /* ── 순위 배지 ── */
+  #own-slide .rank-b {
+    display:inline-flex;align-items:center;justify-content:center;
+    width:26px;height:26px;border-radius:8px;
+    font-size:11px;font-weight:800;
+    background:var(--surface2);color:var(--muted);border:1px solid var(--border);
+  }
+  #own-slide .rank-b.gold {
+    background:linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+    color:#fff;border-color:#D97706;
+    box-shadow:0 2px 6px rgba(245,158,11,0.35);
+  }
+  #own-slide .rank-b.silver {
+    background:linear-gradient(135deg, #CBD5E0 0%, #94A3B8 100%);
+    color:#fff;border-color:#94A3B8;
+    box-shadow:0 2px 4px rgba(148,163,184,0.3);
+  }
+  #own-slide .rank-b.bronze {
+    background:linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%);
+    color:#92400E;border-color:#F59E0B;
+  }
+
+  /* 메뉴명 */
+  #own-slide .menu-name { font-weight:700;color:var(--text); }
+  #own-slide tr.row-gold .menu-name { color:#78350F; }
+
+  /* 수량 */
+  #own-slide .qty-val { font-family:'DM Mono',Menlo,monospace;font-weight:700;color:var(--text); }
+
+  /* 노출당 선택량 막대 */
+  #own-slide .expo-cell { min-width:160px;display:flex;align-items:center;gap:8px; }
+  #own-slide .expo-bar-wrap { flex:1;height:7px;background:var(--bg);border-radius:4px;overflow:hidden;border:1px solid var(--border); }
+  #own-slide .expo-bar-fill {
+    height:100%;border-radius:4px;
+    background:linear-gradient(90deg, var(--blue) 0%, #60A5FA 100%);
+    transition:width .6s ease;
+  }
+  #own-slide tr.row-gold .expo-bar-fill {
+    background:linear-gradient(90deg, #D97706 0%, #F59E0B 100%);
+  }
+  #own-slide tr.row-silver .expo-bar-fill {
+    background:linear-gradient(90deg, #64748B 0%, #94A3B8 100%);
+  }
+  #own-slide .expo-val { font-size:11px;font-weight:700;color:var(--text2);min-width:42px;text-align:right; }
+  #own-slide tr.row-gold .expo-val { color:#92400E; }
+
+  /* 식단 구성 / 중요도 */
+  #own-slide .plan-pill {
+    display:inline-block;padding:2px 8px;border-radius:10px;
+    font-size:11px;font-weight:700;
+    background:var(--blue-lt);color:var(--blue);
+  }
+  #own-slide tr.row-gold .plan-pill { background:#FEF3C7;color:#92400E; }
+  #own-slide .star-rating { font-size:11px;letter-spacing:1px;color:#F59E0B; }
+  #own-slide .star-dim { color:#E2E8F0; }
+
+  /* ── 질환케어 탭 ── */
+  #own-slide .disease-tabs {
+    display:flex;gap:5px;background:var(--surface);
+    border:1px solid var(--border);border-radius:10px;padding:4px;
+    width:fit-content;margin-bottom:14px;box-shadow:var(--shadow);
+  }
+  #own-slide .disease-tab {
+    padding:7px 18px;border-radius:7px;border:none;background:transparent;
+    color:var(--muted);font-family:inherit;font-size:13px;font-weight:600;
+    cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;
+  }
+  #own-slide .disease-tab:hover:not(.on) { color:var(--blue);background:var(--blue-lt); }
+  #own-slide .disease-tab.on { background:var(--blue);color:#fff;font-weight:700; }
+  #own-slide .disease-tab .pill {
+    background:rgba(255,255,255,.3);padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;
+  }
+  #own-slide .disease-tab:not(.on) .pill { background:var(--bg);color:var(--muted); }
+
+  #own-slide .disease-page { display:none; }
+  #own-slide .disease-page.on { display:block; }
+
+  /* 하이라이트 (검색) */
+  #own-slide .hl { background:#FEF3C7;padding:0 2px;border-radius:2px;font-weight:800; }
+
+  @media(max-width:768px) {
+    #own-slide .best-kpi-grid { grid-template-columns:repeat(2,1fr); }
+    #own-slide .menu-table thead th:nth-child(4),
+    #own-slide .menu-table tbody td:nth-child(4) { display:none; } /* 식단 구성 숨김 */
+  }
+</style>
 
   <!-- ─ 섹션 헤더 ─ -->
   <div class="ssg-section-title">
-    <div class="ssg-section-icon">🏬</div>
+    <div class="ssg-section-icon"></div>
     <div>
       <h2 style="font-size:17px;font-weight:800;letter-spacing:-0.4px;">신세계 - 매출 분석 보고서</h2>
       <p style="font-size:11px;color:var(--muted);margin-top:2px;">2025.02 – 2026.02 &nbsp;·&nbsp; 강남 · 청담 매장 실적</p>
@@ -1959,7 +2707,7 @@ body {
   <!-- 편집 모드 바 -->
   <div class="ssg-edit-bar" id="ssgEditBar">
     <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-    <strong>편집 모드 활성화</strong> — 각 코멘트 박스 우측 ✏ 버튼을 눌러 수정하세요.
+    <strong>편집 모드 활성화</strong> — 각 코멘트 박스 우측  버튼을 눌러 수정하세요.
     <button onclick="ssgToggleEdit()" style="margin-left:auto;padding:3px 12px;border-radius:5px;border:1px solid var(--border);background:var(--surface);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--text2);">편집 종료</button>
   </div>
 
@@ -1994,7 +2742,7 @@ body {
       <div class="ssg-stitle">월별 매출 추이 · 강남 vs 청담 (이벤트 시점 포함)</div>
       <div id="ssg-ec-overview" class="ssg-cmnt-wrap">
         <div class="ssg-cmnt" id="ssg-cm-overview">
-          <strong>📊 매출 추이 분석</strong>
+          <strong> 매출 추이 분석</strong>
           <div class="ssg-ir"><span class="ssg-tag td">하락 추세</span>강남점은 2025년 3월 <strong>1,428만원</strong> 피크 이후 지속 감소, 2026년 2월 <strong>310만원</strong>까지 하락. 그랜드오픈(2.28) 이후 집중 홍보 효과 소진과 계절 요인이 복합 작용했습니다.</div>
           <div class="ssg-ir"><span class="ssg-tag tg">이벤트 효과</span>6/6~15 저속노화 팝업 구간(25.06) <strong>1,058만원</strong>으로 반등, 8/15~21 푸드케어 팝업 + YTN취재 구간(25.08) <strong>1,106만원</strong>으로 상승. 이벤트 매출 기여도가 뚜렷합니다.</div>
           <div class="ssg-ir"><span class="ssg-tag tn">시사점</span>하반기 이벤트 공백 구간(25.09~)에서 급격한 하락 → 정기적 팝업·미디어 노출 계획 수립이 매출 방어의 핵심입니다.</div>
@@ -2005,7 +2753,7 @@ body {
       <div class="ssg-evt-legend">
         <div class="ssg-evt-item"><div class="ssg-evt-dot" style="background:#B45309"></div>그랜드오픈 (25.02.28)</div>
         <div class="ssg-evt-item"><div class="ssg-evt-dot" style="background:#059669"></div>저속노화 팝업 (25.06.06~15)</div>
-        <div class="ssg-evt-item"><div class="ssg-evt-dot" style="background:#2563EB"></div>푸드케어 팝업·YTN취재 (25.08.15~21)</div>
+        <div class="ssg-evt-item"><div class="ssg-evt-dot" style="background:#25347A"></div>푸드케어 팝업·YTN취재 (25.08.15~21)</div>
         <div class="ssg-evt-item"><div class="ssg-evt-dot" style="background:#7C3AED"></div>청담점 오픈 (25.12)</div>
       </div>
       <div class="ssg-card">
@@ -2018,7 +2766,7 @@ body {
         <div class="ssg-stitle">월별 영수증 수 · 강남 + 청담</div>
         <div class="ssg-cmnt-wrap">
           <div class="ssg-cmnt" id="ssg-cm-oqty">
-            <strong>🧾 거래건수 분석</strong>
+            <strong> 거래건수 분석</strong>
             <div class="ssg-ir"><span class="ssg-tag td">감소</span>강남점 거래건수 3월 <strong>1,640건</strong> 이후 지속 감소 → 2월 <strong>278건</strong>. 이벤트 기간(6월·8월)에는 반짝 회복이 있었으나 지속되지 않았습니다.</div>
             <div class="ssg-ir"><span class="ssg-tag ti">청담</span>청담점 오픈 2개월 만에 145건 달성. 신규 매장 기준 초기 고객 유입은 양호합니다.</div>
           </div>
@@ -2034,7 +2782,7 @@ body {
         <div class="ssg-stitle">카테고리 구성 · 전체 누적</div>
         <div class="ssg-cmnt-wrap">
           <div class="ssg-cmnt" id="ssg-cm-ocat">
-            <strong>🗂 카테고리 집중도 분석</strong>
+            <strong> 카테고리 집중도 분석</strong>
             <div class="ssg-ir"><span class="ssg-tag tn">집중</span><strong>건강케어</strong>가 전체의 약 <strong>68.8%</strong> 점유. 단일 카테고리 의존도가 매우 높습니다.</div>
             <div class="ssg-ir"><span class="ssg-tag tg">성장축</span>쉐이크(흑임자쉐이크) 카테고리는 출시 후 빠르게 3.9% 비중 달성, 신규 성장 축으로 주목됩니다.</div>
           </div>
@@ -2056,7 +2804,7 @@ body {
       <div class="ssg-stitle">강남점 월별 성과 추이 · 주요 이벤트</div>
       <div class="ssg-cmnt-wrap">
         <div class="ssg-cmnt" id="ssg-cm-gang">
-          <strong>📈 강남점 성과 요약</strong>
+          <strong> 강남점 성과 요약</strong>
           <div class="ssg-ir"><span class="ssg-tag tg">그랜드오픈</span>2025.02.28 그랜드오픈. 3월 <strong>1,428만원</strong>으로 최고 매출 달성.</div>
           <div class="ssg-ir"><span class="ssg-tag tg">팝업 효과</span>6/6~15 저속노화 팝업 → 6월 1,058만원 반등. 8/15~21 푸드케어 팝업·YTN취재 → 8월 1,106만원 재상승.</div>
           <div class="ssg-ir"><span class="ssg-tag td">이벤트 공백</span>9월 이후 이벤트 없는 구간에서 662만 → 479만 → 420만으로 급격히 하락.</div>
@@ -2068,7 +2816,7 @@ body {
       <div class="ssg-evt-legend">
         <div class="ssg-evt-item"><div class="ssg-evt-dot" style="background:#B45309"></div>그랜드오픈 (25.02.28)</div>
         <div class="ssg-evt-item"><div class="ssg-evt-dot" style="background:#059669"></div>저속노화 팝업 (25.06.06~15)</div>
-        <div class="ssg-evt-item"><div class="ssg-evt-dot" style="background:#2563EB"></div>푸드케어 팝업·YTN취재 (25.08.15~21)</div>
+        <div class="ssg-evt-item"><div class="ssg-evt-dot" style="background:#25347A"></div>푸드케어 팝업·YTN취재 (25.08.15~21)</div>
       </div>
       <div class="ssg-g2">
         <div class="ssg-card"><div class="ssg-ctitle"><span class="ssg-dot dg"></span>강남 월별 매출 (이벤트 마커)</div><div class="ssg-cw t"><canvas id="ssg-gSales"></canvas></div></div>
@@ -2079,7 +2827,7 @@ body {
       <div class="ssg-stitle">강남 매출 고점 월 TOP 품목 분석</div>
       <div class="ssg-cmnt-wrap">
         <div class="ssg-cmnt" id="ssg-cm-gpeak">
-          <strong>🏆 매출 고점 월 품목 기여 분석</strong>
+          <strong> 매출 고점 월 품목 기여 분석</strong>
           <div class="ssg-ir"><span class="ssg-tag tg">3월 1위</span>치킨알리오올리오가 3월 단독 최다 매출 기여. 오픈 직후 대표 품목으로 신규 고객 유입을 이끌었습니다.</div>
           <div class="ssg-ir"><span class="ssg-tag tg">6~8월</span>팝업 기간에는 마녀스프·암케어 매콤김치알밥 등 비건·케어 컨셉 품목 판매가 두드러졌습니다.</div>
           <div class="ssg-ir"><span class="ssg-tag tn">시사점</span>매출 상위 월의 공통점은 신규 품목 출시 또는 이벤트 집객. 정기 팝업·프로모션 일정화가 필수적입니다.</div>
@@ -2101,7 +2849,7 @@ body {
       <div class="ssg-stitle">청담점 월별 추이 (2025.12 오픈)</div>
       <div class="ssg-cmnt-wrap">
         <div class="ssg-cmnt" id="ssg-cm-cdam">
-          <strong>🆕 청담점 개점 성과 분석</strong>
+          <strong> 청담점 개점 성과 분석</strong>
           <div class="ssg-ir"><span class="ssg-tag tg">성장</span>개점 첫 달(25.12) <strong>582,100원 / 84건</strong> → 1월 <strong>1,042,550원 / 145건</strong>. 거래건수 기준 +72% 성장.</div>
           <div class="ssg-ir"><span class="ssg-tag td">조정</span>2월 670,700원으로 소폭 하락. 설 연휴·비수기 영향으로 판단, 3월 회복 추이 모니터링이 필요합니다.</div>
           <div class="ssg-ir"><span class="ssg-tag tn">전략</span>청담 상권 특성상 고객 충성도 확보 시 안정적 성장 가능. 강남점의 팝업 성공 사례 적용 권장.</div>
@@ -2126,7 +2874,7 @@ body {
       <div class="ssg-stitle">카테고리별 누적 매출 분석</div>
       <div class="ssg-cmnt-wrap">
         <div class="ssg-cmnt" id="ssg-cm-cat">
-          <strong>🗂 카테고리 전략 분석</strong>
+          <strong> 카테고리 전략 분석</strong>
           <div class="ssg-ir"><span class="ssg-tag tn">집중 리스크</span><strong>건강케어</strong>가 67,227,880원으로 전체 <strong>68.8%</strong> 점유. 단일 카테고리 부진 시 전체 매출에 직격탄 우려.</div>
           <div class="ssg-ir"><span class="ssg-tag tg">케어 라인</span>암케어(6.6%)·당뇨케어(5.3%)·마녀스프(4.7%)·신장(4.2%) 순으로 케어 특화 라인이 고르게 기여.</div>
           <div class="ssg-ir"><span class="ssg-tag ti">신규 성장</span>쉐이크·영양죽 카테고리 출시 후 빠른 성장세. 향후 비중 확대 기대.</div>
@@ -2140,7 +2888,7 @@ body {
       <div class="ssg-stitle">강남 · 청담 품목 비교</div>
       <div class="ssg-cmnt-wrap">
         <div class="ssg-cmnt" id="ssg-cm-comp">
-          <strong>🔍 양 매장 품목 비교 분석</strong>
+          <strong> 양 매장 품목 비교 분석</strong>
           <div class="ssg-ir"><span class="ssg-tag ti">공통 강세</span>연어스테이크·두부제육덮밥·취나물소불고기비빔밥 등이 양 매장 공통 상위권. 채널 무관 수요 품목으로 안정 운영 가능.</div>
           <div class="ssg-ir"><span class="ssg-tag tn">차이</span>청담은 마녀스프 라인 선호 강함 vs 강남은 건강케어 단품 위주. 각 매장 맞춤 MD 전략이 효과적입니다.</div>
         </div>
@@ -2166,7 +2914,7 @@ body {
       <div class="ssg-stitle">월별 객단가 추이</div>
       <div class="ssg-cmnt-wrap">
         <div class="ssg-cmnt" id="ssg-cm-up">
-          <strong>💳 객단가 추이 분석</strong>
+          <strong> 객단가 추이 분석</strong>
           <div class="ssg-ir"><span class="ssg-tag tn">변동</span>강남점 객단가는 3월 약 <strong>8,707원</strong> 최저(대량 거래건수 영향) → 이후 회복, 2026년 초 기준 약 <strong>11,000원</strong>으로 상승. 건수 감소에도 프리미엄 구매 비중이 높아진 결과입니다.</div>
           <div class="ssg-ir"><span class="ssg-tag tg">청담 우위</span>청담점 평균 객단가가 강남 대비 높은 수준 유지. 청담 상권 고객의 높은 구매력이 반영됩니다.</div>
           <div class="ssg-ir"><span class="ssg-tag ti">전략</span>연어스테이크·해물빠에야 등 고가 품목 중심 추천 전략 유효.</div>
@@ -2198,7 +2946,7 @@ body {
       <div class="ssg-stitle">요일별 평균 매출 인사이트</div>
       <div class="ssg-cmnt-wrap">
         <div class="ssg-cmnt" id="ssg-cm-wd">
-          <strong>📅 요일별 매출 패턴 분석 (월별 데이터 기반 추정)</strong>
+          <strong> 요일별 매출 패턴 분석 (월별 데이터 기반 추정)</strong>
           <div class="ssg-ir"><span class="ssg-tag tg">주말 강세</span>토·일요일 평균 매출이 평일 대비 약 <strong>1.4~1.6배</strong> 높게 추정됩니다. 백화점 특성상 주말 집객이 집중되며 건강기능식품 카테고리는 여성 고객 중심 주말 구매 패턴이 두드러집니다.</div>
           <div class="ssg-ir"><span class="ssg-tag tn">금·토 피크</span>금요일 퇴근 후 방문 + 토요일이 주간 내 최고 매출 구간. 금~토 2일 합산이 전체 주간 매출의 약 <strong>35~40%</strong>를 차지합니다.</div>
           <div class="ssg-ir"><span class="ssg-tag td">월·화 저점</span>월·화요일은 주간 최저 구간. 정기 할인 또는 샘플링 행사를 월~화에 집중 배치하여 평일 집객을 보완하는 전략이 유효합니다.</div>
@@ -2217,471 +2965,13 @@ body {
       <div class="ssg-stitle">매출 고점 월 TOP 품목 비교 (3월 · 6월 · 8월)</div>
       <div class="ssg-cmnt-wrap">
         <div class="ssg-cmnt" id="ssg-cm-mpeak">
-          <strong>📦 매출 상위 월 품목 기여 분석</strong>
+          <strong> 매출 상위 월 품목 기여 분석</strong>
           <div class="ssg-ir"><span class="ssg-tag tg">3월 (오픈 효과)</span>치킨알리오올리오·장조림계란비빔밥·치킨커리라이스 등 입문형 건강케어 품목 중심 판매.</div>
           <div class="ssg-ir"><span class="ssg-tag tg">6월 (저속노화 팝업)</span>마녀스프·암케어 매콤김치알밥·연어스테이크 등 팝업 테마 연계 기능성 품목 판매 비중 상승.</div>
           <div class="ssg-ir"><span class="ssg-tag tg">8월 (푸드케어 팝업·YTN)</span>연어스테이크·해물빠에야 등 고가 프리미엄 품목 비중 상승. YTN 취재 노출 이후 브랜드 신뢰도 향상이 고단가 품목 선택에 영향.</div>
         </div>
         <button class="ssg-cmnt-edit-btn" onclick="ssgStartEdit('mpeak')"><svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> 편집</button>
-        <button class="ssg-cmnt-save-btn" id="ssg-save-mpeak" onclick="ssgSaveEdit('mpeak')">저장</button>
-      </div>
-      <div class="ssg-peak-grid" id="ssg-peakGrid2"></div>
-    </div>
-  </div>
-
-</div><!-- slide 4 : 신세계 end -->
-
-<!-- ─── SLIDE 5 : 이벤트 성과 ─── -->
-<div class="slide" id="slide-event">
-  <div class="section-title">
-    <div class="section-icon" style="background:#FFF7ED">🎯</div>
-    <div>
-      <h2>Promo - Project 성과</h2>
-      <p id="s4-period-label">연간 이벤트 프로모션 운영 성과 분석</p>
-    </div>
-  </div>
-
-  <!-- ── 이벤트 선택 + 추가 바 ── -->
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;flex-wrap:wrap;">
-    <div id="evtTabWrap" style="display:flex;gap:6px;flex-wrap:wrap;flex:1;"></div>
-    <button onclick="openAddEventModal()" style="
-      display:flex;align-items:center;gap:6px;padding:7px 14px;
-      border-radius:8px;border:1.5px dashed var(--blue);
-      background:var(--blue-lt);color:var(--blue);
-      font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;
-      white-space:nowrap;flex-shrink:0;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-      이벤트 추가
-    </button>
-  </div>
-
-  <!-- ── 이벤트 정보 카드 ── -->
-  <div id="evtInfoCard" class="chart-card" style="margin-bottom:12px;display:none;">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;">
-      <div style="flex:1;min-width:200px;">
-        <div id="evtTitle" style="font-size:16px;font-weight:800;color:var(--text);margin-bottom:4px;">–</div>
-        <div id="evtDate"  style="font-size:12px;color:var(--muted);margin-bottom:8px;">–</div>
-        <div id="evtDesc"  style="font-size:13px;color:var(--text2);line-height:1.7;white-space:pre-wrap;">–</div>
-      </div>
-      <div style="display:flex;gap:8px;flex-shrink:0;">
-        <button onclick="openEditEventModal()" style="
-          padding:6px 12px;border-radius:7px;border:1px solid var(--border);
-          background:var(--surface);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--text2);">
-          ✏️ 수정
-        </button>
-        <button onclick="deleteCurrentEvent()" style="
-          padding:6px 12px;border-radius:7px;border:1px solid var(--red-lt);
-          background:var(--red-lt);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;color:var(--red);">
-          🗑 삭제
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── 이벤트 없을 때 빈 상태 ── -->
-  <div id="evtEmpty" style="text-align:center;padding:60px 20px;color:var(--muted);">
-    <div style="font-size:40px;margin-bottom:12px;">🎯</div>
-    <div style="font-size:15px;font-weight:700;margin-bottom:6px;">등록된 이벤트가 없습니다</div>
-    <div style="font-size:12px;">상단 [이벤트 추가] 버튼을 눌러 이벤트를 등록하세요</div>
-  </div>
-
-  <!-- ── 이벤트 데이터 업로드 영역 ── -->
-  <div id="evtDataSection" style="display:none;">
-
-    <!-- 엑셀 업로드 -->
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:12px 16px;background:var(--blue-lt);border-radius:10px;border:1px solid rgba(37,99,235,0.15);flex-wrap:wrap;">
-      <svg viewBox="0 0 24 24" fill="none" stroke="var(--blue)" stroke-width="2" style="width:18px;height:18px;flex-shrink:0"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="3"/></svg>
-      <span style="font-size:12px;font-weight:700;color:var(--blue);flex:1;">이벤트 성과 데이터 업로드</span>
-      <button onclick="downloadEvtTemplate()" style="padding:5px 12px;border-radius:7px;border:1px solid var(--blue);background:#fff;color:var(--blue);font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">
-        📥 양식 다운로드
-      </button>
-      <button onclick="document.getElementById('evtFileInput').click()" style="padding:5px 12px;border-radius:7px;border:none;background:var(--blue);color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;">
-        📂 엑셀 업로드
-      </button>
-      <input type="file" id="evtFileInput" accept=".xlsx,.xls" style="display:none" onchange="handleEvtFile(event)">
-      <span id="evtUploadStatus" style="font-size:11px;color:var(--muted);">데이터 없음</span>
-    </div>
-
-    <!-- KPI 카드 4개 -->
-    <div class="grid-4" style="margin-bottom:12px;">
-      <div class="stat-card c-blue">
-        <div class="stat-label">총 매출액</div>
-        <div class="stat-value krw" id="ev-total">–</div>
-        <div class="stat-sub"><span id="ev-yoy" class="tag-up">–</span> 전년대비</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">주문건수</div>
-        <div class="stat-value" id="ev-orders">–</div>
-        <div class="stat-sub"><span id="ev-orders-yoy" class="tag-up">–</span> 전년대비</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">평균 주문금액</div>
-        <div class="stat-value krw" id="ev-aov">–</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">이벤트 기간</div>
-        <div class="stat-value sm" id="ev-period">–</div>
-        <div class="stat-sub" id="ev-days">–</div>
-      </div>
-    </div>
-
-    <!-- 일자별 매출 차트 + 전년 비교 / 상품 현황 -->
-
-    <!-- [레이아웃 A] 전년 데이터 없을 때: 차트(좌) + 상품테이블(우) -->
-    <div id="evtLayoutA" class="grid-2 grid-stack" style="margin-bottom:12px;display:none;">
-      <div class="chart-card" style="margin-bottom:0">
-        <div class="chart-card-title">일자별 매출 현황</div>
-        <div style="height:240px"><canvas id="evtDailyChart"></canvas></div>
-      </div>
-      <div class="chart-card" style="margin-bottom:0">
-        <div class="chart-card-title">상품별 상세 현황</div>
-        <table class="data-table" id="evtProdTableA">
-          <thead><tr id="evtProdHeadA">
-            <th>상품명</th><th>매출액</th><th>비중</th><th>주문건수</th>
-          </tr></thead>
-          <tbody id="evtProdBodyA"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- [레이아웃 B] 전년 데이터 있을 때: 차트(좌) + 전년비교(우) → 상품테이블 풀너비 -->
-    <div id="evtLayoutB" style="display:none;">
-      <div class="grid-2 grid-stack" style="margin-bottom:12px;">
-        <div class="chart-card" style="margin-bottom:0">
-          <div class="chart-card-title">일자별 매출 현황</div>
-          <div style="height:200px"><canvas id="evtDailyChartB"></canvas></div>
-        </div>
-        <div class="chart-card" id="evtYoyCard" style="margin-bottom:0;">
-          <div class="chart-card-title">전년 동기 비교</div>
-          <div class="grid-2" style="gap:8px;margin-bottom:10px;">
-            <div class="stat-card" style="padding:12px;">
-              <div class="stat-label">올해 매출</div>
-              <div class="stat-value krw" style="font-size:16px;" id="ev-this-total">–</div>
-            </div>
-            <div class="stat-card" style="padding:12px;">
-              <div class="stat-label">전년 매출</div>
-              <div class="stat-value krw" style="font-size:16px;" id="ev-prev-total">–</div>
-            </div>
-          </div>
-          <div style="height:120px"><canvas id="evtYoyChart"></canvas></div>
-        </div>
-      </div>
-      <div class="chart-card" style="margin-bottom:12px;">
-        <div class="chart-card-title">상품별 상세 현황</div>
-        <table class="data-table" id="evtProdTableB">
-          <thead><tr id="evtProdHeadB">
-            <th>상품명</th><th>매출액</th><th>비중</th><th>주문건수</th>
-            <th id="evtColPrev">전년 매출</th><th id="evtColDiff">증감</th>
-          </tr></thead>
-          <tbody id="evtProdBodyB"></tbody>
-        </table>
-      </div>
-    </div>
-
-  </div><!-- evtDataSection -->
-</div><!-- slide 5 end -->
-
-<!-- ─── SLIDE 6 : 베스트 메뉴 ─── -->
-<div class="slide" id="best-slide">
-
-  <!-- ══════════════════════════════════════════
-       베스트 메뉴 전용 CSS
-  ══════════════════════════════════════════ -->
-  <style>
-  /* ── Summary KPI ── */
-  #best-slide .best-kpi-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px; }
-  #best-slide .best-kpi {
-    background:var(--surface);border:1px solid var(--border);border-radius:11px;
-    padding:16px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden;
-  }
-  #best-slide .best-kpi::before {
-    content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--blue);
-  }
-  #best-slide .best-kpi.gold::before { background:#F59E0B; }
-  #best-slide .best-kpi.silver::before { background:#94A3B8; }
-  #best-slide .best-kpi.bronze::before { background:#D97706; }
-  #best-slide .best-kpi-label { font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:7px; }
-  #best-slide .best-kpi-val { font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.4px;line-height:1.1; }
-  #best-slide .best-kpi-sub { font-size:11px;color:var(--muted);margin-top:4px; }
-
-  /* ── 검색/필터 바 ── */
-  #best-slide .best-toolbar {
-    background:var(--surface);border:1px solid var(--border);border-radius:10px;
-    padding:10px 14px;display:flex;gap:14px;align-items:center;
-    margin-bottom:10px;box-shadow:var(--shadow);flex-wrap:wrap;
-  }
-  #best-slide .best-search {
-    flex:0 0 320px;min-width:260px;display:flex;align-items:center;gap:8px;
-    background:var(--surface2);border:1px solid var(--border);border-radius:8px;
-    padding:7px 12px;transition:border-color .15s;
-  }
-  #best-slide .best-search:focus-within { border-color:var(--blue); background:#fff; }
-  #best-slide .best-search svg { width:14px;height:14px;color:var(--muted);flex-shrink:0; }
-  #best-slide .best-search input {
-    flex:1;border:none;outline:none;background:transparent;
-    font-size:13px;font-family:inherit;color:var(--text);
-  }
-  #best-slide .best-search input::placeholder { color:var(--muted); }
-
-  /* ── 검색 힌트 ── */
-  #best-slide .best-search-hint {
-    display:flex;align-items:center;gap:6px;
-    font-size:11.5px;color:var(--text2);font-weight:500;
-    padding:0 4px;
-  }
-  #best-slide .best-search-hint-icon {
-    font-size:13px;flex-shrink:0;
-  }
-
-  /* ── 순위 변동 배지 ── */
-  #best-slide .chg-badge {
-    display:inline-flex;align-items:center;gap:2px;
-    padding:2px 7px;border-radius:5px;
-    font-size:11px;font-weight:800;line-height:1;min-width:34px;justify-content:center;
-    font-family:'DM Mono',Menlo,monospace;
-  }
-  #best-slide .chg-badge.up {
-    background:#DCFCE7;color:#15803D;border:1px solid #86EFAC;
-  }
-  #best-slide .chg-badge.down {
-    background:#FEE2E2;color:#B91C1C;border:1px solid #FCA5A5;
-  }
-  #best-slide .chg-badge.same {
-    background:var(--surface2);color:var(--muted);border:1px solid var(--border);
-  }
-  #best-slide .chg-badge.new {
-    background:#EEF2FF;color:#4338CA;border:1px solid #C7D2FE;font-weight:800;
-  }
-  #best-slide .chg-arrow {
-    font-size:9px;line-height:1;
-  }
-  #best-slide .best-filter-label { font-size:11px;color:var(--muted);font-weight:700; }
-  #best-slide .best-sort-btn {
-    padding:7px 14px;border-radius:7px;border:1px solid var(--border);
-    background:var(--surface);color:var(--text2);font-size:12px;font-weight:600;
-    font-family:inherit;cursor:pointer;transition:all .15s;
-  }
-  #best-slide .best-sort-btn:hover { border-color:var(--blue);color:var(--blue);background:var(--blue-lt); }
-  #best-slide .best-sort-btn.active { background:var(--blue);color:#fff;border-color:var(--blue); }
-
-  /* ── 순위 기준 선택 패널 (강조) ── */
-  #best-slide .best-sort-panel {
-    background:linear-gradient(135deg, var(--blue-lt) 0%, #F0F9FF 100%);
-    border:1.5px solid #BFDBFE;border-radius:12px;
-    padding:14px 18px;margin-bottom:20px;
-    display:flex;align-items:center;gap:18px;
-    box-shadow:0 2px 6px rgba(37,99,235,0.06);
-    flex-wrap:wrap;
-  }
-  #best-slide .best-sort-panel-left {
-    display:flex;align-items:center;gap:12px;flex:1;min-width:220px;
-  }
-  #best-slide .best-sort-icon {
-    width:42px;height:42px;border-radius:10px;
-    background:var(--blue);color:#fff;
-    display:flex;align-items:center;justify-content:center;
-    font-size:20px;flex-shrink:0;
-    box-shadow:0 3px 8px rgba(37,99,235,0.3);
-  }
-  #best-slide .best-sort-panel-title {
-    font-size:14px;font-weight:800;color:var(--blue);
-    letter-spacing:-0.2px;margin-bottom:2px;
-  }
-  #best-slide .best-sort-panel-desc {
-    font-size:11px;color:var(--text2);font-weight:500;
-  }
-  #best-slide .best-sort-options {
-    display:flex;gap:8px;flex-wrap:wrap;
-  }
-  #best-slide .best-sort-big {
-    padding:10px 18px;border-radius:10px;
-    border:1.5px solid var(--border);background:#fff;
-    font-family:inherit;cursor:pointer;transition:all .18s;
-    text-align:left;min-width:160px;
-  }
-  #best-slide .best-sort-big:hover {
-    border-color:var(--blue);background:var(--blue-lt);
-    transform:translateY(-1px);
-    box-shadow:0 4px 10px rgba(37,99,235,0.12);
-  }
-  #best-slide .best-sort-big.active {
-    background:var(--blue);border-color:var(--blue);
-    box-shadow:0 4px 12px rgba(37,99,235,0.3);
-  }
-  #best-slide .best-sort-big-title {
-    font-size:13px;font-weight:800;color:var(--text);
-    letter-spacing:-0.2px;margin-bottom:2px;
-  }
-  #best-slide .best-sort-big.active .best-sort-big-title { color:#fff; }
-  #best-slide .best-sort-big-sub {
-    font-size:10px;color:var(--muted);font-weight:500;
-  }
-  #best-slide .best-sort-big.active .best-sort-big-sub { color:rgba(255,255,255,.85); }
-
-  /* ── 섹션 타이틀 ── */
-  #best-slide .best-section-title {
-    display:flex;align-items:center;gap:10px;
-    margin:22px 0 14px;padding-bottom:12px;
-    border-bottom:1px solid var(--border);
-  }
-  #best-slide .best-section-icon {
-    width:34px;height:34px;border-radius:9px;
-    display:flex;align-items:center;justify-content:center;font-size:15px;
-    background:var(--blue-lt);
-  }
-  #best-slide .best-section-title h3 { font-size:16px;font-weight:800;letter-spacing:-0.3px;color:var(--text); }
-  #best-slide .best-section-title p { font-size:11px;color:var(--muted);margin-top:2px; }
-  #best-slide .best-section-badge {
-    margin-left:auto;background:var(--blue);color:#fff;
-    padding:4px 11px;border-radius:6px;font-size:11px;font-weight:700;
-  }
-
-  /* ── 티어 섹션 (TOP 5/10/20) ── */
-  #best-slide .tier-section { margin-bottom:14px; }
-  #best-slide .tier-header {
-    display:flex;align-items:center;gap:10px;
-    padding:10px 14px;border-radius:9px 9px 0 0;
-    font-size:12px;font-weight:800;letter-spacing:.3px;
-  }
-  #best-slide .tier-header.gold {
-    background:linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
-    color:#92400E;border:1px solid #FCD34D;border-bottom:none;
-  }
-  #best-slide .tier-header.silver {
-    background:linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%);
-    color:#475569;border:1px solid #CBD5E0;border-bottom:none;
-  }
-  #best-slide .tier-header.normal {
-    background:var(--surface2);color:var(--text2);
-    border:1px solid var(--border);border-bottom:none;
-  }
-  #best-slide .tier-icon { font-size:15px; }
-  #best-slide .tier-count {
-    margin-left:auto;font-size:11px;font-weight:700;opacity:.8;
-  }
-
-  #best-slide .tier-body {
-    background:var(--surface);border:1px solid var(--border);border-top:none;
-    border-radius:0 0 9px 9px;overflow:hidden;box-shadow:var(--shadow);
-  }
-  #best-slide .tier-body.gold { border-color:#FCD34D; }
-  #best-slide .tier-body.silver { border-color:#CBD5E0; }
-
-  /* ── 메뉴 테이블 ── */
-  #best-slide .menu-table { width:100%;border-collapse:collapse; }
-  #best-slide .menu-table thead th {
-    font-size:10px;color:var(--muted);font-weight:700;
-    text-transform:uppercase;letter-spacing:.3px;
-    padding:9px 12px;text-align:left;
-    background:var(--surface2);border-bottom:2px solid var(--border);
-    white-space:nowrap;
-  }
-  #best-slide .menu-table tbody td {
-    padding:9px 12px;font-size:12px;
-    border-bottom:1px solid var(--border);
-    vertical-align:middle;
-  }
-  #best-slide .menu-table tbody tr:last-child td { border-bottom:none; }
-  #best-slide .menu-table tbody tr:hover td { background:var(--blue-lt); }
-
-  /* ── 골드 티어 row ── */
-  #best-slide tr.row-gold td {
-    background:linear-gradient(90deg, #FFFBEB 0%, #FFFFFF 100%);
-    font-weight:600;
-  }
-  #best-slide tr.row-gold:hover td { background:#FEF3C7 !important; }
-  #best-slide tr.row-silver td { background:#FAFBFC; }
-  #best-slide tr.row-silver:hover td { background:#F1F5F9 !important; }
-
-  /* ── 순위 배지 ── */
-  #best-slide .rank-b {
-    display:inline-flex;align-items:center;justify-content:center;
-    width:26px;height:26px;border-radius:8px;
-    font-size:11px;font-weight:800;
-    background:var(--surface2);color:var(--muted);border:1px solid var(--border);
-  }
-  #best-slide .rank-b.gold {
-    background:linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-    color:#fff;border-color:#D97706;
-    box-shadow:0 2px 6px rgba(245,158,11,0.35);
-  }
-  #best-slide .rank-b.silver {
-    background:linear-gradient(135deg, #CBD5E0 0%, #94A3B8 100%);
-    color:#fff;border-color:#94A3B8;
-    box-shadow:0 2px 4px rgba(148,163,184,0.3);
-  }
-  #best-slide .rank-b.bronze {
-    background:linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%);
-    color:#92400E;border-color:#F59E0B;
-  }
-
-  /* 메뉴명 */
-  #best-slide .menu-name { font-weight:700;color:var(--text); }
-  #best-slide tr.row-gold .menu-name { color:#78350F; }
-
-  /* 수량 */
-  #best-slide .qty-val { font-family:'DM Mono',Menlo,monospace;font-weight:700;color:var(--text); }
-
-  /* 노출당 선택량 막대 */
-  #best-slide .expo-cell { min-width:160px;display:flex;align-items:center;gap:8px; }
-  #best-slide .expo-bar-wrap { flex:1;height:7px;background:var(--bg);border-radius:4px;overflow:hidden;border:1px solid var(--border); }
-  #best-slide .expo-bar-fill {
-    height:100%;border-radius:4px;
-    background:linear-gradient(90deg, var(--blue) 0%, #60A5FA 100%);
-    transition:width .6s ease;
-  }
-  #best-slide tr.row-gold .expo-bar-fill {
-    background:linear-gradient(90deg, #D97706 0%, #F59E0B 100%);
-  }
-  #best-slide tr.row-silver .expo-bar-fill {
-    background:linear-gradient(90deg, #64748B 0%, #94A3B8 100%);
-  }
-  #best-slide .expo-val { font-size:11px;font-weight:700;color:var(--text2);min-width:42px;text-align:right; }
-  #best-slide tr.row-gold .expo-val { color:#92400E; }
-
-  /* 식단 구성 / 중요도 */
-  #best-slide .plan-pill {
-    display:inline-block;padding:2px 8px;border-radius:10px;
-    font-size:11px;font-weight:700;
-    background:var(--blue-lt);color:var(--blue);
-  }
-  #best-slide tr.row-gold .plan-pill { background:#FEF3C7;color:#92400E; }
-  #best-slide .star-rating { font-size:11px;letter-spacing:1px;color:#F59E0B; }
-  #best-slide .star-dim { color:#E2E8F0; }
-
-  /* ── 질환케어 탭 ── */
-  #best-slide .disease-tabs {
-    display:flex;gap:5px;background:var(--surface);
-    border:1px solid var(--border);border-radius:10px;padding:4px;
-    width:fit-content;margin-bottom:14px;box-shadow:var(--shadow);
-  }
-  #best-slide .disease-tab {
-    padding:7px 18px;border-radius:7px;border:none;background:transparent;
-    color:var(--muted);font-family:inherit;font-size:13px;font-weight:600;
-    cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;
-  }
-  #best-slide .disease-tab:hover:not(.on) { color:var(--blue);background:var(--blue-lt); }
-  #best-slide .disease-tab.on { background:var(--blue);color:#fff;font-weight:700; }
-  #best-slide .disease-tab .pill {
-    background:rgba(255,255,255,.3);padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;
-  }
-  #best-slide .disease-tab:not(.on) .pill { background:var(--bg);color:var(--muted); }
-
-  #best-slide .disease-page { display:none; }
-  #best-slide .disease-page.on { display:block; }
-
-  /* 하이라이트 (검색) */
-  #best-slide .hl { background:#FEF3C7;padding:0 2px;border-radius:2px;font-weight:800; }
-
-  @media(max-width:768px) {
-    #best-slide .best-kpi-grid { grid-template-columns:repeat(2,1fr); }
-    #best-slide .menu-table thead th:nth-child(4),
-    #best-slide .menu-table tbody td:nth-child(4) { display:none; } /* 식단 구성 숨김 */
-  }
-  </style>
-
-  <!-- ─ 섹션 헤더 ─ -->
-  <div class="section-title">
+        <button class="ssg-cmnt-title">
     <div class="section-icon" style="background:var(--blue-lt)">⭐</div>
     <div>
       <h2>베스트 메뉴 셀렉션 리스트</h2>
@@ -2692,7 +2982,7 @@ body {
   <!-- Summary KPI (앞 2개: 필터에 따라 변경 / 뒤 2개: 고정) -->
   <div class="best-kpi-grid">
     <div class="best-kpi gold">
-      <div class="best-kpi-label">🏆 TOP 1 메뉴</div>
+      <div class="best-kpi-label">TOP 1 메뉴</div>
       <div class="best-kpi-val" id="best-kpi-top1">–</div>
       <div class="best-kpi-sub" id="best-kpi-top1-sub">–</div>
     </div>
@@ -2713,22 +3003,10 @@ body {
     </div>
   </div>
 
-  <!-- 정렬 컨트롤 영역 -->
-  <div class="best-toolbar">
-    <div class="best-search">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="best-search-input" placeholder="메뉴명 검색 (예: 연어, 파스타...)">
-    </div>
-    <div class="best-search-hint">
-      <span class="best-search-hint-icon">💡</span>
-      <span>TOP 20에 들지 못한 메뉴의 순위가 궁금할 때 검색해보세요</span>
-    </div>
-  </div>
-
   <!-- 순위 기준 선택 영역 (강조) -->
   <div class="best-sort-panel">
     <div class="best-sort-panel-left">
-      <div class="best-sort-icon">📊</div>
+      <div class="best-sort-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg></div>
       <div class="best-sort-panel-text">
         <div class="best-sort-panel-title">순위 기준 선택</div>
         <div class="best-sort-panel-desc">선택한 기준으로 메뉴 순위가 매겨집니다</div>
@@ -2736,30 +3014,36 @@ body {
     </div>
     <div class="best-sort-options">
       <button class="best-sort-big active" data-sort="qty" onclick="bestSetSort('qty', this)">
-        <div class="best-sort-big-title">📦 수량 순</div>
+        <div class="best-sort-big-title">수량 순</div>
         <div class="best-sort-big-sub">총 판매 수량이 많은 순</div>
       </button>
       <button class="best-sort-big" data-sort="expo" onclick="bestSetSort('expo', this)">
-        <div class="best-sort-big-title">🎯 노출당 순</div>
+        <div class="best-sort-big-title">노출당 순</div>
         <div class="best-sort-big-sub">노출 대비 선택량이 높은 순</div>
       </button>
     </div>
   </div>
 
   <!-- ══════ 건강케어 ══════ -->
-  <div class="best-section-title">
-    <div class="best-section-icon">💪</div>
-    <div>
+  <div class="best-section-title" style="flex-wrap:wrap;gap:12px;align-items:center;">
+    <div class="best-section-icon" style="display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#25347A" stroke-width="2" width="16" height="16"><path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z"/></svg>
+    </div>
+    <div style="flex:1;min-width:0;">
       <h3>건강케어</h3>
       <p>식단 구성 수에 따른 노출당 선택량의 메뉴 선호도 분석</p>
     </div>
-    <div class="best-section-badge">TOP 20</div>
+    <div class="best-section-badge" style="flex-shrink:0;">TOP 20</div>
+    <div class="best-health-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="best-search-input" placeholder="건강케어 메뉴 검색...">
+    </div>
   </div>
 
   <!-- TOP 5 (Gold) -->
   <div class="tier-section" id="health-tier-gold">
     <div class="tier-header gold">
-      <span class="tier-icon">🏆</span>
+      <span class="tier-icon"></span>
       <span>TOP 5 · 최상위 선호 메뉴</span>
       <span class="tier-count">가장 핵심 메뉴</span>
     </div>
@@ -2782,7 +3066,7 @@ body {
   <!-- TOP 6~10 (Silver) -->
   <div class="tier-section" id="health-tier-silver">
     <div class="tier-header silver">
-      <span class="tier-icon">🥈</span>
+      <span class="tier-icon"></span>
       <span>TOP 6~10 · 상위 메뉴</span>
       <span class="tier-count">안정적 선호</span>
     </div>
@@ -2805,7 +3089,7 @@ body {
   <!-- TOP 11~20 (Normal) -->
   <div class="tier-section" id="health-tier-normal">
     <div class="tier-header normal">
-      <span class="tier-icon">📋</span>
+      <span class="tier-icon"></span>
       <span>TOP 11~20 · 기타 메뉴</span>
       <span class="tier-count">관심 메뉴</span>
     </div>
@@ -2827,7 +3111,7 @@ body {
 
   <!-- ══════ 질환케어 ══════ -->
   <div class="best-section-title">
-    <div class="best-section-icon" style="background:#FEE2E2">🏥</div>
+    <div class="best-section-icon" style="background:#FEE2E2"></div>
     <div>
       <h3>질환케어</h3>
       <p>당뇨 · 신장 · 암 케어 메뉴별 선호도 TOP 10</p>
@@ -2962,15 +3246,19 @@ function goTo(i) {
   dots.forEach((d,j) => d.classList.toggle('active', j === current));
   tabs.forEach((t,j) => t.classList.toggle('active', j === current));
   prevBtn.disabled = current === 0;
-  nextBtn.disabled = current === 4;
+  nextBtn.disabled = current === 1;
   // 슬라이드 전환 후 차트 크기 재계산
   setTimeout(() => {
     Object.values(charts).forEach(c => { try { c.resize(); } catch(e){} });
     if (current === 2) {
       Object.values(ssgCharts).forEach(c => { try { c.resize(); } catch(e){} });
     }
-    if (current === 4) {
-      if (typeof bestInit === 'function') bestInit();
+    if (current === 1) {
+      // 자사몰 슬라이드 진입 시 topsel 탭이 활성 상태면 bestInit
+      const topselBtn = document.querySelector('#own-slide .own-subtab[onclick*="topsel"]');
+      if (topselBtn && topselBtn.classList.contains('on')) {
+        if (typeof bestInit === 'function') bestInit();
+      }
     }
   }, 460);
 }
@@ -2980,7 +3268,7 @@ function navigate(d) {
   while (next >= 0 && next <= 4 && isSlideHidden(next)) {
     next += d;
   }
-  goTo(Math.max(0, Math.min(4, next)));
+  goTo(Math.max(0, Math.min(1, next)));
 }
 
 // 창 크기 변경 시 모든 차트 크기 재계산
@@ -2999,7 +3287,7 @@ Chart.defaults.font.family = "'Pretendard', -apple-system, sans-serif";
 // ─── Constants ───
 const WD_KR   = ['월','화','수','목','금','토','일'];
 const WD_FULL = ['월요일','화요일','수요일','목요일','금요일','토요일','일요일'];
-const CAT_COLORS = ['#2563EB','#0891B2','#059669','#7C3AED','#EA580C'];
+const CAT_COLORS = ['#25347A','#0891B2','#059669','#7C3AED','#EA580C'];
 
 // ─── Formatters ───
 function fmtKRW(v) {
@@ -3070,7 +3358,7 @@ document.addEventListener('drop', e => {
 function handleFile(e) { if (e.target.files[0]) processFile(e.target.files[0]); }
 
 function processFile(file) {
-  showToast('📂 파일을 읽는 중...');
+  showToast(' 파일을 읽는 중...');
   const reader = new FileReader();
   reader.onload = evt => {
     try {
@@ -3078,15 +3366,15 @@ function processFile(file) {
       parseWB(wb);
       document.getElementById('statusDot').style.background = '#FBBF24';
       document.getElementById('statusDot').style.boxShadow = '0 0 0 3px rgba(251,191,36,0.3)';
-      document.getElementById('statusText').textContent = `📂 ${file.name} 로드됨 — [서버에 저장] 버튼을 눌러주세요`;
+      document.getElementById('statusText').textContent = ` ${file.name} 로드됨 — [서버에 저장] 버튼을 눌러주세요`;
       // 저장 버튼 활성화
       const saveBtn = document.getElementById('saveBtn');
       saveBtn.disabled = false;
       saveBtn.style.background = '#fff';
       saveBtn.style.color = 'var(--blue)';
       saveBtn.style.border = 'none';
-      showToast('✅ 파일 로드 완료! [서버에 저장] 버튼을 눌러주세요.');
-    } catch(err) { showToast('❌ 파일 오류: ' + err.message); console.error(err); }
+      showToast(' 파일 로드 완료! [서버에 저장] 버튼을 눌러주세요.');
+    } catch(err) { showToast(' 파일 오류: ' + err.message); console.error(err); }
   };
   reader.readAsArrayBuffer(file);
 }
@@ -3095,7 +3383,7 @@ function processFile(file) {
 async function saveDataToFirebase() {
   const hasDaily = DATA.daily.length > 0;
   const hasProds = DATA.products.length > 0;
-  if (!hasDaily && !hasProds) { showToast('⚠️ 먼저 엑셀 파일을 업로드해주세요.'); return; }
+  if (!hasDaily && !hasProds) { showToast('⚠ 먼저 엑셀 파일을 업로드해주세요.'); return; }
 
   const saveBtn = document.getElementById('saveBtn');
   saveBtn.innerHTML = '저장 중...';
@@ -3156,14 +3444,14 @@ async function saveDataToFirebase() {
     }
     document.getElementById('statusDot').style.background = '#4ADE80';
     document.getElementById('statusDot').style.boxShadow = '0 0 0 3px rgba(74,222,128,0.3)';
-    document.getElementById('statusText').textContent = '☁️ 서버 저장 완료 — 모든 기기에서 조회 가능';
+    document.getElementById('statusText').textContent = '☁ 서버 저장 완료 — 모든 기기에서 조회 가능';
     saveBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px"><path d="M20 6L9 17l-5-5"/></svg> 저장 완료`;
     saveBtn.style.background = 'rgba(74,222,128,0.25)';
     saveBtn.style.color = '#fff';
     saveBtn.style.border = '1.5px solid rgba(74,222,128,0.6)';
-    showToast('☁️ 서버 저장 완료! 다른 PC에서도 데이터가 표시됩니다.');
+    showToast('☁ 서버 저장 완료! 다른 PC에서도 데이터가 표시됩니다.');
   } catch(e) {
-    showToast('❌ 저장 실패: ' + e.message);
+    showToast(' 저장 실패: ' + e.message);
     console.error(e);
     saveBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="width:14px;height:14px"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17,21 17,13 7,13 7,21"/></svg> 서버에 저장`;
     saveBtn.disabled = false;
@@ -3173,7 +3461,7 @@ async function saveDataToFirebase() {
 // ═══════════════════════════════════════════════════════════════════
 // PARSER — 새 엑셀 양식 기준 (dashboard_template_sample.xlsx)
 //
-// 공통 시트 구조 (📅일자별매출 / 🛒D2C채널 / 🏷️카테고리매출):
+// 공통 시트 구조 (일자별매출 / D2C채널 / 카테고리매출):
 //   Row1: 시트 제목
 //   Row2: 월 목표 (C2=목표1, D2=목표2 ...)  ← A2는 레이블 텍스트
 //   Row3: 연도 (C열부터)
@@ -3182,13 +3470,13 @@ async function saveDataToFirebase() {
 //   Row6: 요일
 //   Row7~: 지표별 데이터
 //
-// 📦 상품별매출:
+//  상품별매출:
 //   Row1: 시트 제목
 //   Row2: A2=레이블, B2=연도, C2=월
 //   Row3: A3=상품명, B3=카테고리, C3이후=날짜
 //   Row4~: 상품 데이터
 //
-// 🔄 정기결제:
+//  정기결제:
 //   Row2: B2=연도, C2=월
 //   Row5~9: 매출현황 (C열=당월, D열=전년)
 //   Row11: 상품헤더, Row12~: 상품별현황 ('합계'에서 중단)
@@ -3256,21 +3544,21 @@ function parseDataRows(ws, rowMap) {
 }
 
 function parseWB(wb) {
-  // ── 📅 일자별매출 ──
+  // ──  일자별매출 ──
   // 목표: C2(c=2)=온라인, D2(c=3)=오프라인
   const ws1 = wb.Sheets['📅 일자별매출'];
   const onlTgt = ws1 ? cellV(ws1, 1, 2) : 0;   // C2
   const offTgt = ws1 ? cellV(ws1, 1, 3) : 0;   // D2
 
-  // ── 🛒 D2C채널 ──
+  // ──  D2C채널 ──
   // 목표: C2(c=2)=자사몰, D2(c=3)=네이버, E2(c=4)=기타
   const ws2 = wb.Sheets['🛒 D2C채널'];
   const ownTgt = ws2 ? cellV(ws2, 1, 2) : 0;   // C2
   const navTgt = ws2 ? cellV(ws2, 1, 3) : 0;   // D2
   const etcTgt = ws2 ? cellV(ws2, 1, 4) : 0;   // E2
 
-  // ── 🏷️ 카테고리매출 (제거됨) ──
-  // 카테고리별 매출은 📦 상품별매출 시트에서 자동 집계됨 (parseProdSheet 참고)
+  // ──  카테고리매출 (제거됨) ──
+  // 카테고리별 매출은  상품별매출 시트에서 자동 집계됨 (parseProdSheet 참고)
   // 카테고리 목표액은 현재 미사용 (필요시 다른 시트에 추가 예정)
 
   // ── 날짜별 데이터 파싱 ──
@@ -3286,7 +3574,7 @@ function parseWB(wb) {
   });
   // DATA.cat 은 parseProdSheet 내부에서 자동 생성됨
 
-  // ── 📦 상품별매출 ──
+  // ──  상품별매출 ──
   // Row2: B2=연도, C2=월 / Row3=헤더(날짜) / Row4~=상품 데이터
   const ws4 = wb.Sheets['📦 상품별매출'];
   const newProds = parseProdSheet(ws4);
@@ -3296,8 +3584,8 @@ function parseWB(wb) {
     DATA.products = DATA.products.concat(newProds);
   }
 
-  // ── 🔄 정기결제 ──
-  // 🔄 정기결제 — 누적 히스토리 배열에 추가 (같은 연월은 덮어쓰기)
+  // ──  정기결제 ──
+  //  정기결제 — 누적 히스토리 배열에 추가 (같은 연월은 덮어쓰기)
   const parsedSub = parseSubSheet(wb.Sheets['🔄 정기결제']);
   if (parsedSub && parsedSub.year && parsedSub.month) {
     if (!DATA.subHistory) DATA.subHistory = [];
@@ -3329,15 +3617,13 @@ function parseWB(wb) {
   DATA.monthTargets = {
     onlineTarget: onlTgt, offlineTarget: offTgt,
     ownTarget: ownTgt, navTarget: navTgt, etcTarget: etcTgt,
-    cat1Target: cat1Tgt, cat2Target: cat2Tgt,
-    cat3Target: cat3Tgt, cat4Target: cat4Tgt, cat5Target: cat5Tgt,
   };
 
   updatePeriodSelector();
   onPeriodChange();
 }
 
-// ── 📦 상품별매출 파싱 ──
+// ──  상품별매출 파싱 ──
 // Row2: B2=연도(c=1), C2=월(c=2)
 // Row3: 헤더 — A3=상품명, B3=카테고리, C3이후=날짜
 // Row4~: 상품 데이터
@@ -3427,7 +3713,7 @@ function parseProdSheet(ws) {
   }));
 }
 
-// ── 🔄 정기결제 파싱 ──
+// ──  정기결제 파싱 ──
 // 엑셀 구조 (새버전):
 //   Row2: B2=연도, C2=월
 //   ■ 1. 신청 현황: Row6='신규 신청 건수'(C6), Row7='신규 해지 건수'(C8)  → 동적 탐색
@@ -3630,7 +3916,7 @@ async function saveComment(cid) {
   try {
     await db.collection('comments').doc(key).set({ html, updatedAt: new Date().toISOString() });
     enterViewMode(cid, html);
-  } catch(e) { showToast('❌ 코멘트 저장 실패: ' + e.message); }
+  } catch(e) { showToast(' 코멘트 저장 실패: ' + e.message); }
 }
 
 // 저장 완료 → 읽기 모드 전환 (툴바·에디터 숨김, 내용+수정/삭제 아이콘 표시)
@@ -3641,8 +3927,8 @@ function enterViewMode(cid, html) {
     <div style="display:flex;align-items:flex-start;gap:6px;padding:4px 2px;">
       <div class="comment-view-mode" id="cview-${cid}">${html}</div>
       <div class="comment-view-actions">
-        <button class="comment-icon-btn" title="수정" onclick="editComment('${cid}')">✏️</button>
-        <button class="comment-icon-btn del" title="삭제" onclick="deleteComment('${cid}')">✕</button>
+        <button class="comment-icon-btn" title="수정" onclick="editComment('${cid}')"></button>
+        <button class="comment-icon-btn del" title="삭제" onclick="deleteComment('${cid}')"></button>
       </div>
     </div>`;
   area.style.display = 'block';
@@ -3885,7 +4171,7 @@ function renderS1(rows) {
   charts['dailyChart'] = new Chart(document.getElementById('dailyChart'), {
     type:'line',
     data:{ labels, datasets:[
-      {label:'온라인', data:onlineArr, borderColor:'#2563EB', backgroundColor:'rgba(37,99,235,0.07)', borderWidth:1.5, tension:0.4, fill:true, pointRadius:0},
+      {label:'온라인', data:onlineArr, borderColor:'#25347A', backgroundColor:'rgba(37,99,235,0.07)', borderWidth:1.5, tension:0.4, fill:true, pointRadius:0},
       {label:'오프라인', data:offlineArr, borderColor:'#F59E0B', backgroundColor:'rgba(245,158,11,0.05)', borderWidth:1.5, tension:0.4, fill:true, pointRadius:0},
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
@@ -3992,10 +4278,10 @@ const retUV  = sum('ownRetUV');
   // gap sub: 맥락 설명
   const gapEl = document.getElementById('s2-gap-sub');
   if (gapEl) {
-    if (gapRatio >= 6)      gapEl.textContent = '⚠️ 괴리 큼 · 전환 개선 시급';
-    else if (gapRatio >= 4) gapEl.textContent = '괴리 큰 편 · 전환 개선 여지';
+    if (gapRatio >= 6)      gapEl.textContent = '⚠ 전환 격차 큼 · 전환 개선 시급';
+    else if (gapRatio >= 4) gapEl.textContent = '전환 격차 큰 편 · 전환 개선 여지';
     else if (gapRatio >= 2) gapEl.textContent = '적정 수준';
-    else                    gapEl.textContent = '✅ 괴리 낮음 · 건강한 상태';
+    else                    gapEl.textContent = ' 전환 격차 낮음 · 건강한 상태';
   }
 
   // ── Dumbbell Chart 포지션 계산 ──
@@ -4041,10 +4327,10 @@ const retUV  = sum('ownRetUV');
   // 재구매율 서브 텍스트 (수준별 해석)
   const loyalDescEl = document.getElementById('s2-loyal-desc');
   if (loyalDescEl) {
-    if (repurchaseRate >= 40)      loyalDescEl.textContent = '✅ 매우 충성도 높은 수준';
+    if (repurchaseRate >= 40)      loyalDescEl.textContent = ' 매우 충성도 높은 수준';
     else if (repurchaseRate >= 25) loyalDescEl.textContent = '양호한 재구매 수준';
     else if (repurchaseRate >= 15) loyalDescEl.textContent = '평균 이하 · 리텐션 강화 필요';
-    else if (repurchaseRate > 0)   loyalDescEl.textContent = '⚠️ 낮음 · 재구매 유도 전략 필요';
+    else if (repurchaseRate > 0)   loyalDescEl.textContent = '⚠ 낮음 · 재구매 유도 전략 필요';
     else                           loyalDescEl.textContent = '데이터 없음';
   }
 
@@ -4078,7 +4364,7 @@ const retUV  = sum('ownRetUV');
   let overallClass, overallDesc;
   if (overallScore >= 85)      { overallClass='good'; overallDesc='모든 핵심 지표가 건강한 수준입니다'; }
   else if (overallScore >= 60) { overallClass='warn'; overallDesc='일부 지표 개선이 필요합니다'; }
-  else                         { overallClass='bad';  overallDesc='⚠️ 여러 지표가 기준을 벗어났습니다'; }
+  else                         { overallClass='bad';  overallDesc='⚠ 여러 지표가 기준을 벗어났습니다'; }
 
   // 종합 스코어 렌더
   const scoreEl = document.getElementById('s2-health-score');
@@ -4155,7 +4441,7 @@ const retUV  = sum('ownRetUV');
           data: salesArr,
           yAxisID: 'yS',
           order: 3,
-          borderColor: '#2563EB',
+          borderColor: '#25347A',
           backgroundColor: (ctx) => {
             const chart = ctx.chart;
             const { ctx: c, chartArea } = chart;
@@ -4170,7 +4456,7 @@ const retUV  = sum('ownRetUV');
           fill: true,
           pointRadius: ptR,
           pointHoverRadius: 6,
-          pointBackgroundColor: '#2563EB',
+          pointBackgroundColor: '#25347A',
           pointBorderColor: '#fff',
           pointBorderWidth: 2,
         },
@@ -4282,9 +4568,9 @@ const retUV  = sum('ownRetUV');
           ticks: {
             callback: v => v >= 1000000 ? (v/1000000).toFixed(0)+'M' : Math.round(v/10000)+'만',
             font: { size: 9 },
-            color: '#2563EB',
+            color: '#25347A',
           },
-          title: { display: true, text: '매출액', font: { size: 9, weight:'600' }, color: '#2563EB' },
+          title: { display: true, text: '매출액', font: { size: 9, weight:'600' }, color: '#25347A' },
           border: { display: false },
         },
         yU: {
@@ -4359,17 +4645,17 @@ function renderDumbbell(arpu, arppu, gapRatio) {
   gapBadge.style.left = gapMidPct + '%';
   gapBadge.textContent = 'Gap ' + gapRatio.toFixed(1) + '배';
 
-  // 인사이트 문구 (괴리 수준별)
+  // 인사이트 문구 (전환 격차 수준별)
   if (insightEl) {
     let msg;
     if (gapRatio >= 6) {
-      msg = `<strong>ARPPU가 ARPU의 ${gapRatio.toFixed(1)}배</strong>로 괴리가 매우 큰 상태입니다. 구매자의 객단가는 높지만 <strong>전체 방문자 중 구매로 이어지는 비율이 매우 낮다</strong>는 신호입니다. 전환율 개선(CVR ↑)이 ARPU 확대의 핵심 레버입니다.`;
+      msg = `<strong>ARPPU가 ARPU의 ${gapRatio.toFixed(1)}배</strong>로 전환 격차가 매우 큰 상태입니다. 구매자의 객단가는 높지만 <strong>전체 방문자 중 구매로 이어지는 비율이 매우 낮다</strong>는 신호입니다. 전환율 개선(CVR ↑)이 ARPU 확대의 핵심 레버입니다.`;
     } else if (gapRatio >= 4) {
-      msg = `<strong>ARPPU가 ARPU의 ${gapRatio.toFixed(1)}배</strong>로 괴리가 큰 편입니다. 구매자는 충분히 구매하지만 <strong>비구매 방문자가 많아</strong> ARPU를 끌어내리고 있습니다. 전환 퍼널 개선이 필요한 시점입니다.`;
+      msg = `<strong>ARPPU가 ARPU의 ${gapRatio.toFixed(1)}배</strong>로 전환 격차가 큰 편입니다. 구매자는 충분히 구매하지만 <strong>비구매 방문자가 많아</strong> ARPU를 끌어내리고 있습니다. 전환 퍼널 개선이 필요한 시점입니다.`;
     } else if (gapRatio >= 2) {
-      msg = `<strong>ARPPU가 ARPU의 ${gapRatio.toFixed(1)}배</strong>로 일반적인 적정 수준입니다. 괴리를 더 좁히려면 방문자의 구매 전환율을 높이거나, 구매자의 객단가를 높이는 양방향 전략을 병행하는 것이 효과적입니다.`;
+      msg = `<strong>ARPPU가 ARPU의 ${gapRatio.toFixed(1)}배</strong>로 일반적인 적정 수준입니다. 전환 격차를 더 좁히려면 방문자의 구매 전환율을 높이거나, 구매자의 객단가를 높이는 양방향 전략을 병행하는 것이 효과적입니다.`;
     } else {
-      msg = `<strong>ARPPU가 ARPU의 ${gapRatio.toFixed(1)}배</strong>로 괴리가 낮은 건강한 상태입니다. 방문자의 상당수가 구매로 연결되고 있어, 현재는 <strong>객단가 확대 전략(업셀·크로스셀)</strong>에 집중하는 것이 효과적입니다.`;
+      msg = `<strong>ARPPU가 ARPU의 ${gapRatio.toFixed(1)}배</strong>로 전환 격차가 낮은 건강한 상태입니다. 방문자의 상당수가 구매로 연결되고 있어, 현재는 <strong>객단가 확대 전략(업셀·크로스셀)</strong>에 집중하는 것이 효과적입니다.`;
     }
     insightEl.innerHTML = msg;
   }
@@ -4414,7 +4700,7 @@ function renderArpuTrend(rows) {
         {
           label: 'ARPPU (구매자)',
           data: arppuArr,
-          borderColor: '#2563EB',
+          borderColor: '#25347A',
           backgroundColor: (ctx) => {
             const chart = ctx.chart;
             const { ctx: c, chartArea } = chart;
@@ -4429,7 +4715,7 @@ function renderArpuTrend(rows) {
           fill: true,
           pointRadius: ptR,
           pointHoverRadius: 6,
-          pointBackgroundColor: '#2563EB',
+          pointBackgroundColor: '#25347A',
           pointBorderColor: '#fff',
           pointBorderWidth: 2,
           spanGaps: true,
@@ -4646,6 +4932,8 @@ function ownSwTab(tab, btn) {
   // 탭 전환 후 차트 리사이즈
   setTimeout(() => {
     Object.values(charts).forEach(c => { try { c.resize(); } catch(e){} });
+    // Top Sel 탭 진입 시 bestInit 호출
+    if (tab === 'topsel' && typeof bestInit === 'function') bestInit();
   }, 100);
 }
 
@@ -4917,7 +5205,7 @@ const delivery = latestAll?.delivery || [];
 destroyChart('deliveryChart');
 if (delivery.length) {
   const totalDel = delivery.reduce((s,d) => s+(d.cnt||0), 0);
-  const BAR_COLORS = ['#2563EB','#0891B2','#059669','#7C3AED','#EA580C'];
+  const BAR_COLORS = ['#25347A','#0891B2','#059669','#7C3AED','#EA580C'];
   charts['deliveryChart'] = new Chart(document.getElementById('deliveryChart'), {
     type: 'bar',
     data: {
@@ -5134,7 +5422,7 @@ function setYoy(id, curr, prev) {
 }
 
 // ─── Firebase 설정 ───────────────────────────────────────────
-// ⚠️ 아래 firebaseConfig를 본인의 Firebase 프로젝트 설정으로 교체하세요.
+// ⚠ 아래 firebaseConfig를 본인의 Firebase 프로젝트 설정으로 교체하세요.
 // Firebase 콘솔 > 프로젝트 설정 > 앱 > firebaseConfig 복사
 const firebaseConfig = {
   apiKey: "AIzaSyBzb7vMdLI28k-nONPF_oopsc-cp_FPi8U",
@@ -5210,9 +5498,9 @@ async function saveToFirebase(docId, data) {
   try {
     // Firestore 1문서 최대 1MB → 월별로 분할 저장
     await db.collection('dashboard').doc(docId).set(data);
-    showToast('☁️ Firebase에 저장되었습니다');
+    showToast('☁ Firebase에 저장되었습니다');
   } catch(e) {
-    showToast('❌ Firebase 저장 실패: ' + e.message);
+    showToast(' Firebase 저장 실패: ' + e.message);
     console.error(e);
   }
 }
@@ -5220,9 +5508,9 @@ async function saveToFirebase(docId, data) {
 // ─── Firebase 전체 로드 ─────────────────────────────────────
 async function loadAllFromFirebase() {
   try {
-    showToast('☁️ 서버에서 데이터를 불러오는 중...');
+    showToast('☁ 서버에서 데이터를 불러오는 중...');
     const snap = await db.collection('dashboard').get();
-    if (snap.empty) { showToast('ℹ️ 저장된 데이터가 없습니다. 엑셀을 업로드해주세요.'); return; }
+    if (snap.empty) { showToast('ℹ 저장된 데이터가 없습니다. 엑셀을 업로드해주세요.'); return; }
 
     // 모든 문서 병합
     DATA.daily    = [];
@@ -5257,16 +5545,16 @@ async function loadAllFromFirebase() {
     if (DATA.daily.length || DATA.products.length) {
       document.getElementById('statusDot').style.background = '#4ADE80';
       document.getElementById('statusDot').style.boxShadow = '0 0 0 3px rgba(74,222,128,0.3)';
-      document.getElementById('statusText').textContent = '✅ 서버 데이터 연동됨';
+      document.getElementById('statusText').textContent = ' 서버 데이터 연동됨';
       updatePeriodSelector();
       onPeriodChange();
-      showToast('✅ 데이터를 불러왔습니다');
+      showToast(' 데이터를 불러왔습니다');
     } else {
       document.getElementById('statusText').textContent = '엑셀 파일을 업로드해주세요';
-      showToast('ℹ️ 저장된 데이터가 없습니다. 엑셀을 업로드해주세요.');
+      showToast('ℹ 저장된 데이터가 없습니다. 엑셀을 업로드해주세요.');
     }
   } catch(e) {
-    showToast('❌ Firebase 로드 실패: ' + e.message);
+    showToast(' Firebase 로드 실패: ' + e.message);
     console.error(e);
   }
 }
@@ -5311,7 +5599,7 @@ async function loadEventsFromFirebase() {
 function renderEvtTabs() {
   const wrap = document.getElementById('evtTabWrap');
   if (!wrap) return;
-  const colors = ['#2563EB','#0891B2','#059669','#7C3AED','#EA580C','#D97706','#DB2777'];
+  const colors = ['#25347A','#0891B2','#059669','#7C3AED','#EA580C','#D97706','#DB2777'];
   wrap.innerHTML = '';
   EVT_LIST.forEach((evt, i) => {
     const color = colors[i % colors.length];
@@ -5343,7 +5631,7 @@ function selectEvt(id) {
 
   // 정보 카드
   document.getElementById('evtTitle').textContent = evt.title;
-  document.getElementById('evtDate').textContent  = `📅 ${evt.startDate||''} ~ ${evt.endDate||''}`;
+  document.getElementById('evtDate').textContent  = ` ${evt.startDate||''} ~ ${evt.endDate||''}`;
   document.getElementById('evtDesc').textContent  = evt.desc || '';
 
   // 기간 계산
@@ -5392,7 +5680,7 @@ function renderEvtDashboard(id) {
   set('ev-total',  fmtKRW(thisTot));
   set('ev-orders', fmtNum(thisOrd) + '건');
   set('ev-aov',    fmtKRW(Math.round(aov)));
-  document.getElementById('evtUploadStatus').textContent = `✅ 데이터 연동됨 (${daily.length}일)`;
+  document.getElementById('evtUploadStatus').textContent = ` 데이터 연동됨 (${daily.length}일)`;
 
   // YoY KPI 뱃지
   const yoyEl = document.getElementById('ev-yoy');
@@ -5514,7 +5802,7 @@ function renderEvtDashboard(id) {
 // ── 이벤트 엑셀 업로드 ──
 function handleEvtFile(e) {
   const file = e.target.files[0];
-  if (!file || !EVT_CUR) { showToast('⚠️ 먼저 이벤트를 선택해주세요'); return; }
+  if (!file || !EVT_CUR) { showToast('⚠ 먼저 이벤트를 선택해주세요'); return; }
   const reader = new FileReader();
   reader.onload = evt => {
     try {
@@ -5553,14 +5841,14 @@ function handleEvtFile(e) {
 
       EVT_DATA[EVT_CUR] = { daily, products, prevTotal, prevOrders };
       renderEvtDashboard(EVT_CUR);
-      showToast('✅ 이벤트 데이터 업로드 완료!');
+      showToast(' 이벤트 데이터 업로드 완료!');
 
       // Firebase 저장
       db.collection('events').doc('data_'+EVT_CUR).set({
         type:'data', payload:{ daily, products, prevTotal, prevOrders }
       }).catch(e=>console.error(e));
 
-    } catch(err) { showToast('❌ 파일 오류: '+err.message); console.error(err); }
+    } catch(err) { showToast(' 파일 오류: '+err.message); console.error(err); }
   };
   reader.readAsArrayBuffer(file);
   e.target.value = '';
@@ -5622,7 +5910,7 @@ async function saveEvtModal() {
   const start = document.getElementById('evtInputStart').value.trim();
   const end   = document.getElementById('evtInputEnd').value.trim();
   const desc  = document.getElementById('evtInputDesc').value.trim();
-  if (!title) { showToast('⚠️ 이벤트 타이틀을 입력해주세요'); return; }
+  if (!title) { showToast('⚠ 이벤트 타이틀을 입력해주세요'); return; }
 
   const id   = _evtEditId || 'evt_' + Date.now();
   const info = { type:'info', title, startDate:start, endDate:end, desc };
@@ -5639,8 +5927,8 @@ async function saveEvtModal() {
     EVT_CUR = id;
     renderEvtTabs();
     selectEvt(id);
-    showToast('✅ 이벤트가 저장되었습니다');
-  } catch(e) { showToast('❌ 저장 실패: '+e.message); }
+    showToast(' 이벤트가 저장되었습니다');
+  } catch(e) { showToast(' 저장 실패: '+e.message); }
 }
 
 async function deleteCurrentEvent() {
@@ -5659,8 +5947,8 @@ async function deleteCurrentEvent() {
       document.getElementById('evtDataSection').style.display = 'none';
       document.getElementById('evtEmpty').style.display      = 'block';
     }
-    showToast('🗑 이벤트가 삭제되었습니다');
-  } catch(e) { showToast('❌ 삭제 실패: '+e.message); }
+    showToast(' 이벤트가 삭제되었습니다');
+  } catch(e) { showToast(' 삭제 실패: '+e.message); }
 }
 
 // 모달 외부 클릭 닫기
@@ -5682,8 +5970,8 @@ const SSG_M  = ['25.02','25.03','25.04','25.05','25.06','25.07','25.08','25.09',
 const SSG_GM = [{s:1942450,q:182},{s:14279800,q:1640},{s:10575170,q:898},{s:7644780,q:703},{s:10580880,q:910},{s:10961300,q:1005},{s:11068200,q:943},{s:6621800,q:605},{s:4795400,q:435},{s:4857800,q:484},{s:4199000,q:473},{s:4718600,q:530},{s:3099900,q:278}];
 const SSG_CM2= [{s:0,q:0},{s:0,q:0},{s:0,q:0},{s:0,q:0},{s:0,q:0},{s:0,q:0},{s:0,q:0},{s:0,q:0},{s:0,q:0},{s:0,q:0},{s:582100,q:84},{s:1042550,q:145},{s:670700,q:63}];
 const SSG_CAT= [{l:'건강케어',v:67227880},{l:'암케어',v:6496700},{l:'당뇨케어',v:5154100},{l:'마녀스프',v:4599300},{l:'신장',v:4111700},{l:'쉐이크',v:3866400},{l:'보충케어',v:3104200},{l:'영양죽',v:784800}];
-const SSG_CC = {'건강케어':'#059669','암케어':'#DC2626','당뇨케어':'#B45309','마녀스프':'#7C3AED','신장':'#2563EB','쉐이크':'#EA580C','보충케어':'#16A34A','영양죽':'#3B82F6'};
-const SSG_EVENTS = [[1,'그랜드오픈','#B45309'],[4,'저속노화 팝업','#059669'],[6,'푸드케어·YTN','#2563EB'],[10,'청담 오픈','#7C3AED']];
+const SSG_CC = {'건강케어':'#059669','암케어':'#DC2626','당뇨케어':'#B45309','마녀스프':'#7C3AED','신장':'#25347A','쉐이크':'#EA580C','보충케어':'#16A34A','영양죽':'#3B82F6'};
+const SSG_EVENTS = [[1,'그랜드오픈','#B45309'],[4,'저속노화 팝업','#059669'],[6,'푸드케어·YTN','#25347A'],[10,'청담 오픈','#7C3AED']];
 
 const ssgCn = n => n.replace(/메디쏠라\s*/g,'').trim();
 const SSG_GP = [{r:1,p:ssgCn('연어스테이크'),c:'건강케어',s:6949600,q:584},{r:2,p:ssgCn('해물빠에야'),c:'건강케어',s:5943500,q:545},{r:3,p:ssgCn('메디쏠라 치킨알리오올리오'),c:'건강케어',s:5542650,q:705},{r:4,p:ssgCn('메디쏠라 (온라인)'),c:'건강케어',s:5029780,q:109},{r:5,p:ssgCn('마녀스프'),c:'마녀스프',s:4077900,q:589},{r:6,p:ssgCn('암케어 매콤김치알밥'),c:'암케어',s:4033000,q:370},{r:7,p:ssgCn('메디쏠라 523 흑임자쉐이크'),c:'쉐이크',s:3866400,q:668},{r:8,p:ssgCn('수삼삼계영양밥'),c:'건강케어',s:3534300,q:297},{r:9,p:ssgCn('장조림계란비빔밥'),c:'건강케어',s:3521700,q:461},{r:10,p:ssgCn('닭갈비덮밥'),c:'건강케어',s:3403400,q:286},{r:11,p:ssgCn('취나물소불고기비빔밥'),c:'건강케어',s:3165400,q:266},{r:12,p:ssgCn('550 두부제육덮밥'),c:'건강케어',s:2992800,q:232},{r:13,p:ssgCn('치킨커리라이스'),c:'건강케어',s:2915750,q:346},{r:14,p:ssgCn('라구볼로네제파스타'),c:'건강케어',s:2517900,q:231},{r:15,p:ssgCn('대표코드'),c:'건강케어',s:2451400,q:147}].map(d=>({...d,u:Math.round(d.s/d.q)}));
@@ -5909,9 +6197,9 @@ function ssgInit(){
   const mb=(arr,hi,lo,def,hc,lc)=>arr.map((_,i)=>i===hi?hc:i===lo?lc:def);
   ssgCharts['oSales']=new Chart(oCtx,{type:'line',data:{labels:SSG_M,datasets:[
     {label:'강남',data:gS,borderColor:'#059669',backgroundColor:oGg,borderWidth:2,pointRadius:mr(gS,gmi,gni),pointHoverRadius:8,pointBackgroundColor:mb(gS,gmi,gni,'#059669','#059669','#DC2626'),pointBorderColor:'#FFFFFF',pointBorderWidth:2,fill:true,tension:.35},
-    {label:'청담',data:cS,borderColor:'#2563EB',backgroundColor:oCg,borderWidth:2,pointRadius:mr(cS,cmi,cni),pointHoverRadius:8,pointBackgroundColor:mb(cS,cmi,cni,'#2563EB','#B45309','#2563EB'),pointBorderColor:'#FFFFFF',pointBorderWidth:2,fill:true,tension:.3,spanGaps:false}
+    {label:'청담',data:cS,borderColor:'#25347A',backgroundColor:oCg,borderWidth:2,pointRadius:mr(cS,cmi,cni),pointHoverRadius:8,pointBackgroundColor:mb(cS,cmi,cni,'#25347A','#B45309','#25347A'),pointBorderColor:'#FFFFFF',pointBorderWidth:2,fill:true,tension:.3,spanGaps:false}
   ]},options:{...SSG_CD0,responsive:true,maintainAspectRatio:false,plugins:{...SSG_CD0.plugins,legend:{display:true,position:'top',align:'end',labels:{color:'#64748B',font:{family:'Pretendard',size:11},boxWidth:12,usePointStyle:true}},tooltip:{...SSG_CD0.plugins.tooltip,callbacks:{label:ctx=>' '+ctx.dataset.label+': '+ctx.raw.toLocaleString()+'원'}}},animation:{...SSG_CD0.animation,onComplete:function(){
-    ssgPaintMM(this,[[0,gmi,'▲ MAX','#059669','rgba(5,150,105,0.1)',true],[0,gni,'▼ MIN','#DC2626','rgba(220,38,38,0.1)',false],[1,cmi,'▲ MAX','#2563EB','rgba(37,99,235,0.1)',true]]);
+    ssgPaintMM(this,[[0,gmi,'▲ MAX','#059669','rgba(5,150,105,0.1)',true],[0,gni,'▼ MIN','#DC2626','rgba(220,38,38,0.1)',false],[1,cmi,'▲ MAX','#25347A','rgba(37,99,235,0.1)',true]]);
     const ch=this,c2=ch.ctx;
     SSG_EVENTS.forEach(([mi,label,color])=>{
       const meta=ch.getDatasetMeta(0);const pt=meta.data[mi];if(!pt)return;
@@ -5947,7 +6235,7 @@ function ssgInit(){
 
   // Cheongdam
   const cdL=['25.12','26.01','26.02'],cdS=[582100,1042550,670700],cdQ=[84,145,63];
-  ssgCharts['cSales']=ssgLineMM('ssg-cSales','청담 매출',cdS,'#2563EB',cdL,[]);
+  ssgCharts['cSales']=ssgLineMM('ssg-cSales','청담 매출',cdS,'#25347A',cdL,[]);
   const cqc=document.getElementById('ssg-cQty').getContext('2d');
   const cqg=cqc.createLinearGradient(0,0,0,290);cqg.addColorStop(0,'rgba(37,99,235,.45)');cqg.addColorStop(1,'rgba(37,99,235,.05)');
   ssgCharts['cQty']=new Chart(cqc,{type:'bar',data:{labels:cdL,datasets:[{label:'영수증',data:cdQ,backgroundColor:cqg,borderRadius:6,borderSkipped:false}]},options:{...SSG_CD0,responsive:true,maintainAspectRatio:false,scales:{...SSG_CD0.scales,y:{...SSG_CD0.scales.y,ticks:{...SSG_CD0.scales.y.ticks,callback:v=>v.toLocaleString()}}},plugins:{...SSG_CD0.plugins,tooltip:{...SSG_CD0.plugins.tooltip,callbacks:{label:ctx=>' 영수증: '+ctx.raw.toLocaleString()+'건'}}}}});
@@ -5975,7 +6263,7 @@ function ssgInit(){
   const cumxi=SSG_CUP.indexOf(Math.max(...cua)),cumni=SSG_CUP.indexOf(Math.min(...cua));
   ssgCharts['upLine']=new Chart(upc,{type:'line',data:{labels:SSG_M,datasets:[
     {label:'강남 객단가',data:SSG_GUP,borderColor:'#059669',backgroundColor:upgg,borderWidth:2,pointRadius:SSG_GUP.map((_,i)=>(i===gumxi||i===gumni)?7:4),pointHoverRadius:8,pointBackgroundColor:SSG_GUP.map((_,i)=>i===gumxi?'#B45309':i===gumni?'#DC2626':'#059669'),pointBorderColor:'#FFFFFF',pointBorderWidth:2,fill:true,tension:.35},
-    {label:'청담 객단가',data:SSG_CUP.map(v=>v||null),borderColor:'#2563EB',backgroundColor:upgc,borderWidth:2,pointRadius:SSG_CUP.map((_,i)=>(i===cumxi||i===cumni)?7:4),pointHoverRadius:8,pointBackgroundColor:SSG_CUP.map((_,i)=>i===cumxi?'#B45309':i===cumni?'#DC2626':'#2563EB'),pointBorderColor:'#FFFFFF',pointBorderWidth:2,fill:true,tension:.35,spanGaps:false}
+    {label:'청담 객단가',data:SSG_CUP.map(v=>v||null),borderColor:'#25347A',backgroundColor:upgc,borderWidth:2,pointRadius:SSG_CUP.map((_,i)=>(i===cumxi||i===cumni)?7:4),pointHoverRadius:8,pointBackgroundColor:SSG_CUP.map((_,i)=>i===cumxi?'#B45309':i===cumni?'#DC2626':'#25347A'),pointBorderColor:'#FFFFFF',pointBorderWidth:2,fill:true,tension:.35,spanGaps:false}
   ]},options:{...SSG_CD0,responsive:true,maintainAspectRatio:false,plugins:{...SSG_CD0.plugins,legend:{display:true,position:'top',align:'end',labels:{color:'#64748B',font:{family:'Pretendard',size:11},boxWidth:12,usePointStyle:true}},tooltip:{...SSG_CD0.plugins.tooltip,callbacks:{label:ctx=>ctx.raw?' '+ctx.dataset.label+': '+ctx.raw.toLocaleString()+'원':null}}},scales:{...SSG_CD0.scales,y:{...SSG_CD0.scales.y,ticks:{...SSG_CD0.scales.y.ticks,callback:v=>v.toLocaleString()+'원'}}},animation:{...SSG_CD0.animation,onComplete:function(){ssgPaintMM(this,[[0,gumxi,'▲ MAX','#B45309','rgba(180,83,9,0.1)',true],[0,gumni,'▼ MIN','#DC2626','rgba(220,38,38,0.1)',false]]);}}}});
 
   // UP Bar
@@ -6164,7 +6452,7 @@ function bestRenderHealth() {
       : `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">검색 결과가 없습니다</td></tr>`;
     silverSec.style.display = 'none';
     normalSec.style.display = 'none';
-    goldSec.querySelector('.tier-header span:nth-of-type(2)').textContent = `🔍 '${bestSearchQuery}' 검색 결과`;
+    goldSec.querySelector('.tier-header span:nth-of-type(2)').textContent = ` '${bestSearchQuery}' 검색 결과`;
     goldSec.querySelector('.tier-count').textContent = `${display.length}개`;
   } else {
     // 기본 티어 모드 (3단 구조 유지)
@@ -6247,7 +6535,7 @@ function bestRenderKpi() {
 // ── 정렬 전환 ──
 function bestSetSort(mode, btn) {
   bestSortMode = mode;
-  document.querySelectorAll('#best-slide .best-sort-big').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#own-slide .best-sort-big').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   bestRenderKpi();
   bestRenderHealth();
@@ -6256,8 +6544,8 @@ function bestSetSort(mode, btn) {
 
 // ── 질환 탭 전환 ──
 function bestSwDisease(key, btn) {
-  document.querySelectorAll('#best-slide .disease-tab').forEach(b => b.classList.remove('on'));
-  document.querySelectorAll('#best-slide .disease-page').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('#own-slide .disease-tab').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll('#own-slide .disease-page').forEach(p => p.classList.remove('on'));
   btn.classList.add('on');
   document.getElementById('disease-' + key).classList.add('on');
 }
@@ -6275,16 +6563,23 @@ function bestInit() {
   document.getElementById('best-search-input').addEventListener('input', e => {
     bestSearchQuery = e.target.value;
     bestRenderHealth();
+    // 질환케어는 검색 영향 없이 항상 전체 표시
+    const _q = bestSearchQuery;
+    bestSearchQuery = '';
     bestRenderAllDiseases();
+    bestSearchQuery = _q;
   });
 }
 
 // 엑셀 업로드 후 데이터가 갱신되었을 때 재렌더 (가드 무시)
 function bestRerender() {
-  if (!bestInited) return; // 초기화되지 않은 상태면 init 쪽에서 처리됨
+  if (!bestInited) return;
   bestRenderKpi();
   bestRenderHealth();
+  const _q = bestSearchQuery;
+  bestSearchQuery = '';
   bestRenderAllDiseases();
+  bestSearchQuery = _q;
 }
 
 </script>
