@@ -1,4 +1,5 @@
 
+
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -626,10 +627,10 @@ body {
 <div class="nav-container">
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="goTo(0)">📊 OMNI 매출</button>
-    <button class="nav-tab" onclick="goTo(1)">🛒 D2C 채널</button>
-    <button class="nav-tab" onclick="goTo(2)">🏷️ 자사몰 카테고리</button>
-    <button class="nav-tab" onclick="goTo(3)">🏬 신세계</button>
-    <button class="nav-tab" onclick="goTo(4)">🎯 이벤트</button>
+    <button class="nav-tab" onclick="goTo(1)">🛒 자사몰</button>
+    <button class="nav-tab" onclick="goTo(2)">🏬 신세계</button>
+    <button class="nav-tab" id="tab-event" onclick="goTo(3)" style="display:none">🎯 이벤트</button>
+    <button class="nav-tab" onclick="goTo(4)">⭐ 베스트 메뉴</button>
   </div>
 </div>
 
@@ -642,7 +643,7 @@ body {
     <div class="dot active" onclick="goTo(0)"></div>
     <div class="dot" onclick="goTo(1)"></div>
     <div class="dot" onclick="goTo(2)"></div>
-    <div class="dot" onclick="goTo(3)"></div>
+    <div class="dot" id="dot-event" onclick="goTo(3)" style="display:none"></div>
     <div class="dot" onclick="goTo(4)"></div>
   </div>
   <button class="arrow-btn" id="nextBtn" onclick="navigate(1)">
@@ -936,166 +937,362 @@ body {
   </div>
 </div>
 
-<!-- ─── SLIDE 2 : D2C ─── -->
-<div class="slide">
+<!-- ─── SLIDE 2 : 자사몰 ─── -->
+<div class="slide" id="own-slide">
+
+  <!-- ══════════════════════════════════════════
+       자사몰 슬라이드 전용 CSS
+  ══════════════════════════════════════════ -->
+  <style>
+  /* ── 서브탭 ── */
+  #own-slide .own-subtabs {
+    display:flex;gap:4px;background:var(--surface);border:1px solid var(--border);
+    border-radius:10px;padding:4px;width:fit-content;margin-bottom:18px;box-shadow:var(--shadow);
+  }
+  #own-slide .own-subtab {
+    padding:8px 22px;border-radius:7px;border:none;background:transparent;
+    color:var(--muted);font-family:inherit;font-size:13px;font-weight:600;
+    cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;
+  }
+  #own-slide .own-subtab:hover:not(.on) { color:var(--blue);background:var(--blue-lt); }
+  #own-slide .own-subtab.on { background:var(--blue);color:#fff;font-weight:700; }
+
+  #own-slide .own-page { display:none; }
+  #own-slide .own-page.on { display:block; }
+
+  /* ── ARPU/ARPPU KPI 강조 카드 ── */
+  #own-slide .arpu-kpi-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px; }
+
+  /* ── 건강도 스코어카드 ── */
+  #own-slide .health-score-card {
+    background:linear-gradient(135deg,#FFFFFF 0%,#F8FAFC 100%);
+    border:1.5px solid var(--border);border-radius:14px;
+    padding:20px 24px;margin-bottom:20px;
+    box-shadow:var(--shadow);
+    display:flex;gap:22px;align-items:stretch;flex-wrap:wrap;
+  }
+  #own-slide .health-score-left {
+    flex:0 0 200px;display:flex;flex-direction:column;justify-content:center;
+    padding-right:22px;border-right:1px dashed var(--border);
+  }
+  #own-slide .health-score-label {
+    font-size:10px;color:var(--muted);font-weight:700;
+    letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px;
+  }
+  #own-slide .health-score-big {
+    font-size:38px;font-weight:800;letter-spacing:-1.2px;line-height:1;
+    color:var(--text);display:flex;align-items:baseline;gap:4px;
+  }
+  #own-slide .health-score-big .score-suffix {
+    font-size:16px;color:var(--muted);font-weight:700;
+  }
+  #own-slide .health-score-big.good  { color:var(--green); }
+  #own-slide .health-score-big.warn  { color:var(--amber); }
+  #own-slide .health-score-big.bad   { color:var(--red); }
+  #own-slide .health-score-desc {
+    font-size:11.5px;color:var(--text2);margin-top:7px;font-weight:600;line-height:1.4;
+  }
+  #own-slide .health-score-items {
+    flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;
+  }
+  #own-slide .health-item {
+    background:var(--surface2);border:1px solid var(--border);border-radius:9px;
+    padding:10px 12px;transition:all .15s;
+  }
+  #own-slide .health-item.good  { background:var(--green-lt);border-color:#86EFAC; }
+  #own-slide .health-item.warn  { background:var(--amber-lt);border-color:#FCD34D; }
+  #own-slide .health-item.bad   { background:var(--red-lt);border-color:#FCA5A5; }
+  #own-slide .health-item-top {
+    display:flex;align-items:center;gap:6px;margin-bottom:5px;
+  }
+  #own-slide .health-item-dot {
+    width:7px;height:7px;border-radius:50%;flex-shrink:0;
+    background:var(--muted);
+  }
+  #own-slide .health-item.good .health-item-dot { background:var(--green); }
+  #own-slide .health-item.warn .health-item-dot { background:var(--amber); }
+  #own-slide .health-item.bad  .health-item-dot { background:var(--red); }
+  #own-slide .health-item-name {
+    font-size:10.5px;color:var(--text2);font-weight:700;flex:1;letter-spacing:-0.1px;
+  }
+  #own-slide .health-item-status {
+    font-size:9px;font-weight:800;padding:1px 7px;border-radius:10px;
+    background:#fff;color:var(--muted);
+  }
+  #own-slide .health-item.good .health-item-status { background:var(--green);color:#fff; }
+  #own-slide .health-item.warn .health-item-status { background:var(--amber);color:#fff; }
+  #own-slide .health-item.bad  .health-item-status { background:var(--red);color:#fff; }
+  #own-slide .health-item-val {
+    font-size:17px;font-weight:800;color:var(--text);letter-spacing:-0.3px;line-height:1.1;
+  }
+  #own-slide .health-item-target {
+    font-size:10px;color:var(--muted);margin-top:3px;
+  }
+  #own-slide .arpu-kpi {
+    background:var(--surface);border:1px solid var(--border);border-radius:11px;
+    padding:16px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+  }
+  #own-slide .arpu-kpi::before {
+    content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--ac-color, var(--blue));
+  }
+  #own-slide .arpu-kpi.arpu::before  { background:#94A3B8; }
+  #own-slide .arpu-kpi.arppu::before { background:#2563EB; }
+  #own-slide .arpu-kpi.gap::before   { background:#F59E0B; }
+  #own-slide .arpu-kpi.cvr::before   { background:#059669; }
+  #own-slide .arpu-kpi-label {
+    font-size:10px;color:var(--muted);font-weight:700;
+    letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px;
+    display:flex;align-items:center;gap:6px;
+  }
+  #own-slide .arpu-kpi-tag {
+    font-size:9px;font-weight:800;padding:1px 6px;border-radius:4px;
+    letter-spacing:.05em;text-transform:uppercase;
+  }
+  #own-slide .arpu-kpi-tag.all { background:#F1F5F9;color:#475569; }
+  #own-slide .arpu-kpi-tag.buy { background:var(--blue-lt);color:var(--blue); }
+  #own-slide .arpu-kpi-tag.gap { background:var(--amber-lt);color:var(--amber); }
+  #own-slide .arpu-kpi-val {
+    font-size:24px;font-weight:800;color:var(--text);
+    letter-spacing:-0.5px;line-height:1.15;
+  }
+  #own-slide .arpu-kpi-sub { font-size:11px;color:var(--muted);margin-top:5px;line-height:1.4; }
+
+  /* ── Dumbbell Chart 영역 ── */
+  #own-slide .dumbbell-card {
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:22px 26px;box-shadow:var(--shadow);margin-bottom:14px;
+  }
+  #own-slide .dumbbell-title {
+    font-size:13px;font-weight:800;color:var(--text);
+    margin-bottom:4px;letter-spacing:-0.2px;
+  }
+  #own-slide .dumbbell-desc {
+    font-size:11px;color:var(--muted);margin-bottom:18px;
+  }
+
+  #own-slide .dumbbell-wrap {
+    position:relative;padding:32px 0 28px;
+  }
+  /* 축 라인 */
+  #own-slide .dumbbell-track {
+    position:relative;height:8px;background:linear-gradient(90deg,#F1F5F9 0%,#DBEAFE 100%);
+    border-radius:4px;margin:0 18px;
+  }
+  /* 점 */
+  #own-slide .dumbbell-dot {
+    position:absolute;width:20px;height:20px;border-radius:50%;
+    top:50%;transform:translate(-50%,-50%);
+    border:3px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.15);
+    transition:left .8s ease;
+  }
+  #own-slide .dumbbell-dot.arpu  { background:#94A3B8; }
+  #own-slide .dumbbell-dot.arppu { background:#2563EB; }
+  /* 연결선 */
+  #own-slide .dumbbell-line {
+    position:absolute;top:50%;height:4px;
+    background:repeating-linear-gradient(90deg, #F59E0B 0, #F59E0B 4px, transparent 4px, transparent 8px);
+    transform:translateY(-50%);transition:all .8s ease;z-index:0;
+  }
+  /* 라벨 */
+  #own-slide .dumbbell-label {
+    position:absolute;transform:translateX(-50%);
+    text-align:center;white-space:nowrap;
+  }
+  #own-slide .dumbbell-label.top    { bottom:calc(100% + 8px); }
+  #own-slide .dumbbell-label.bottom { top:calc(100% + 8px); }
+  #own-slide .dumbbell-label-name {
+    font-size:10px;font-weight:800;letter-spacing:.3px;
+    text-transform:uppercase;margin-bottom:2px;
+  }
+  #own-slide .dumbbell-label-name.arpu  { color:#64748B; }
+  #own-slide .dumbbell-label-name.arppu { color:var(--blue); }
+  #own-slide .dumbbell-label-val {
+    font-size:15px;font-weight:800;color:var(--text);letter-spacing:-0.3px;
+  }
+
+  /* 중앙 Gap 배지 */
+  #own-slide .dumbbell-gap-badge {
+    position:absolute;left:50%;transform:translateX(-50%);
+    background:var(--amber);color:#fff;
+    padding:4px 12px;border-radius:14px;
+    font-size:11px;font-weight:800;
+    top:50%;margin-top:-30px;
+    box-shadow:0 3px 8px rgba(180,83,9,0.3);
+    white-space:nowrap;
+  }
+
+  #own-slide .dumbbell-help {
+    margin-top:18px;padding:12px 16px;border-radius:9px;
+    background:var(--amber-lt);border:1px solid #FDE68A;
+    display:flex;align-items:flex-start;gap:10px;
+  }
+  #own-slide .dumbbell-help-icon {
+    font-size:16px;flex-shrink:0;line-height:1.2;
+  }
+  #own-slide .dumbbell-help-text {
+    font-size:12px;color:#78350F;line-height:1.6;
+  }
+  #own-slide .dumbbell-help-text strong { color:#78350F; }
+
+  /* ── 퍼널 시각화 ── */
+  #own-slide .funnel-wrap {
+    display:grid;grid-template-columns:repeat(3,1fr);gap:18px;
+    padding:18px 14px;
+  }
+  #own-slide .funnel-step {
+    position:relative;padding:16px 14px;border-radius:11px;
+    background:var(--surface);border:1.5px solid var(--border);
+    text-align:center;transition:all .2s;
+  }
+  #own-slide .funnel-step.active { border-color:var(--blue);background:var(--blue-lt); }
+  #own-slide .funnel-step:not(:last-child)::after {
+    content:'▶';position:absolute;right:-22px;top:50%;transform:translateY(-50%);
+    font-size:14px;color:var(--muted);
+  }
+  #own-slide .funnel-icon {
+    width:40px;height:40px;margin:0 auto 8px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:18px;background:var(--blue-lt);
+  }
+  #own-slide .funnel-step.active .funnel-icon { background:var(--blue);color:#fff; }
+  #own-slide .funnel-label {
+    font-size:11px;color:var(--muted);font-weight:700;
+    text-transform:uppercase;letter-spacing:.3px;margin-bottom:5px;
+  }
+  #own-slide .funnel-val {
+    font-size:20px;font-weight:800;color:var(--text);letter-spacing:-0.4px;line-height:1.15;
+  }
+  #own-slide .funnel-rate {
+    font-size:10px;color:var(--muted);margin-top:4px;font-weight:600;
+  }
+  #own-slide .funnel-conv {
+    position:absolute;right:-32px;top:50%;transform:translateY(calc(-50% - 22px));
+    background:#fff;border:1.5px solid var(--blue);color:var(--blue);
+    padding:2px 7px;border-radius:10px;
+    font-size:10px;font-weight:800;z-index:2;white-space:nowrap;
+  }
+
+  /* 신규/재방문 분할 */
+  #own-slide .split-box {
+    display:flex;gap:8px;margin-top:10px;
+  }
+  #own-slide .split-item {
+    flex:1;padding:7px 8px;border-radius:7px;
+    background:var(--surface2);border:1px solid var(--border);
+    display:flex;flex-direction:column;align-items:center;gap:2px;
+  }
+  #own-slide .split-item .split-lbl { color:var(--muted);font-size:10px;font-weight:700;letter-spacing:.2px; }
+  #own-slide .split-item .split-val { color:var(--text);font-size:13px;font-weight:800;letter-spacing:-0.2px;line-height:1.2; }
+  #own-slide .split-item .split-pct {
+    display:inline-block;margin-top:2px;
+    background:var(--blue-lt);color:var(--blue);
+    font-size:10px;font-weight:800;
+    padding:1px 7px;border-radius:9px;
+    letter-spacing:0.2px;
+  }
+  #own-slide .split-item .split-pct.return-pct {
+    background:var(--green-lt);color:var(--green);
+  }
+
+  @media(max-width:768px){
+    #own-slide .arpu-kpi-grid { grid-template-columns:repeat(2,1fr); }
+    #own-slide .funnel-wrap { grid-template-columns:1fr;gap:30px; }
+    #own-slide .funnel-step:not(:last-child)::after { content:'▼';right:50%;top:auto;bottom:-25px;transform:translateX(50%); }
+    #own-slide .funnel-conv { right:auto;left:50%;top:auto;bottom:-25px;transform:translate(-50%, 50%); }
+    #own-slide .health-score-card { flex-direction:column; }
+    #own-slide .health-score-left { flex:none;padding-right:0;padding-bottom:16px;border-right:none;border-bottom:1px dashed var(--border); }
+    #own-slide .health-score-items { grid-template-columns:1fr; }
+  }
+  </style>
+
+  <!-- ─ 섹션 헤더 ─ -->
   <div class="section-title">
     <div class="section-icon" style="background:var(--green-lt)">🛒</div>
     <div>
-      <h2>D2C - 월별 매출 대시보드</h2>
-      <p id="s2-period-label">자사몰/네이버/기타 채널 성과 분석</p>
+      <h2>자사몰 대시보드</h2>
+      <p id="s2-period-label">자사몰 매출 및 고객 지표 분석</p>
     </div>
   </div>
 
+  <!-- 서브탭 -->
+  <div class="own-subtabs">
+    <button class="own-subtab on" onclick="ownSwTab('sales', this)">📊 매출</button>
+    <button class="own-subtab" onclick="ownSwTab('customer', this)">👥 고객 지표</button>
+  </div>
 
-  <div class="ch-label-wrap">
-    <div class="ch-label" style="flex:1;">D2C 전체 매출 현황</div>
-    <button class="ch-comment-toggle" id="toggle-s2-total" onclick="toggleComment('s2-total')" title="코멘트 추가">＋</button>
-  </div>
-  <div class="ch-comment-area" id="area-s2-total" style="display:none;">
-    <div class="ch-comment-toolbar">
-      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
-      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
-      <button class="comment-save-btn" id="csave-s2-total" onclick="saveComment('s2-total')">저장</button>
+  <!-- ══════════════════════════════════════════
+       매출 페이지
+  ══════════════════════════════════════════ -->
+  <div class="own-page on" id="own-page-sales">
+
+    <div class="ch-label-wrap">
+      <div class="ch-label" style="flex:1;">자사몰 매출 현황</div>
+      <button class="ch-comment-toggle" id="toggle-s2-total" onclick="toggleComment('s2-total')" title="코멘트 추가">＋</button>
     </div>
-    <div class="comment-editor" id="ceditor-s2-total" contenteditable="true"
-      data-placeholder="D2C 전체 매출 현황에 대한 코멘트를 입력하세요..."></div>
-  </div>
-  <div class="grid-4">
-    <div class="stat-card c-blue">
-      <div class="stat-label">총 매출액</div>
-      <div class="stat-value krw" id="s2-total">–</div>
-      <div class="stat-sub"><span class="tag-up" id="s2-yoy">–</span> 전년대비</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">목표 달성율</div>
-      <div class="stat-value sm" id="s2-achieve">–</div>
-      <div class="progress-wrap"><div class="progress-bar-bg"><div class="progress-bar-fill" id="s2-prog" style="width:0%"></div></div></div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">일 평균 매출</div>
-      <div class="stat-value krw" id="s2-daily">–</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-label">총 주문건수</div>
-      <div class="stat-value sm" id="s2-orders">–</div>
-      <div class="stat-sub" id="s2-orders-yoy">–</div>
-    </div>
-  </div>
-  <div class="grid-2">
-    <div class="daystat-card">
-      <div class="daystat-icon max-icon">🏆</div>
-      <div class="daystat-body">
-        <div class="daystat-label">최고 매출일</div>
-        <div class="daystat-amount max" id="s2-max-amount">–</div>
-        <div class="daystat-date" id="s2-max-day">–</div>
+    <div class="ch-comment-area" id="area-s2-total" style="display:none;"></div>
+    <div class="grid-4">
+      <div class="stat-card c-blue">
+        <div class="stat-label">총 매출액</div>
+        <div class="stat-value krw" id="s2-total">–</div>
+        <div class="stat-sub"><span class="tag-up" id="s2-yoy">–</span> 전년대비</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">목표 달성율</div>
+        <div class="stat-value sm" id="s2-achieve">–</div>
+        <div class="progress-wrap"><div class="progress-bar-bg"><div class="progress-bar-fill" id="s2-prog" style="width:0%"></div></div></div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">일 평균 매출</div>
+        <div class="stat-value krw" id="s2-daily">–</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">총 주문건수</div>
+        <div class="stat-value sm" id="s2-orders">–</div>
+        <div class="stat-sub" id="s2-orders-yoy">–</div>
       </div>
     </div>
-    <div class="daystat-card">
-      <div class="daystat-icon min-icon">📉</div>
-      <div class="daystat-body">
-        <div class="daystat-label">최저 매출일</div>
-        <div class="daystat-amount min" id="s2-min-amount">–</div>
-        <div class="daystat-date" id="s2-min-day">–</div>
+    <div class="grid-2">
+      <div class="daystat-card">
+        <div class="daystat-icon max-icon">🏆</div>
+        <div class="daystat-body">
+          <div class="daystat-label">최고 매출일</div>
+          <div class="daystat-amount max" id="s2-max-amount">–</div>
+          <div class="daystat-date" id="s2-max-day">–</div>
+        </div>
+      </div>
+      <div class="daystat-card">
+        <div class="daystat-icon min-icon">📉</div>
+        <div class="daystat-body">
+          <div class="daystat-label">최저 매출일</div>
+          <div class="daystat-amount min" id="s2-min-amount">–</div>
+          <div class="daystat-date" id="s2-min-day">–</div>
+        </div>
       </div>
     </div>
-  </div>
 
-  <div class="ch-label-wrap">
-    <div class="ch-label" style="flex:1;">D2C 채널별 매출</div>
-    <button class="ch-comment-toggle" id="toggle-s2-channel" onclick="toggleComment('s2-channel')" title="코멘트 추가">＋</button>
-  </div>
-  <div class="ch-comment-area" id="area-s2-channel" style="display:none;">
-    <div class="ch-comment-toolbar">
-      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
-      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
-      <button class="comment-save-btn" id="csave-s2-channel" onclick="saveComment('s2-channel')">저장</button>
+    <div class="chart-card" style="margin-bottom:0">
+      <div class="ch-label-wrap" style="margin-bottom:4px;">
+        <div class="ch-label" style="flex:1;">자사몰 일자별 매출 추이 및 전환율</div>
+        <button class="ch-comment-toggle" id="toggle-s2-d2ctrend" onclick="toggleComment('s2-d2ctrend')" title="코멘트 추가">＋</button>
+      </div>
+      <div class="ch-comment-area" id="area-s2-d2ctrend" style="display:none;"></div>
+      <div style="height:280px;position:relative"><canvas id="d2cChart"></canvas></div>
     </div>
-    <div class="comment-editor" id="ceditor-s2-channel" contenteditable="true"
-      data-placeholder="D2C 채널별 매출에 대한 코멘트를 입력하세요..."></div>
-  </div>
-  <div class="chart-card">
-    <div class="chart-card-title">자사몰 / 네이버스토어 / 기타 채널 비교</div>
-    <table class="data-table">
-      <thead>
-        <tr><th>채널</th><th>매출액</th><th>D2C 내 비중</th><th>전년대비</th><th>유입수</th><th>전환율</th></tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><span style="font-weight:700;">🏠 자사몰</span></td>
-          <td style="font-weight:700;" id="s2-own-sales">–</td>
-          <td><div class="mini-bar-wrap"><div class="mini-bar-bg"><div class="mini-bar-fill" id="s2-own-bar" style="background:var(--cat1);width:0%"></div></div><span id="s2-own-pct" style="font-size:12px;font-weight:700;min-width:38px;text-align:right;">–</span></div></td>
-          <td><span id="s2-own-yoy">–</span></td>
-          <td id="s2-own-uv">–</td>
-          <td style="font-weight:700;" id="s2-own-cvr">–</td>
-        </tr>
-        <tr>
-          <td><span style="font-weight:700;">N 네이버스토어</span></td>
-          <td style="font-weight:700;" id="s2-nav-sales">–</td>
-          <td><div class="mini-bar-wrap"><div class="mini-bar-bg"><div class="mini-bar-fill" id="s2-nav-bar" style="background:var(--cat3);width:0%"></div></div><span id="s2-nav-pct" style="font-size:12px;font-weight:700;min-width:38px;text-align:right;">–</span></div></td>
-          <td><span id="s2-nav-yoy">–</span></td>
-          <td id="s2-nav-uv">–</td>
-          <td style="font-weight:700;" id="s2-nav-cvr">–</td>
-        </tr>
-        <tr>
-          <td><span style="font-weight:700;">📦 기타</span></td>
-          <td style="font-weight:700;" id="s2-etc-sales">–</td>
-          <td><div class="mini-bar-wrap"><div class="mini-bar-bg"><div class="mini-bar-fill" id="s2-etc-bar" style="background:var(--muted);width:0%"></div></div><span id="s2-etc-pct" style="font-size:12px;font-weight:700;min-width:38px;text-align:right;">–</span></div></td>
-          <td><span id="s2-etc-yoy">–</span></td>
-          <td id="s2-etc-uv">–</td>
-          <td style="font-weight:700;" id="s2-etc-cvr">–</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="ch-label-wrap">
-    <div class="ch-label" style="flex:1;">자사몰 유입 및 전환 통계</div>
-    <button class="ch-comment-toggle" id="toggle-s2-funnel" onclick="toggleComment('s2-funnel')" title="코멘트 추가">＋</button>
-  </div>
-  <div class="ch-comment-area" id="area-s2-funnel" style="display:none;">
-    <div class="ch-comment-toolbar">
-      <button class="comment-btn" onclick="execCmd('bold')"><b>B</b></button>
-      <button class="comment-btn" onclick="execCmd('underline')"><u>U</u></button>
-      <button class="comment-save-btn" id="csave-s2-funnel" onclick="saveComment('s2-funnel')">저장</button>
-    </div>
-    <div class="comment-editor" id="ceditor-s2-funnel" contenteditable="true"
-      data-placeholder="자사몰 유입 및 전환 통계에 대한 코멘트를 입력하세요..."></div>
-  </div>
-  <div class="grid-4">
-    <div class="stat-card"><div class="stat-label">총 유입수</div><div class="stat-value sm" id="s2-total-uv">–</div></div>
-    <div class="stat-card"><div class="stat-label">신규 유입</div><div class="stat-value sm" id="s2-new-uv">–</div><div class="stat-sub">신규 비율 <span id="s2-new-pct">–</span></div></div>
-    <div class="stat-card"><div class="stat-label">재방문</div><div class="stat-value sm" id="s2-return-uv">–</div><div class="stat-sub">재방문 비율 <span id="s2-return-pct">–</span></div></div>
-    <div class="stat-card c-blue"><div class="stat-label">전환율</div><div class="stat-value sm hi" id="s2-cvr">–</div></div>
-  </div>
-  <div class="grid-4">
-    <div class="stat-card"><div class="stat-label">총 주문건수</div><div class="stat-value sm" id="s2-ord-total">–</div></div>
-    <div class="stat-card"><div class="stat-label">평균 객단가</div><div class="stat-value krw" id="s2-aov">–</div></div>
-    <div class="stat-card"><div class="stat-label">주중 평균 전환율</div><div class="stat-value sm" id="s2-wd-cvr">–</div></div>
-    <div class="stat-card c-blue"><div class="stat-label">주말 평균 전환율</div><div class="stat-value sm hi" id="s2-we-cvr">–</div></div>
-  </div>
-
-  <div class="chart-card" style="margin-bottom:0">
-    <div class="ch-label-wrap" style="margin-bottom:4px;">
-      <div class="ch-label" style="flex:1;">자사몰 일자별 매출 추이 및 전환율</div>
-      <button class="ch-comment-toggle" id="toggle-s2-d2ctrend" onclick="toggleComment('s2-d2ctrend')" title="코멘트 추가">＋</button>
-    </div>
-    <div class="ch-comment-area" id="area-s2-d2ctrend" style="display:none;"></div>
-    <div style="height:280px;position:relative"><canvas id="d2cChart"></canvas></div>
-  </div>
-</div>
-
-<!-- ─── SLIDE 3 : Category ─── -->
-<div class="slide">
-  <div class="section-title">
-    <div class="section-icon" style="background:var(--amber-lt)">🏷️</div>
-    <div>
-      <h2>자사몰 카테고리별 상세 현황</h2>
-      <p id="s3-period-label">카테고리/식단별/정기결제 심층 분석</p>
-    </div>
-  </div>
 
 
-  <!-- 매출 통계 요약 -->
+    <!-- ══════════════════════════════════════════
+         상품 분석 (카테고리/식단별/정기결제)
+    ══════════════════════════════════════════ -->
+    <div style="margin-top:32px;padding-top:24px;border-top:2px dashed var(--border);">
+      <div class="section-title" style="margin-bottom:14px;">
+        <div class="section-icon" style="background:var(--amber-lt)">🏷️</div>
+        <div>
+          <h2 style="font-size:16px;">상품 분석</h2>
+          <p style="font-size:11px;color:var(--muted);">카테고리 · 식단별 · 정기결제 심층 분석</p>
+        </div>
+      </div>
+
+<!-- 매출 통계 요약 -->
   <div class="ch-label-wrap">
     <div class="ch-label" style="flex:1;">매출 통계 요약</div>
     <button class="ch-comment-toggle" id="toggle-s3-summary" onclick="toggleComment('s3-summary')" title="코멘트 추가">＋</button>
@@ -1299,7 +1496,245 @@ body {
     <div class="chart-card-title">배송 횟수별 신청 건수 및 비율</div>
     <div style="height:220px"><canvas id="deliveryChart"></canvas></div>
   </div>
-</div><!-- slide end -->
+
+    </div>
+
+  </div><!-- own-page-sales end -->
+
+  <!-- ══════════════════════════════════════════
+       고객 지표 페이지
+  ══════════════════════════════════════════ -->
+  <div class="own-page" id="own-page-customer">
+
+    <!-- ① 건강도 스코어카드 -->
+    <div class="ch-label-wrap">
+      <div class="ch-label" style="flex:1;">고객 지표 건강도</div>
+      <button class="ch-comment-toggle" id="toggle-s2-health" onclick="toggleComment('s2-health')" title="코멘트 추가">＋</button>
+    </div>
+    <div class="ch-comment-area" id="area-s2-health" style="display:none;"></div>
+    <div class="health-score-card">
+      <div class="health-score-left">
+        <div class="health-score-label">종합 건강도</div>
+        <div class="health-score-big" id="s2-health-score">–</div>
+        <div class="health-score-desc" id="s2-health-desc">—</div>
+      </div>
+      <div class="health-score-items">
+        <div class="health-item" id="s2-health-return">
+          <div class="health-item-top">
+            <span class="health-item-dot"></span>
+            <span class="health-item-name">재방문율</span>
+            <span class="health-item-status">–</span>
+          </div>
+          <div class="health-item-val" id="s2-health-return-val">–</div>
+          <div class="health-item-target">목표: 40% 이상</div>
+        </div>
+        <div class="health-item" id="s2-health-cvr">
+          <div class="health-item-top">
+            <span class="health-item-dot"></span>
+            <span class="health-item-name">구매 전환율</span>
+            <span class="health-item-status">–</span>
+          </div>
+          <div class="health-item-val" id="s2-health-cvr-val">–</div>
+          <div class="health-item-target">목표: 2~4% 적정</div>
+        </div>
+        <div class="health-item" id="s2-health-gap">
+          <div class="health-item-top">
+            <span class="health-item-dot"></span>
+            <span class="health-item-name">ARPU·ARPPU 괴리</span>
+            <span class="health-item-status">–</span>
+          </div>
+          <div class="health-item-val" id="s2-health-gap-val">–</div>
+          <div class="health-item-target">목표: 4배 이하</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ② 핵심 KPI -->
+    <div class="ch-label-wrap">
+      <div class="ch-label" style="flex:1;">핵심 고객 지표</div>
+      <button class="ch-comment-toggle" id="toggle-s2-kpi" onclick="toggleComment('s2-kpi')" title="코멘트 추가">＋</button>
+    </div>
+    <div class="ch-comment-area" id="area-s2-kpi" style="display:none;"></div>
+    <div class="arpu-kpi-grid">
+      <div class="arpu-kpi arpu">
+        <div class="arpu-kpi-label">ARPU <span class="arpu-kpi-tag all">전체 방문자</span></div>
+        <div class="arpu-kpi-val" id="s2-arpu">–</div>
+        <div class="arpu-kpi-sub">매출 ÷ 전체 방문자 수</div>
+      </div>
+      <div class="arpu-kpi arppu">
+        <div class="arpu-kpi-label">ARPPU <span class="arpu-kpi-tag buy">구매자</span></div>
+        <div class="arpu-kpi-val" id="s2-arppu">–</div>
+        <div class="arpu-kpi-sub">매출 ÷ 구매 고객 수</div>
+      </div>
+      <div class="arpu-kpi gap">
+        <div class="arpu-kpi-label">ARPU vs ARPPU 괴리 <span class="arpu-kpi-tag gap">Gap</span></div>
+        <div class="arpu-kpi-val" id="s2-gap">–</div>
+        <div class="arpu-kpi-sub" id="s2-gap-sub">구매 전환 개선 여지</div>
+      </div>
+      <div class="arpu-kpi cvr">
+        <div class="arpu-kpi-label">구매 전환율 (CVR)</div>
+        <div class="arpu-kpi-val" id="s2-cvr">–</div>
+        <div class="arpu-kpi-sub">방문자 대비 구매자 비율</div>
+      </div>
+    </div>
+
+    <!-- ③ 추가 고객 지표 (재방문율, 신규/재방문 전환율) -->
+    <div class="arpu-kpi-grid">
+      <div class="arpu-kpi" style="--ac-color:#0891B2">
+        <div class="arpu-kpi-label">재방문율 <span class="arpu-kpi-tag" style="background:var(--green-lt);color:var(--green)">Loyalty</span></div>
+        <div class="arpu-kpi-val" id="s2-return-rate">–</div>
+        <div class="arpu-kpi-sub">전체 방문자 중 재방문 비율</div>
+      </div>
+      <div class="arpu-kpi" style="--ac-color:#7C3AED">
+        <div class="arpu-kpi-label">신규 고객 비율</div>
+        <div class="arpu-kpi-val" id="s2-new-rate">–</div>
+        <div class="arpu-kpi-sub">전체 방문자 중 신규 비율</div>
+      </div>
+      <div class="arpu-kpi" style="--ac-color:#EA580C">
+        <div class="arpu-kpi-label">평균 객단가 (AOV)</div>
+        <div class="arpu-kpi-val" id="s2-aov-kpi">–</div>
+        <div class="arpu-kpi-sub">1건당 평균 구매 금액</div>
+      </div>
+      <div class="arpu-kpi" style="--ac-color:#16A34A">
+        <div class="arpu-kpi-label">재구매율 <span class="arpu-kpi-tag" style="background:var(--green-lt);color:var(--green)">Retention</span></div>
+        <div class="arpu-kpi-val" id="s2-loyal-index">–</div>
+        <div class="arpu-kpi-sub" id="s2-loyal-desc">재구매 고객 ÷ 총 주문</div>
+      </div>
+    </div>
+
+    <!-- ② 2단계: Dumbbell Chart -->
+    <div class="ch-label-wrap">
+      <div class="ch-label" style="flex:1;">ARPU ↔ ARPPU 괴리 시각화</div>
+      <button class="ch-comment-toggle" id="toggle-s2-dumbbell" onclick="toggleComment('s2-dumbbell')" title="코멘트 추가">＋</button>
+    </div>
+    <div class="ch-comment-area" id="area-s2-dumbbell" style="display:none;"></div>
+    <div class="dumbbell-card">
+      <div class="dumbbell-title">🎯 현재 ARPU-ARPPU 포지션</div>
+      <div class="dumbbell-desc">두 점 사이 거리가 '괴리(Gap)'의 크기를 나타냅니다 — 좁아질수록 구매 전환율이 개선된 것</div>
+
+      <div class="dumbbell-wrap">
+        <div class="dumbbell-track">
+          <div class="dumbbell-line" id="s2-dumb-line"></div>
+          <div class="dumbbell-dot arpu" id="s2-dumb-arpu">
+            <div class="dumbbell-label bottom">
+              <div class="dumbbell-label-name arpu">ARPU</div>
+              <div class="dumbbell-label-val" id="s2-dumb-arpu-val">–</div>
+            </div>
+          </div>
+          <div class="dumbbell-dot arppu" id="s2-dumb-arppu">
+            <div class="dumbbell-label top">
+              <div class="dumbbell-label-name arppu">ARPPU</div>
+              <div class="dumbbell-label-val" id="s2-dumb-arppu-val">–</div>
+            </div>
+          </div>
+          <div class="dumbbell-gap-badge" id="s2-dumb-gap">Gap –</div>
+        </div>
+      </div>
+
+      <div class="dumbbell-help">
+        <div class="dumbbell-help-icon">💡</div>
+        <div class="dumbbell-help-text" id="s2-dumb-insight">
+          위 그래프는 <strong>ARPU(좌, 회색)</strong>와 <strong>ARPPU(우, 파란색)</strong>의 포지션을 보여줍니다.
+          두 점 사이 <strong>주황색 점선 거리</strong>가 괴리의 크기이며, 이 거리가 좁을수록 전체 방문자가 구매자로 잘 전환되고 있다는 뜻입니다.
+        </div>
+      </div>
+    </div>
+
+    <!-- ③ 3단계: 월별 추세 라인차트 -->
+    <div class="ch-label-wrap">
+      <div class="ch-label" style="flex:1;">월별 ARPU / ARPPU 추세</div>
+      <button class="ch-comment-toggle" id="toggle-s2-trend" onclick="toggleComment('s2-trend')" title="코멘트 추가">＋</button>
+    </div>
+    <div class="ch-comment-area" id="area-s2-trend" style="display:none;"></div>
+    <div class="chart-card">
+      <div class="chart-card-title">ARPU vs ARPPU 월별 추세 (괴리 변화 추적)</div>
+      <div style="height:240px;position:relative"><canvas id="s2-arpu-trend-chart"></canvas></div>
+    </div>
+
+    <!-- ⑥⑦ 일자별 방문자 + 전환율 통합 차트 -->
+    <div class="ch-label-wrap">
+      <div class="ch-label" style="flex:1;">일자별 방문자 · 전환율 통합 추이</div>
+      <button class="ch-comment-toggle" id="toggle-s2-combined-trend" onclick="toggleComment('s2-combined-trend')" title="코멘트 추가">＋</button>
+    </div>
+    <div class="ch-comment-area" id="area-s2-combined-trend" style="display:none;"></div>
+    <div class="chart-card">
+      <div class="chart-card-title">방문자(신규/재방문 스택) + 전환율 라인 통합 비교</div>
+      <div style="height:290px;position:relative"><canvas id="s2-combined-trend-chart"></canvas></div>
+      <div style="margin-top:10px;padding:10px 14px;background:var(--blue-lt);border:1px solid #BFDBFE;border-radius:8px;font-size:11.5px;color:var(--text2);line-height:1.6;">
+        💡 방문자 피크 시점과 전환율 피크 시점이 <strong>일치하는지</strong> 확인해보세요. 트래픽이 늘어도 전환율이 떨어진다면 <strong>구매 경험 개선</strong>이 필요한 신호입니다.
+      </div>
+    </div>
+
+    <!-- ④ 고객 퍼널 -->
+    <div class="ch-label-wrap">
+      <div class="ch-label" style="flex:1;">고객 유입 및 전환 퍼널</div>
+      <button class="ch-comment-toggle" id="toggle-s2-funnel" onclick="toggleComment('s2-funnel')" title="코멘트 추가">＋</button>
+    </div>
+    <div class="ch-comment-area" id="area-s2-funnel" style="display:none;"></div>
+    <div class="chart-card">
+      <div class="funnel-wrap">
+        <div class="funnel-step active">
+          <div class="funnel-label">방문자 수</div>
+          <div class="funnel-val" id="s2-funnel-visit">–</div>
+          <div class="funnel-rate">총 유입</div>
+          <div class="split-box">
+            <div class="split-item">
+              <span class="split-lbl">신규</span>
+              <span class="split-val" id="s2-funnel-new">–</span>
+              <span class="split-pct" id="s2-funnel-new-pct">–</span>
+            </div>
+            <div class="split-item">
+              <span class="split-lbl">재방문</span>
+              <span class="split-val" id="s2-funnel-return">–</span>
+              <span class="split-pct return-pct" id="s2-funnel-return-pct">–</span>
+            </div>
+          </div>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-conv" id="s2-funnel-conv1">→ –%</div>
+          <div class="funnel-label">주문 건수</div>
+          <div class="funnel-val" id="s2-funnel-orders">–</div>
+          <div class="funnel-rate">주문 발생</div>
+        </div>
+        <div class="funnel-step">
+          <div class="funnel-conv" id="s2-funnel-conv2">→ –</div>
+          <div class="funnel-label">평균 객단가</div>
+          <div class="funnel-val" id="s2-funnel-aov">–</div>
+          <div class="funnel-rate">1건당 평균</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ⑨ 주중/주말 비교 (방문자 + 전환율) -->
+    <div class="ch-label-wrap">
+      <div class="ch-label" style="flex:1;">주중 · 주말 비교</div>
+      <button class="ch-comment-toggle" id="toggle-s2-wdwe" onclick="toggleComment('s2-wdwe')" title="코멘트 추가">＋</button>
+    </div>
+    <div class="ch-comment-area" id="area-s2-wdwe" style="display:none;"></div>
+    <div class="grid-4" style="margin-bottom:0;">
+      <div class="stat-card">
+        <div class="stat-label">주중 일평균 방문자</div>
+        <div class="stat-value sm" id="s2-wd-uv">–</div>
+      </div>
+      <div class="stat-card c-blue">
+        <div class="stat-label">주말 일평균 방문자</div>
+        <div class="stat-value sm hi" id="s2-we-uv">–</div>
+        <div class="stat-sub" id="s2-we-uv-diff">–</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">주중 평균 전환율</div>
+        <div class="stat-value sm" id="s2-wd-cvr">–</div>
+      </div>
+      <div class="stat-card c-blue">
+        <div class="stat-label">주말 평균 전환율</div>
+        <div class="stat-value sm hi" id="s2-we-cvr">–</div>
+        <div class="stat-sub" id="s2-we-cvr-diff">–</div>
+      </div>
+    </div>
+
+  </div><!-- own-page-customer end -->
+
+</div><!-- slide 2 : 자사몰 end -->
 
 <!-- ─── SLIDE 4 : 신세계 ─── -->
 <div class="slide" id="ssg-slide">
@@ -1946,6 +2381,514 @@ body {
   </div><!-- evtDataSection -->
 </div><!-- slide 5 end -->
 
+<!-- ─── SLIDE 6 : 베스트 메뉴 ─── -->
+<div class="slide" id="best-slide">
+
+  <!-- ══════════════════════════════════════════
+       베스트 메뉴 전용 CSS
+  ══════════════════════════════════════════ -->
+  <style>
+  /* ── Summary KPI ── */
+  #best-slide .best-kpi-grid { display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px; }
+  #best-slide .best-kpi {
+    background:var(--surface);border:1px solid var(--border);border-radius:11px;
+    padding:16px 18px;box-shadow:var(--shadow);position:relative;overflow:hidden;
+  }
+  #best-slide .best-kpi::before {
+    content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--blue);
+  }
+  #best-slide .best-kpi.gold::before { background:#F59E0B; }
+  #best-slide .best-kpi.silver::before { background:#94A3B8; }
+  #best-slide .best-kpi.bronze::before { background:#D97706; }
+  #best-slide .best-kpi-label { font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin-bottom:7px; }
+  #best-slide .best-kpi-val { font-size:22px;font-weight:800;color:var(--text);letter-spacing:-0.4px;line-height:1.1; }
+  #best-slide .best-kpi-sub { font-size:11px;color:var(--muted);margin-top:4px; }
+
+  /* ── 검색/필터 바 ── */
+  #best-slide .best-toolbar {
+    background:var(--surface);border:1px solid var(--border);border-radius:10px;
+    padding:10px 14px;display:flex;gap:14px;align-items:center;
+    margin-bottom:10px;box-shadow:var(--shadow);flex-wrap:wrap;
+  }
+  #best-slide .best-search {
+    flex:0 0 320px;min-width:260px;display:flex;align-items:center;gap:8px;
+    background:var(--surface2);border:1px solid var(--border);border-radius:8px;
+    padding:7px 12px;transition:border-color .15s;
+  }
+  #best-slide .best-search:focus-within { border-color:var(--blue); background:#fff; }
+  #best-slide .best-search svg { width:14px;height:14px;color:var(--muted);flex-shrink:0; }
+  #best-slide .best-search input {
+    flex:1;border:none;outline:none;background:transparent;
+    font-size:13px;font-family:inherit;color:var(--text);
+  }
+  #best-slide .best-search input::placeholder { color:var(--muted); }
+
+  /* ── 검색 힌트 ── */
+  #best-slide .best-search-hint {
+    display:flex;align-items:center;gap:6px;
+    font-size:11.5px;color:var(--text2);font-weight:500;
+    padding:0 4px;
+  }
+  #best-slide .best-search-hint-icon {
+    font-size:13px;flex-shrink:0;
+  }
+
+  /* ── 순위 변동 배지 ── */
+  #best-slide .chg-badge {
+    display:inline-flex;align-items:center;gap:2px;
+    padding:2px 7px;border-radius:5px;
+    font-size:11px;font-weight:800;line-height:1;min-width:34px;justify-content:center;
+    font-family:'DM Mono',Menlo,monospace;
+  }
+  #best-slide .chg-badge.up {
+    background:#DCFCE7;color:#15803D;border:1px solid #86EFAC;
+  }
+  #best-slide .chg-badge.down {
+    background:#FEE2E2;color:#B91C1C;border:1px solid #FCA5A5;
+  }
+  #best-slide .chg-badge.same {
+    background:var(--surface2);color:var(--muted);border:1px solid var(--border);
+  }
+  #best-slide .chg-badge.new {
+    background:#EEF2FF;color:#4338CA;border:1px solid #C7D2FE;font-weight:800;
+  }
+  #best-slide .chg-arrow {
+    font-size:9px;line-height:1;
+  }
+  #best-slide .best-filter-label { font-size:11px;color:var(--muted);font-weight:700; }
+  #best-slide .best-sort-btn {
+    padding:7px 14px;border-radius:7px;border:1px solid var(--border);
+    background:var(--surface);color:var(--text2);font-size:12px;font-weight:600;
+    font-family:inherit;cursor:pointer;transition:all .15s;
+  }
+  #best-slide .best-sort-btn:hover { border-color:var(--blue);color:var(--blue);background:var(--blue-lt); }
+  #best-slide .best-sort-btn.active { background:var(--blue);color:#fff;border-color:var(--blue); }
+
+  /* ── 순위 기준 선택 패널 (강조) ── */
+  #best-slide .best-sort-panel {
+    background:linear-gradient(135deg, var(--blue-lt) 0%, #F0F9FF 100%);
+    border:1.5px solid #BFDBFE;border-radius:12px;
+    padding:14px 18px;margin-bottom:20px;
+    display:flex;align-items:center;gap:18px;
+    box-shadow:0 2px 6px rgba(37,99,235,0.06);
+    flex-wrap:wrap;
+  }
+  #best-slide .best-sort-panel-left {
+    display:flex;align-items:center;gap:12px;flex:1;min-width:220px;
+  }
+  #best-slide .best-sort-icon {
+    width:42px;height:42px;border-radius:10px;
+    background:var(--blue);color:#fff;
+    display:flex;align-items:center;justify-content:center;
+    font-size:20px;flex-shrink:0;
+    box-shadow:0 3px 8px rgba(37,99,235,0.3);
+  }
+  #best-slide .best-sort-panel-title {
+    font-size:14px;font-weight:800;color:var(--blue);
+    letter-spacing:-0.2px;margin-bottom:2px;
+  }
+  #best-slide .best-sort-panel-desc {
+    font-size:11px;color:var(--text2);font-weight:500;
+  }
+  #best-slide .best-sort-options {
+    display:flex;gap:8px;flex-wrap:wrap;
+  }
+  #best-slide .best-sort-big {
+    padding:10px 18px;border-radius:10px;
+    border:1.5px solid var(--border);background:#fff;
+    font-family:inherit;cursor:pointer;transition:all .18s;
+    text-align:left;min-width:160px;
+  }
+  #best-slide .best-sort-big:hover {
+    border-color:var(--blue);background:var(--blue-lt);
+    transform:translateY(-1px);
+    box-shadow:0 4px 10px rgba(37,99,235,0.12);
+  }
+  #best-slide .best-sort-big.active {
+    background:var(--blue);border-color:var(--blue);
+    box-shadow:0 4px 12px rgba(37,99,235,0.3);
+  }
+  #best-slide .best-sort-big-title {
+    font-size:13px;font-weight:800;color:var(--text);
+    letter-spacing:-0.2px;margin-bottom:2px;
+  }
+  #best-slide .best-sort-big.active .best-sort-big-title { color:#fff; }
+  #best-slide .best-sort-big-sub {
+    font-size:10px;color:var(--muted);font-weight:500;
+  }
+  #best-slide .best-sort-big.active .best-sort-big-sub { color:rgba(255,255,255,.85); }
+
+  /* ── 섹션 타이틀 ── */
+  #best-slide .best-section-title {
+    display:flex;align-items:center;gap:10px;
+    margin:22px 0 14px;padding-bottom:12px;
+    border-bottom:1px solid var(--border);
+  }
+  #best-slide .best-section-icon {
+    width:34px;height:34px;border-radius:9px;
+    display:flex;align-items:center;justify-content:center;font-size:15px;
+    background:var(--blue-lt);
+  }
+  #best-slide .best-section-title h3 { font-size:16px;font-weight:800;letter-spacing:-0.3px;color:var(--text); }
+  #best-slide .best-section-title p { font-size:11px;color:var(--muted);margin-top:2px; }
+  #best-slide .best-section-badge {
+    margin-left:auto;background:var(--blue);color:#fff;
+    padding:4px 11px;border-radius:6px;font-size:11px;font-weight:700;
+  }
+
+  /* ── 티어 섹션 (TOP 5/10/20) ── */
+  #best-slide .tier-section { margin-bottom:14px; }
+  #best-slide .tier-header {
+    display:flex;align-items:center;gap:10px;
+    padding:10px 14px;border-radius:9px 9px 0 0;
+    font-size:12px;font-weight:800;letter-spacing:.3px;
+  }
+  #best-slide .tier-header.gold {
+    background:linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+    color:#92400E;border:1px solid #FCD34D;border-bottom:none;
+  }
+  #best-slide .tier-header.silver {
+    background:linear-gradient(135deg, #F1F5F9 0%, #E2E8F0 100%);
+    color:#475569;border:1px solid #CBD5E0;border-bottom:none;
+  }
+  #best-slide .tier-header.normal {
+    background:var(--surface2);color:var(--text2);
+    border:1px solid var(--border);border-bottom:none;
+  }
+  #best-slide .tier-icon { font-size:15px; }
+  #best-slide .tier-count {
+    margin-left:auto;font-size:11px;font-weight:700;opacity:.8;
+  }
+
+  #best-slide .tier-body {
+    background:var(--surface);border:1px solid var(--border);border-top:none;
+    border-radius:0 0 9px 9px;overflow:hidden;box-shadow:var(--shadow);
+  }
+  #best-slide .tier-body.gold { border-color:#FCD34D; }
+  #best-slide .tier-body.silver { border-color:#CBD5E0; }
+
+  /* ── 메뉴 테이블 ── */
+  #best-slide .menu-table { width:100%;border-collapse:collapse; }
+  #best-slide .menu-table thead th {
+    font-size:10px;color:var(--muted);font-weight:700;
+    text-transform:uppercase;letter-spacing:.3px;
+    padding:9px 12px;text-align:left;
+    background:var(--surface2);border-bottom:2px solid var(--border);
+    white-space:nowrap;
+  }
+  #best-slide .menu-table tbody td {
+    padding:9px 12px;font-size:12px;
+    border-bottom:1px solid var(--border);
+    vertical-align:middle;
+  }
+  #best-slide .menu-table tbody tr:last-child td { border-bottom:none; }
+  #best-slide .menu-table tbody tr:hover td { background:var(--blue-lt); }
+
+  /* ── 골드 티어 row ── */
+  #best-slide tr.row-gold td {
+    background:linear-gradient(90deg, #FFFBEB 0%, #FFFFFF 100%);
+    font-weight:600;
+  }
+  #best-slide tr.row-gold:hover td { background:#FEF3C7 !important; }
+  #best-slide tr.row-silver td { background:#FAFBFC; }
+  #best-slide tr.row-silver:hover td { background:#F1F5F9 !important; }
+
+  /* ── 순위 배지 ── */
+  #best-slide .rank-b {
+    display:inline-flex;align-items:center;justify-content:center;
+    width:26px;height:26px;border-radius:8px;
+    font-size:11px;font-weight:800;
+    background:var(--surface2);color:var(--muted);border:1px solid var(--border);
+  }
+  #best-slide .rank-b.gold {
+    background:linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+    color:#fff;border-color:#D97706;
+    box-shadow:0 2px 6px rgba(245,158,11,0.35);
+  }
+  #best-slide .rank-b.silver {
+    background:linear-gradient(135deg, #CBD5E0 0%, #94A3B8 100%);
+    color:#fff;border-color:#94A3B8;
+    box-shadow:0 2px 4px rgba(148,163,184,0.3);
+  }
+  #best-slide .rank-b.bronze {
+    background:linear-gradient(135deg, #FCD34D 0%, #F59E0B 100%);
+    color:#92400E;border-color:#F59E0B;
+  }
+
+  /* 메뉴명 */
+  #best-slide .menu-name { font-weight:700;color:var(--text); }
+  #best-slide tr.row-gold .menu-name { color:#78350F; }
+
+  /* 수량 */
+  #best-slide .qty-val { font-family:'DM Mono',Menlo,monospace;font-weight:700;color:var(--text); }
+
+  /* 노출당 선택량 막대 */
+  #best-slide .expo-cell { min-width:160px;display:flex;align-items:center;gap:8px; }
+  #best-slide .expo-bar-wrap { flex:1;height:7px;background:var(--bg);border-radius:4px;overflow:hidden;border:1px solid var(--border); }
+  #best-slide .expo-bar-fill {
+    height:100%;border-radius:4px;
+    background:linear-gradient(90deg, var(--blue) 0%, #60A5FA 100%);
+    transition:width .6s ease;
+  }
+  #best-slide tr.row-gold .expo-bar-fill {
+    background:linear-gradient(90deg, #D97706 0%, #F59E0B 100%);
+  }
+  #best-slide tr.row-silver .expo-bar-fill {
+    background:linear-gradient(90deg, #64748B 0%, #94A3B8 100%);
+  }
+  #best-slide .expo-val { font-size:11px;font-weight:700;color:var(--text2);min-width:42px;text-align:right; }
+  #best-slide tr.row-gold .expo-val { color:#92400E; }
+
+  /* 식단 구성 / 중요도 */
+  #best-slide .plan-pill {
+    display:inline-block;padding:2px 8px;border-radius:10px;
+    font-size:11px;font-weight:700;
+    background:var(--blue-lt);color:var(--blue);
+  }
+  #best-slide tr.row-gold .plan-pill { background:#FEF3C7;color:#92400E; }
+  #best-slide .star-rating { font-size:11px;letter-spacing:1px;color:#F59E0B; }
+  #best-slide .star-dim { color:#E2E8F0; }
+
+  /* ── 질환케어 탭 ── */
+  #best-slide .disease-tabs {
+    display:flex;gap:5px;background:var(--surface);
+    border:1px solid var(--border);border-radius:10px;padding:4px;
+    width:fit-content;margin-bottom:14px;box-shadow:var(--shadow);
+  }
+  #best-slide .disease-tab {
+    padding:7px 18px;border-radius:7px;border:none;background:transparent;
+    color:var(--muted);font-family:inherit;font-size:13px;font-weight:600;
+    cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;
+  }
+  #best-slide .disease-tab:hover:not(.on) { color:var(--blue);background:var(--blue-lt); }
+  #best-slide .disease-tab.on { background:var(--blue);color:#fff;font-weight:700; }
+  #best-slide .disease-tab .pill {
+    background:rgba(255,255,255,.3);padding:1px 7px;border-radius:10px;font-size:10px;font-weight:700;
+  }
+  #best-slide .disease-tab:not(.on) .pill { background:var(--bg);color:var(--muted); }
+
+  #best-slide .disease-page { display:none; }
+  #best-slide .disease-page.on { display:block; }
+
+  /* 하이라이트 (검색) */
+  #best-slide .hl { background:#FEF3C7;padding:0 2px;border-radius:2px;font-weight:800; }
+
+  @media(max-width:768px) {
+    #best-slide .best-kpi-grid { grid-template-columns:repeat(2,1fr); }
+    #best-slide .menu-table thead th:nth-child(4),
+    #best-slide .menu-table tbody td:nth-child(4) { display:none; } /* 식단 구성 숨김 */
+  }
+  </style>
+
+  <!-- ─ 섹션 헤더 ─ -->
+  <div class="section-title">
+    <div class="section-icon" style="background:var(--blue-lt)">⭐</div>
+    <div>
+      <h2>베스트 메뉴 셀렉션 리스트</h2>
+      <p>자사몰 선택형 메뉴 선호도 상세 현황 · 2025 누적 데이터</p>
+    </div>
+  </div>
+
+  <!-- Summary KPI (앞 2개: 필터에 따라 변경 / 뒤 2개: 고정) -->
+  <div class="best-kpi-grid">
+    <div class="best-kpi gold">
+      <div class="best-kpi-label">🏆 TOP 1 메뉴</div>
+      <div class="best-kpi-val" id="best-kpi-top1">–</div>
+      <div class="best-kpi-sub" id="best-kpi-top1-sub">–</div>
+    </div>
+    <div class="best-kpi bronze">
+      <div class="best-kpi-label">TOP 5 점유율</div>
+      <div class="best-kpi-val" id="best-kpi-share">–</div>
+      <div class="best-kpi-sub" id="best-kpi-share-sub">–</div>
+    </div>
+    <div class="best-kpi">
+      <div class="best-kpi-label">전체 건강케어 메뉴</div>
+      <div class="best-kpi-val" id="best-kpi-total">–</div>
+      <div class="best-kpi-sub">상위 20개 노출 중</div>
+    </div>
+    <div class="best-kpi silver">
+      <div class="best-kpi-label">평균 노출당 선택량</div>
+      <div class="best-kpi-val" id="best-kpi-avg-expo">–</div>
+      <div class="best-kpi-sub">건강케어 TOP 20</div>
+    </div>
+  </div>
+
+  <!-- 정렬 컨트롤 영역 -->
+  <div class="best-toolbar">
+    <div class="best-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="best-search-input" placeholder="메뉴명 검색 (예: 연어, 파스타...)">
+    </div>
+    <div class="best-search-hint">
+      <span class="best-search-hint-icon">💡</span>
+      <span>TOP 20에 들지 못한 메뉴의 순위가 궁금할 때 검색해보세요</span>
+    </div>
+  </div>
+
+  <!-- 순위 기준 선택 영역 (강조) -->
+  <div class="best-sort-panel">
+    <div class="best-sort-panel-left">
+      <div class="best-sort-icon">📊</div>
+      <div class="best-sort-panel-text">
+        <div class="best-sort-panel-title">순위 기준 선택</div>
+        <div class="best-sort-panel-desc">선택한 기준으로 메뉴 순위가 매겨집니다</div>
+      </div>
+    </div>
+    <div class="best-sort-options">
+      <button class="best-sort-big active" data-sort="qty" onclick="bestSetSort('qty', this)">
+        <div class="best-sort-big-title">📦 수량 순</div>
+        <div class="best-sort-big-sub">총 판매 수량이 많은 순</div>
+      </button>
+      <button class="best-sort-big" data-sort="expo" onclick="bestSetSort('expo', this)">
+        <div class="best-sort-big-title">🎯 노출당 순</div>
+        <div class="best-sort-big-sub">노출 대비 선택량이 높은 순</div>
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════ 건강케어 ══════ -->
+  <div class="best-section-title">
+    <div class="best-section-icon">💪</div>
+    <div>
+      <h3>건강케어</h3>
+      <p>식단 구성 수에 따른 노출당 선택량의 메뉴 선호도 분석</p>
+    </div>
+    <div class="best-section-badge">TOP 20</div>
+  </div>
+
+  <!-- TOP 5 (Gold) -->
+  <div class="tier-section" id="health-tier-gold">
+    <div class="tier-header gold">
+      <span class="tier-icon">🏆</span>
+      <span>TOP 5 · 최상위 선호 메뉴</span>
+      <span class="tier-count">가장 핵심 메뉴</span>
+    </div>
+    <div class="tier-body gold">
+      <table class="menu-table">
+        <thead><tr>
+          <th style="width:52px">순위</th>
+          <th style="width:64px;text-align:center">전월 대비</th>
+          <th>메뉴명</th>
+          <th style="width:72px;text-align:right">수량</th>
+          <th style="width:90px;text-align:center">식단 구성</th>
+          <th style="width:200px">노출당 선택량</th>
+          <th style="width:90px;text-align:center">중요도</th>
+        </tr></thead>
+        <tbody id="health-body-gold"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TOP 6~10 (Silver) -->
+  <div class="tier-section" id="health-tier-silver">
+    <div class="tier-header silver">
+      <span class="tier-icon">🥈</span>
+      <span>TOP 6~10 · 상위 메뉴</span>
+      <span class="tier-count">안정적 선호</span>
+    </div>
+    <div class="tier-body silver">
+      <table class="menu-table">
+        <thead><tr>
+          <th style="width:52px">순위</th>
+          <th style="width:64px;text-align:center">전월 대비</th>
+          <th>메뉴명</th>
+          <th style="width:72px;text-align:right">수량</th>
+          <th style="width:90px;text-align:center">식단 구성</th>
+          <th style="width:200px">노출당 선택량</th>
+          <th style="width:90px;text-align:center">중요도</th>
+        </tr></thead>
+        <tbody id="health-body-silver"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TOP 11~20 (Normal) -->
+  <div class="tier-section" id="health-tier-normal">
+    <div class="tier-header normal">
+      <span class="tier-icon">📋</span>
+      <span>TOP 11~20 · 기타 메뉴</span>
+      <span class="tier-count">관심 메뉴</span>
+    </div>
+    <div class="tier-body">
+      <table class="menu-table">
+        <thead><tr>
+          <th style="width:52px">순위</th>
+          <th style="width:64px;text-align:center">전월 대비</th>
+          <th>메뉴명</th>
+          <th style="width:72px;text-align:right">수량</th>
+          <th style="width:90px;text-align:center">식단 구성</th>
+          <th style="width:200px">노출당 선택량</th>
+          <th style="width:90px;text-align:center">중요도</th>
+        </tr></thead>
+        <tbody id="health-body-normal"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══════ 질환케어 ══════ -->
+  <div class="best-section-title">
+    <div class="best-section-icon" style="background:#FEE2E2">🏥</div>
+    <div>
+      <h3>질환케어</h3>
+      <p>당뇨 · 신장 · 암 케어 메뉴별 선호도 TOP 10</p>
+    </div>
+    <div class="best-section-badge" style="background:#DC2626">TOP 10</div>
+  </div>
+
+  <!-- 질환 탭 -->
+  <div class="disease-tabs">
+    <button class="disease-tab on" onclick="bestSwDisease('dia', this)">당뇨케어</button>
+    <button class="disease-tab" onclick="bestSwDisease('kid', this)">신장케어</button>
+    <button class="disease-tab" onclick="bestSwDisease('can', this)">암케어</button>
+  </div>
+
+  <!-- 당뇨 -->
+  <div class="disease-page on" id="disease-dia">
+    <div class="tier-body" style="border-radius:10px;border:1px solid var(--border);">
+      <table class="menu-table">
+        <thead><tr>
+          <th style="width:52px">순위</th>
+          <th style="width:64px;text-align:center">전월 대비</th>
+          <th>메뉴명</th>
+          <th style="width:90px;text-align:right">수량</th>
+        </tr></thead>
+        <tbody id="dia-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 신장 -->
+  <div class="disease-page" id="disease-kid">
+    <div class="tier-body" style="border-radius:10px;border:1px solid var(--border);">
+      <table class="menu-table">
+        <thead><tr>
+          <th style="width:52px">순위</th>
+          <th style="width:64px;text-align:center">전월 대비</th>
+          <th>메뉴명</th>
+          <th style="width:90px;text-align:right">수량</th>
+        </tr></thead>
+        <tbody id="kid-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- 암 -->
+  <div class="disease-page" id="disease-can">
+    <div class="tier-body" style="border-radius:10px;border:1px solid var(--border);">
+      <table class="menu-table">
+        <thead><tr>
+          <th style="width:52px">순위</th>
+          <th style="width:64px;text-align:center">전월 대비</th>
+          <th>메뉴명</th>
+          <th style="width:90px;text-align:right">수량</th>
+        </tr></thead>
+        <tbody id="can-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- slide 6 : 베스트 메뉴 end -->
+
 </div><!-- slides-track -->
 </div><!-- slides-wrapper -->
 
@@ -2007,6 +2950,12 @@ const tabs  = document.querySelectorAll('.nav-tab');
 const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
 
+// 숨겨진 슬라이드 스킵 로직
+function isSlideHidden(i) {
+  const tab = tabs[i];
+  return tab && tab.style.display === 'none';
+}
+
 function goTo(i) {
   current = i;
   track.style.transform = `translateX(-${current * 100}%)`;
@@ -2014,16 +2963,25 @@ function goTo(i) {
   tabs.forEach((t,j) => t.classList.toggle('active', j === current));
   prevBtn.disabled = current === 0;
   nextBtn.disabled = current === 4;
-  // 슬라이드 전환 후 차트 크기 재계산 (숨겨진 슬라이드에서 그리면 크기 오류 발생)
+  // 슬라이드 전환 후 차트 크기 재계산
   setTimeout(() => {
     Object.values(charts).forEach(c => { try { c.resize(); } catch(e){} });
-    // 신세계 슬라이드 Chart.js 차트도 재계산
-    if (current === 4) {
+    if (current === 2) {
       Object.values(ssgCharts).forEach(c => { try { c.resize(); } catch(e){} });
     }
-  }, 460); // transition 완료 후
+    if (current === 4) {
+      if (typeof bestInit === 'function') bestInit();
+    }
+  }, 460);
 }
-function navigate(d) { goTo(Math.max(0, Math.min(4, current + d))); }
+function navigate(d) {
+  let next = current + d;
+  // 숨겨진 탭은 건너뛰기
+  while (next >= 0 && next <= 4 && isSlideHidden(next)) {
+    next += d;
+  }
+  goTo(Math.max(0, Math.min(4, next)));
+}
 
 // 창 크기 변경 시 모든 차트 크기 재계산
 window.addEventListener('resize', () => {
@@ -2311,14 +3269,9 @@ function parseWB(wb) {
   const navTgt = ws2 ? cellV(ws2, 1, 3) : 0;   // D2
   const etcTgt = ws2 ? cellV(ws2, 1, 4) : 0;   // E2
 
-  // ── 🏷️ 카테고리매출 ──
-  // 목표: C2(c=2)~G2(c=6) = 새벽배송/건강케어/질환케어/보충케어/이벤트
-  const ws3 = wb.Sheets['🏷️ 카테고리매출'];
-  const cat1Tgt = ws3 ? cellV(ws3, 1, 2) : 0;  // C2 새벽배송
-  const cat2Tgt = ws3 ? cellV(ws3, 1, 3) : 0;  // D2 건강케어
-  const cat3Tgt = ws3 ? cellV(ws3, 1, 4) : 0;  // E2 질환케어
-  const cat4Tgt = ws3 ? cellV(ws3, 1, 5) : 0;  // F2 보충케어
-  const cat5Tgt = ws3 ? cellV(ws3, 1, 6) : 0;  // G2 이벤트/기타
+  // ── 🏷️ 카테고리매출 (제거됨) ──
+  // 카테고리별 매출은 📦 상품별매출 시트에서 자동 집계됨 (parseProdSheet 참고)
+  // 카테고리 목표액은 현재 미사용 (필요시 다른 시트에 추가 예정)
 
   // ── 날짜별 데이터 파싱 ──
   DATA.daily = parseDataRows(ws1, {
@@ -2328,13 +3281,10 @@ function parseWB(wb) {
   DATA.d2c = parseDataRows(ws2, {
     ownSales:7, navSales:8, etcSales:9,
     ownUV:10, ownNewUV:11, ownRetUV:12,
-    ownOrd:13,
-    ownPrev:14, navPrev:15, etcPrev:16
+    ownOrd:13, ownRepeat:14,
+    ownPrev:15, navPrev:16, etcPrev:17
   });
-  DATA.cat = parseDataRows(ws3, {
-    skin:7, hair:8, body:9, sun:10, other:11
-    // Row12=합계(자동계산), Row13~17=전년 (현재 미사용)
-  });
+  // DATA.cat 은 parseProdSheet 내부에서 자동 생성됨
 
   // ── 📦 상품별매출 ──
   // Row2: B2=연도, C2=월 / Row3=헤더(날짜) / Row4~=상품 데이터
@@ -2355,6 +3305,24 @@ function parseWB(wb) {
       h => !(h.year == parsedSub.year && h.month == parsedSub.month)
     );
     DATA.subHistory.push(parsedSub);
+  }
+
+  // ── ⭐ 베스트메뉴 ──
+  // 카테고리별 메뉴 데이터 (건강/당뇨/신장/암)
+  const wsBest = wb.Sheets['⭐ 베스트메뉴'];
+  if (wsBest) {
+    const bestParsed = parseBestSheet(wsBest);
+    if (bestParsed) {
+      // 건강케어 전체 메뉴 수 (Row 3, B3)
+      if (bestParsed.healthTotal > 0) BEST_HEALTH_TOTAL = bestParsed.healthTotal;
+      // 카테고리별 데이터 업데이트
+      if (bestParsed.health.length)    BEST_HEALTH    = bestParsed.health;
+      if (bestParsed.diabetes.length)  BEST_DIABETES  = bestParsed.diabetes;
+      if (bestParsed.kidney.length)    BEST_KIDNEY    = bestParsed.kidney;
+      if (bestParsed.cancer.length)    BEST_CANCER    = bestParsed.cancer;
+      // 이미 초기화된 상태라면 즉시 재렌더
+      if (typeof bestRerender === 'function') bestRerender();
+    }
   }
 
   // ── 목표 저장 ──
@@ -2412,6 +3380,43 @@ function parseProdSheet(ws) {
     });
   });
   DATA.products_daily = dailyByDate;
+
+  // ── DATA.cat 자동 생성 (상품별 매출 → 카테고리별 일별 합계) ──
+  // 카테고리 매핑: 엑셀의 '카테고리' 컬럼 값 → 대시보드 내부 키
+  //   '새벽배송'    → skin  (현재 상품별 매출엔 없음)
+  //   '건강케어'    → hair
+  //   '질환케어'    → body
+  //   '보충케어'    → sun
+  //   '이벤트/기타' → other
+  const catKeyMap = {
+    '새벽배송': 'skin',
+    '건강케어': 'hair',
+    '질환케어': 'body',
+    '보충케어': 'sun',
+    '이벤트/기타': 'other',
+    '이벤트': 'other',
+  };
+
+  // 각 날짜별로 카테고리 합계 생성
+  const catRows = [];
+  Object.entries(dailyByDate).forEach(([ds, items]) => {
+    const row = { date: ds, year: y, month: m };
+    // 각 카테고리 키 초기화
+    ['skin','hair','body','sun','other'].forEach(k => row[k] = 0);
+    // 같은 날짜의 상품들을 카테고리별로 합산
+    items.forEach(it => {
+      const key = catKeyMap[it.category];
+      if (key) row[key] += (it.d2cSales || 0);
+    });
+    catRows.push(row);
+  });
+  // 날짜 오름차순 정렬
+  catRows.sort((a,b) => a.date.localeCompare(b.date));
+
+  // 기존 DATA.cat에서 같은 연월 데이터 제거 후 추가
+  if (!DATA.cat) DATA.cat = [];
+  DATA.cat = DATA.cat.filter(r => !(r.year == y && r.month == m));
+  DATA.cat = DATA.cat.concat(catRows);
 
   // 월 집계 (슬라이드3 호환)
   return prodRows.map(p => ({
@@ -2484,6 +3489,82 @@ function parseSubSheet(ws) {
   }
 
   return { year, month, newApply, newCancel, products, delivery };
+}
+
+
+// ─── ⭐ 베스트메뉴 시트 파서 ───
+// 시트 구조:
+//   Row1: 타이틀
+//   Row2: 조회 연월 (B2:연도, C2:월)
+//   Row3: 전체 건강케어 메뉴 수 (B3)
+//   Row4: 설명
+//   Row5: 헤더 (A:카테고리 B:메뉴명 C:수량 D:식단구성 E:노출당 F:중요도 G:전월순위)
+//   Row6~: 데이터
+function parseBestSheet(ws) {
+  if (!ws) return null;
+
+  // 전체 건강케어 메뉴 수 (B3)
+  const healthTotal = cellV(ws, 2, 1) || 0;
+
+  const health   = [];
+  const diabetes = [];
+  const kidney   = [];
+  const cancer   = [];
+
+  // Row 6(인덱스 5)부터 데이터
+  for (let r = 5; r < 500; r++) {
+    const cat  = cellS(ws, r, 0);
+    const name = cellS(ws, r, 1);
+    if (!cat && !name) continue; // 빈 줄은 skip (break 대신)
+    if (!cat || !name) continue;
+
+    const qty   = cellV(ws, r, 2) || 0;
+    const plans = cellV(ws, r, 3);
+    const expo  = cellV(ws, r, 4);
+    const imp   = cellV(ws, r, 5);
+    const prev  = cellV(ws, r, 6);
+
+    const prevRank = (prev !== null && prev !== undefined && prev !== '') ? Number(prev) : null;
+
+    if (cat.includes('건강')) {
+      health.push({
+        name, qty,
+        plans: plans || 0,
+        expo: expo || 0,
+        importance: imp || 1,
+        prevRank
+      });
+    } else if (cat.includes('당뇨')) {
+      diabetes.push({ name, qty, prevRank });
+    } else if (cat.includes('신장')) {
+      kidney.push({ name, qty, prevRank });
+    } else if (cat.includes('암')) {
+      cancer.push({ name, qty, prevRank });
+    }
+  }
+
+  // 각 카테고리 내 현재 순위 부여 (수량 내림차순)
+  const assignRank = (arr) => {
+    arr.sort((a, b) => b.qty - a.qty).forEach((m, i) => { m.rank = i + 1; });
+  };
+  assignRank(health);
+  assignRank(diabetes);
+  assignRank(kidney);
+  assignRank(cancer);
+
+  // 건강케어는 상위 20개만 사용 (대시보드가 TOP 20 기준)
+  const healthTop20 = health.slice(0, 20);
+  const diabetesTop10 = diabetes.slice(0, 10);
+  const kidneyTop10   = kidney.slice(0, 10);
+  const cancerTop10   = cancer.slice(0, 10);
+
+  return {
+    healthTotal,
+    health:   healthTop20,
+    diabetes: diabetesTop10,
+    kidney:   kidneyTop10,
+    cancer:   cancerTop10
+  };
 }
 
 
@@ -2894,6 +3975,166 @@ const retUV  = sum('ownRetUV');
   set('s2-wd-cvr', wdCV.toFixed(1)+'%');
   set('s2-we-cvr', weCV.toFixed(1)+'%');
 
+  // ═══════════════════════════════════════════════════
+  // ─── 자사몰 고객 지표 (ARPU / ARPPU / Dumbbell / Funnel / Trend) ───
+  // ═══════════════════════════════════════════════════
+
+  // ARPU  = 매출 ÷ 방문자 수
+  // ARPPU = 매출 ÷ 구매 고객 수 (주문건수로 근사)
+  const arpu  = ownUV  > 0 ? ownT / ownUV  : 0;
+  const arppu = ownOrd > 0 ? ownT / ownOrd : 0;
+  const gapRatio = arpu > 0 ? (arppu / arpu) : 0;
+
+  // 핵심 KPI 카드
+  set('s2-arpu',  arpu  > 0 ? fmtKRW(Math.round(arpu))  : '–');
+  set('s2-arppu', arppu > 0 ? fmtKRW(Math.round(arppu)) : '–');
+  set('s2-gap',   gapRatio > 0 ? gapRatio.toFixed(1) + '배' : '–');
+  // gap sub: 맥락 설명
+  const gapEl = document.getElementById('s2-gap-sub');
+  if (gapEl) {
+    if (gapRatio >= 6)      gapEl.textContent = '⚠️ 괴리 큼 · 전환 개선 시급';
+    else if (gapRatio >= 4) gapEl.textContent = '괴리 큰 편 · 전환 개선 여지';
+    else if (gapRatio >= 2) gapEl.textContent = '적정 수준';
+    else                    gapEl.textContent = '✅ 괴리 낮음 · 건강한 상태';
+  }
+
+  // ── Dumbbell Chart 포지션 계산 ──
+  // ARPPU를 우측 95% 위치에 고정, ARPU는 그에 대한 비율로 좌측에 위치
+  renderDumbbell(arpu, arppu, gapRatio);
+
+  // ── Funnel ──
+  set('s2-funnel-visit', fmtNum(ownUV) + '명');
+  set('s2-funnel-new', fmtNum(newUV));
+  set('s2-funnel-return', fmtNum(retUV));
+  // 신규/재방문 비율 계산
+  const newPct = ownUV > 0 ? (newUV / ownUV * 100).toFixed(1) : 0;
+  const retPct = ownUV > 0 ? (retUV / ownUV * 100).toFixed(1) : 0;
+  set('s2-funnel-new-pct', newPct + '%');
+  set('s2-funnel-return-pct', retPct + '%');
+  set('s2-funnel-orders', fmtNum(ownOrd) + '건');
+  set('s2-funnel-aov', ownOrd > 0 ? fmtKRW(Math.round(ownT/ownOrd)) : '–');
+  const conv1 = ownUV > 0 ? (ownOrd/ownUV*100).toFixed(1) + '%' : '–';
+  set('s2-funnel-conv1', '전환율 ' + conv1);
+  set('s2-funnel-conv2', '건당 평균');
+
+  // ═══════════════════════════════════════════════════
+  // ─── 추가 고객 지표 (재방문율/신규율/AOV/재구매율) ───
+  // ═══════════════════════════════════════════════════
+  const returnRateNum = ownUV > 0 ? (retUV / ownUV * 100) : 0;
+  const newRateNum    = ownUV > 0 ? (newUV / ownUV * 100) : 0;
+  const cvrNum        = ownUV > 0 ? (ownOrd / ownUV * 100) : 0;
+  const aov           = ownOrd > 0 ? ownT / ownOrd : 0;
+
+  // 재구매 고객 수 합계
+  const repeatBuyers  = sum('ownRepeat');
+  // 정식 재구매율 = 재구매 고객 ÷ 총 주문건수 × 100
+  // (구매 고객 수 근사값으로 주문건수 사용; 엑셀에 구매자 수 컬럼 추가 시 교체)
+  const repurchaseRate = ownOrd > 0 ? (repeatBuyers / ownOrd * 100) : 0;
+
+  set('s2-return-rate', returnRateNum > 0 ? returnRateNum.toFixed(1) + '%' : '–');
+  set('s2-new-rate',    newRateNum > 0    ? newRateNum.toFixed(1) + '%'    : '–');
+  set('s2-aov-kpi',     aov > 0 ? fmtKRW(Math.round(aov)) : '–');
+
+  // 재구매율 (정식 계산)
+  set('s2-loyal-index', repurchaseRate > 0 ? repurchaseRate.toFixed(1) + '%' : '–');
+
+  // 재구매율 서브 텍스트 (수준별 해석)
+  const loyalDescEl = document.getElementById('s2-loyal-desc');
+  if (loyalDescEl) {
+    if (repurchaseRate >= 40)      loyalDescEl.textContent = '✅ 매우 충성도 높은 수준';
+    else if (repurchaseRate >= 25) loyalDescEl.textContent = '양호한 재구매 수준';
+    else if (repurchaseRate >= 15) loyalDescEl.textContent = '평균 이하 · 리텐션 강화 필요';
+    else if (repurchaseRate > 0)   loyalDescEl.textContent = '⚠️ 낮음 · 재구매 유도 전략 필요';
+    else                           loyalDescEl.textContent = '데이터 없음';
+  }
+
+  // ═══════════════════════════════════════════════════
+  // ─── 건강도 스코어카드 (Health Score) ───
+  // ═══════════════════════════════════════════════════
+  // 평가 기준:
+  //   재방문율: 40%↑ good / 25~40% warn / <25% bad
+  //   CVR:      2~4% good / 1~2% or 4~6% warn / 나머지 bad
+  //   Gap:      ≤4배 good / 4~6배 warn / >6배 bad
+  // 점수: good=100, warn=60, bad=30 → 평균
+
+  let scoreReturn, statusReturn, labelReturn;
+  if (returnRateNum >= 40)       { scoreReturn=100; statusReturn='good'; labelReturn='건강'; }
+  else if (returnRateNum >= 25)  { scoreReturn=60;  statusReturn='warn'; labelReturn='보통'; }
+  else                           { scoreReturn=30;  statusReturn='bad';  labelReturn='주의'; }
+
+  let scoreCvr, statusCvr, labelCvr;
+  if (cvrNum >= 2 && cvrNum <= 4)       { scoreCvr=100; statusCvr='good'; labelCvr='적정'; }
+  else if ((cvrNum >= 1 && cvrNum < 2) || (cvrNum > 4 && cvrNum <= 6)) { scoreCvr=60; statusCvr='warn'; labelCvr='보통'; }
+  else                                   { scoreCvr=30; statusCvr='bad'; labelCvr='주의'; }
+
+  let scoreGap, statusGap, labelGap;
+  if (gapRatio > 0 && gapRatio <= 4)        { scoreGap=100; statusGap='good'; labelGap='양호'; }
+  else if (gapRatio > 4 && gapRatio <= 6)   { scoreGap=60;  statusGap='warn'; labelGap='보통'; }
+  else                                       { scoreGap=30;  statusGap='bad';  labelGap='주의'; }
+
+  const overallScore = Math.round((scoreReturn + scoreCvr + scoreGap) / 3);
+
+  // 전체 상태 판정
+  let overallClass, overallDesc;
+  if (overallScore >= 85)      { overallClass='good'; overallDesc='모든 핵심 지표가 건강한 수준입니다'; }
+  else if (overallScore >= 60) { overallClass='warn'; overallDesc='일부 지표 개선이 필요합니다'; }
+  else                         { overallClass='bad';  overallDesc='⚠️ 여러 지표가 기준을 벗어났습니다'; }
+
+  // 종합 스코어 렌더
+  const scoreEl = document.getElementById('s2-health-score');
+  if (scoreEl) {
+    scoreEl.className = 'health-score-big ' + overallClass;
+    scoreEl.innerHTML = overallScore + '<span class="score-suffix">점 / 100</span>';
+  }
+  set('s2-health-desc', overallDesc);
+
+  // 개별 항목 렌더
+  const updateHealthItem = (id, val, status, label) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.className = 'health-item ' + status;
+    el.querySelector('.health-item-status').textContent = label;
+    el.querySelector('.health-item-val').textContent = val;
+  };
+  updateHealthItem('s2-health-return',
+    returnRateNum > 0 ? returnRateNum.toFixed(1) + '%' : '–', statusReturn, labelReturn);
+  updateHealthItem('s2-health-cvr',
+    cvrNum > 0 ? cvrNum.toFixed(1) + '%' : '–', statusCvr, labelCvr);
+  updateHealthItem('s2-health-gap',
+    gapRatio > 0 ? gapRatio.toFixed(1) + '배' : '–', statusGap, labelGap);
+
+  // ═══════════════════════════════════════════════════
+  // ─── 주중/주말 방문자 평균 ───
+  // ═══════════════════════════════════════════════════
+  const wdDays = wdR.length || 1;
+  const weDays = weR.length || 1;
+  const wdUVavg = Math.round(wdUV / wdDays);
+  const weUVavg = Math.round(weUV / weDays);
+  set('s2-wd-uv', fmtNum(wdUVavg) + '명');
+  set('s2-we-uv', fmtNum(weUVavg) + '명');
+
+  // 주말 방문자 증감 (주중 대비)
+  const weUvDiffEl = document.getElementById('s2-we-uv-diff');
+  if (weUvDiffEl && wdUVavg > 0) {
+    const diff = ((weUVavg - wdUVavg) / wdUVavg * 100).toFixed(1);
+    const sign = diff >= 0 ? '+' : '';
+    weUvDiffEl.innerHTML = `<span class="${diff >= 0 ? 'tag-up' : 'tag-down'}">${sign}${diff}%</span> 주중 대비`;
+  }
+
+  // 주말 전환율 증감
+  const weCvrDiffEl = document.getElementById('s2-we-cvr-diff');
+  if (weCvrDiffEl && wdCV > 0) {
+    const diff = (weCV - wdCV).toFixed(2);
+    const sign = diff >= 0 ? '+' : '';
+    weCvrDiffEl.innerHTML = `<span class="${diff >= 0 ? 'tag-up' : 'tag-down'}">${sign}${diff}%p</span> 주중 대비`;
+  }
+
+  // ═══════════════════════════════════════════════════
+  // ─── 일자별 방문자 + 전환율 통합 차트 ───
+  // ═══════════════════════════════════════════════════
+  renderCombinedTrend(rows);
+
+  // ── 월별 ARPU/ARPPU 추세 ──
   const labels   = rows.map(r => r.date.slice(5).replace('-','/'));
   const salesArr = rows.map(r => r.ownSales || 0);
   const uvArr    = rows.map(r => r.ownUV    || 0);
@@ -3072,7 +4313,342 @@ const retUV  = sum('ownRetUV');
       }
     }
   });
+  renderArpuTrend(rows);
 }
+
+// ── Dumbbell 렌더 함수 ──
+function renderDumbbell(arpu, arppu, gapRatio) {
+  const trackEl = document.querySelector('#own-slide .dumbbell-track');
+  if (!trackEl) return;
+  const arpuDot   = document.getElementById('s2-dumb-arpu');
+  const arppuDot  = document.getElementById('s2-dumb-arppu');
+  const lineEl    = document.getElementById('s2-dumb-line');
+  const arpuVal   = document.getElementById('s2-dumb-arpu-val');
+  const arppuVal  = document.getElementById('s2-dumb-arppu-val');
+  const gapBadge  = document.getElementById('s2-dumb-gap');
+  const insightEl = document.getElementById('s2-dumb-insight');
+
+  if (!arppu || arppu <= 0) {
+    // 데이터 없음 표시
+    if (arpuDot)  arpuDot.style.left  = '10%';
+    if (arppuDot) arppuDot.style.left = '90%';
+    if (lineEl) { lineEl.style.left = '10%'; lineEl.style.width = '80%'; }
+    if (arpuVal)  arpuVal.textContent  = '–';
+    if (arppuVal) arppuVal.textContent = '–';
+    if (gapBadge) gapBadge.textContent = 'Gap –';
+    return;
+  }
+
+  // ARPPU = 95% 위치 고정
+  const arppuPos = 95;
+  // ARPU = ARPPU 대비 비율
+  const arpuPct = arpu / arppu;
+  // 최소 5% 위치 보장 (너무 왼쪽 끝으로 가면 라벨 잘림)
+  const arpuPos = Math.max(5, Math.min(arppuPos - 3, arpuPct * arppuPos));
+
+  arpuDot.style.left  = arpuPos  + '%';
+  arppuDot.style.left = arppuPos + '%';
+  lineEl.style.left   = arpuPos + '%';
+  lineEl.style.width  = (arppuPos - arpuPos) + '%';
+
+  arpuVal.textContent  = fmtKRW(Math.round(arpu));
+  arppuVal.textContent = fmtKRW(Math.round(arppu));
+
+  // Gap 배지 위치: 두 점 중앙
+  const gapMidPct = (arpuPos + arppuPos) / 2;
+  gapBadge.style.left = gapMidPct + '%';
+  gapBadge.textContent = 'Gap ' + gapRatio.toFixed(1) + '배';
+
+  // 인사이트 문구 (괴리 수준별)
+  if (insightEl) {
+    let msg;
+    if (gapRatio >= 6) {
+      msg = `<strong>ARPPU가 ARPU의 ${gapRatio.toFixed(1)}배</strong>로 괴리가 매우 큰 상태입니다. 구매자의 객단가는 높지만 <strong>전체 방문자 중 구매로 이어지는 비율이 매우 낮다</strong>는 신호입니다. 전환율 개선(CVR ↑)이 ARPU 확대의 핵심 레버입니다.`;
+    } else if (gapRatio >= 4) {
+      msg = `<strong>ARPPU가 ARPU의 ${gapRatio.toFixed(1)}배</strong>로 괴리가 큰 편입니다. 구매자는 충분히 구매하지만 <strong>비구매 방문자가 많아</strong> ARPU를 끌어내리고 있습니다. 전환 퍼널 개선이 필요한 시점입니다.`;
+    } else if (gapRatio >= 2) {
+      msg = `<strong>ARPPU가 ARPU의 ${gapRatio.toFixed(1)}배</strong>로 일반적인 적정 수준입니다. 괴리를 더 좁히려면 방문자의 구매 전환율을 높이거나, 구매자의 객단가를 높이는 양방향 전략을 병행하는 것이 효과적입니다.`;
+    } else {
+      msg = `<strong>ARPPU가 ARPU의 ${gapRatio.toFixed(1)}배</strong>로 괴리가 낮은 건강한 상태입니다. 방문자의 상당수가 구매로 연결되고 있어, 현재는 <strong>객단가 확대 전략(업셀·크로스셀)</strong>에 집중하는 것이 효과적입니다.`;
+    }
+    insightEl.innerHTML = msg;
+  }
+}
+
+// ── 월별 ARPU/ARPPU 추세 차트 ──
+function renderArpuTrend(rows) {
+  const canvas = document.getElementById('s2-arpu-trend-chart');
+  if (!canvas) return;
+
+  // 일자별 → 주차별로 집계 (월별 추세 근사)
+  // 현재 보고 있는 월 하나라 '일자별 ARPU/ARPPU 추세'로 표시
+  const labels = rows.map(r => r.date.slice(5).replace('-','/'));
+  const arpuArr  = rows.map(r => (r.ownUV  > 0) ? (r.ownSales || 0) / r.ownUV  : null);
+  const arppuArr = rows.map(r => (r.ownOrd > 0) ? (r.ownSales || 0) / r.ownOrd : null);
+
+  destroyChart('s2-arpu-trend-chart');
+  const _cmp = labels.length > 18;
+  const ptR  = _cmp ? 0 : 3.5;
+
+  charts['s2-arpu-trend-chart'] = new Chart(canvas, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [
+        {
+          label: 'ARPU (전체 방문자)',
+          data: arpuArr,
+          borderColor: '#94A3B8',
+          backgroundColor: 'rgba(148,163,184,0.08)',
+          borderWidth: 2,
+          borderDash: [5, 4],
+          tension: 0.4,
+          fill: false,
+          pointRadius: ptR,
+          pointHoverRadius: 6,
+          pointBackgroundColor: '#94A3B8',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          spanGaps: true,
+        },
+        {
+          label: 'ARPPU (구매자)',
+          data: arppuArr,
+          borderColor: '#2563EB',
+          backgroundColor: (ctx) => {
+            const chart = ctx.chart;
+            const { ctx: c, chartArea } = chart;
+            if (!chartArea) return 'rgba(37,99,235,0.1)';
+            const grad = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            grad.addColorStop(0, 'rgba(37,99,235,0.18)');
+            grad.addColorStop(1, 'rgba(37,99,235,0.01)');
+            return grad;
+          },
+          borderWidth: 2.5,
+          tension: 0.4,
+          fill: true,
+          pointRadius: ptR,
+          pointHoverRadius: 6,
+          pointBackgroundColor: '#2563EB',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          spanGaps: true,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          align: 'start',
+          labels: {
+            boxWidth: 10, boxHeight: 10,
+            borderRadius: 3, useBorderRadius: true,
+            font: { size: 11, weight: '600' },
+            color: '#475569',
+            padding: 16,
+          }
+        },
+        tooltip: {
+          backgroundColor: '#fff',
+          borderColor: '#E2E8F0',
+          borderWidth: 1,
+          titleColor: '#1E293B',
+          bodyColor: '#475569',
+          padding: 12,
+          cornerRadius: 10,
+          boxPadding: 5,
+          callbacks: {
+            label: ctx => ' ' + ctx.dataset.label + '   ' + (ctx.raw != null ? fmtKRW(Math.round(ctx.raw)) : '–')
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { color: '#F1F5F9' },
+          ticks: { font: { size: 9 }, color: '#94A3B8', maxTicksLimit: _cmp ? 8 : labels.length, maxRotation: 0 },
+          border: { display: false }
+        },
+        y: {
+          grid: { color: '#F1F5F9' },
+          ticks: {
+            callback: v => v >= 10000 ? Math.round(v/1000) + 'K' : v,
+            font: { size: 9 },
+            color: '#64748B',
+          },
+          title: { display: true, text: '원 / 명(건)', font: { size: 9, weight:'600' }, color: '#64748B' },
+          border: { display: false },
+        }
+      }
+    }
+  });
+}
+
+// ── 일자별 방문자 + 전환율 통합 차트 (Combo) ──
+function renderCombinedTrend(rows) {
+  const canvas = document.getElementById('s2-combined-trend-chart');
+  if (!canvas) return;
+
+  const labels  = rows.map(r => r.date.slice(5).replace('-','/'));
+  const newArr  = rows.map(r => r.ownNewUV || 0);
+  const retArr  = rows.map(r => r.ownRetUV || 0);
+  const cvrArr  = rows.map(r => (r.ownUV||0) > 0 ? (r.ownOrd||0)/(r.ownUV||0)*100 : null);
+  const avgCvr  = (() => {
+    const vals = cvrArr.filter(v => v !== null && v > 0);
+    return vals.length ? vals.reduce((s,v)=>s+v,0) / vals.length : 0;
+  })();
+
+  destroyChart('s2-combined-trend-chart');
+  const _cmp = labels.length > 18;
+  const ptR  = _cmp ? 0 : 3.5;
+
+  charts['s2-combined-trend-chart'] = new Chart(canvas, {
+    data: {
+      labels,
+      datasets: [
+        // ① 신규 방문자 (바, 스택)
+        {
+          type: 'bar',
+          label: '신규 방문자',
+          data: newArr,
+          backgroundColor: 'rgba(148, 163, 184, 0.55)',
+          hoverBackgroundColor: 'rgba(148, 163, 184, 0.75)',
+          borderRadius: 4,
+          borderSkipped: false,
+          stack: 'uv',
+          yAxisID: 'yV',
+          order: 3,
+        },
+        // ② 재방문 (바, 스택)
+        {
+          type: 'bar',
+          label: '재방문',
+          data: retArr,
+          backgroundColor: 'rgba(147, 197, 253, 0.65)',
+          hoverBackgroundColor: 'rgba(147, 197, 253, 0.85)',
+          borderRadius: 4,
+          borderSkipped: false,
+          stack: 'uv',
+          yAxisID: 'yV',
+          order: 3,
+        },
+        // ③ 전환율 (라인, 오른쪽 축)
+        {
+          type: 'line',
+          label: '구매 전환율',
+          data: cvrArr,
+          borderColor: '#D97706',
+          backgroundColor: 'rgba(217,119,6,0.08)',
+          borderWidth: 2.5,
+          tension: 0.4,
+          fill: false,
+          pointRadius: ptR,
+          pointHoverRadius: 7,
+          pointBackgroundColor: '#D97706',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          yAxisID: 'yC',
+          order: 1,
+          spanGaps: true,
+        },
+        // ④ 평균 전환율 기준선
+        {
+          type: 'line',
+          label: '평균 전환율',
+          data: rows.map(() => avgCvr),
+          borderColor: '#94A3B8',
+          backgroundColor: 'transparent',
+          borderWidth: 1.5,
+          borderDash: [6, 4],
+          tension: 0,
+          fill: false,
+          pointRadius: 0,
+          pointHoverRadius: 0,
+          yAxisID: 'yC',
+          order: 2,
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: {
+          display: true, position: 'top', align: 'start',
+          labels: {
+            boxWidth: 10, boxHeight: 10, borderRadius: 3, useBorderRadius: true,
+            font: { size: 11, weight: '600' }, color: '#475569', padding: 16,
+          }
+        },
+        tooltip: {
+          backgroundColor: '#fff', borderColor: '#E2E8F0', borderWidth: 1,
+          titleColor: '#1E293B', bodyColor: '#475569', padding: 12, cornerRadius: 10, boxPadding: 5,
+          callbacks: {
+            label: ctx => {
+              if (ctx.dataset.label === '신규 방문자' || ctx.dataset.label === '재방문') {
+                return '  ' + ctx.dataset.label + '   ' + (ctx.raw||0).toLocaleString() + '명';
+              }
+              if (ctx.dataset.label === '구매 전환율') {
+                return '  구매 전환율   ' + (ctx.raw != null ? ctx.raw.toFixed(2) + '%' : '–');
+              }
+              if (ctx.dataset.label === '평균 전환율') {
+                return '  (평균 ' + avgCvr.toFixed(2) + '%)';
+              }
+              return '';
+            }
+          }
+        }
+      },
+      scales: {
+        x: {
+          stacked: true,
+          grid: { color: '#F1F5F9' },
+          ticks: { font: { size: 9 }, color: '#94A3B8', maxTicksLimit: _cmp ? 8 : labels.length, maxRotation: 0 },
+          border: { display: false }
+        },
+        yV: {
+          position: 'left',
+          stacked: true,
+          grid: { color: '#F1F5F9' },
+          ticks: {
+            callback: v => v >= 1000 ? (v/1000).toFixed(1)+'K' : v,
+            font: { size: 9 }, color: '#64748B',
+          },
+          title: { display: true, text: '방문자 수', font: { size: 9, weight:'600' }, color: '#64748B' },
+          border: { display: false },
+        },
+        yC: {
+          position: 'right',
+          grid: { display: false },
+          ticks: {
+            callback: v => v.toFixed(1) + '%',
+            font: { size: 9, weight: '600' }, color: '#D97706',
+          },
+          title: { display: true, text: '전환율 (%)', font: { size: 9, weight:'600' }, color: '#D97706' },
+          border: { display: false },
+        }
+      }
+    }
+  });
+}
+
+// ── 자사몰 서브탭 전환 ──
+function ownSwTab(tab, btn) {
+  document.querySelectorAll('#own-slide .own-subtab').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll('#own-slide .own-page').forEach(p => p.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('own-page-' + tab).classList.add('on');
+  // 탭 전환 후 차트 리사이즈
+  setTimeout(() => {
+    Object.values(charts).forEach(c => { try { c.resize(); } catch(e){} });
+  }, 100);
+}
+
 
 // ─── SLIDE 3 ───
 function renderS3(cat, products) {
@@ -4427,12 +6003,290 @@ function ssgInit(){
   ssgBuildPeakGrid('ssg-peakGrid2',SSG_PEAK_MONTHS);
 }
 
-// 슬라이드 4번(신세계) 진입 시 차트 초기화
-const _origGoTo = goTo;
-goTo = function(i) {
-  _origGoTo(i);
-  if(i === 3) { setTimeout(ssgInit, 100); }
-};
+// ═══════════════════════════════════════════════════
+// ─── SLIDE 6: 베스트 메뉴 (Best Menu) ──────────────
+// ═══════════════════════════════════════════════════
+
+// ── 건강케어 TOP 20 데이터 (이미지 기반) ──
+// {rank, name, qty, plans(식단 구성), expo(노출당 선택량), importance(중요도 별점 1~4), prevRank(전월 수량순 순위)}
+// ※ prevRank: 전월 '수량 기준' 순위. null이면 NEW(신규 진입)
+let BEST_HEALTH = [
+  {rank:1,  name:'왕돼지구이연근밥',       qty:1510, plans:5, expo:302, importance:3, prevRank:3},
+  {rank:2,  name:'해물빠에야',             qty:1500, plans:5, expo:300, importance:3, prevRank:1},
+  {rank:3,  name:'김치알밥',               qty:550,  plans:2, expo:275, importance:2, prevRank:6},
+  {rank:4,  name:'알리오올리오리오리소',   qty:1354, plans:5, expo:271, importance:3, prevRank:4},
+  {rank:5,  name:'새우로제파스타',         qty:1326, plans:5, expo:265, importance:3, prevRank:2},
+  {rank:6,  name:'두부제육덮밥',           qty:1552, plans:6, expo:259, importance:4, prevRank:7},
+  {rank:7,  name:'연어스테이크',           qty:2294, plans:9, expo:255, importance:4, prevRank:5},
+  {rank:8,  name:'두부새우덮밥',           qty:1612, plans:7, expo:230, importance:4, prevRank:8},
+  {rank:9,  name:'닭갈비덮밥',             qty:888,  plans:4, expo:222, importance:3, prevRank:11},
+  {rank:10, name:'수삼삼계영양밥',         qty:1292, plans:6, expo:215, importance:4, prevRank:9},
+  {rank:11, name:'치킨알리오올리오',       qty:1288, plans:6, expo:215, importance:4, prevRank:10},
+  {rank:12, name:'해물볶음영양밥',         qty:413,  plans:2, expo:207, importance:2, prevRank:14},
+  {rank:13, name:'소고기 고추장체성밥',    qty:334,  plans:2, expo:167, importance:2, prevRank:12},
+  {rank:14, name:'해물소불고기덮밥',       qty:500,  plans:3, expo:167, importance:2, prevRank:16},
+  {rank:15, name:'닭가슴살영양밥',         qty:993,  plans:6, expo:166, importance:4, prevRank:13},
+  {rank:16, name:'들깨버섯두부밥',         qty:1008, plans:6, expo:165, importance:4, prevRank:15},
+  {rank:17, name:'갈릭머스터드토마토파스타', qty:464, plans:3, expo:155, importance:2, prevRank:null},
+  {rank:18, name:'제육오징어덮밥',         qty:615,  plans:4, expo:154, importance:3, prevRank:18},
+  {rank:19, name:'치킨커리라이스',         qty:448,  plans:3, expo:149, importance:2, prevRank:17},
+  {rank:20, name:'짜장영양밥',             qty:578,  plans:4, expo:145, importance:3, prevRank:22},
+];
+
+// ── 당뇨케어 TOP 10 ──
+let BEST_DIABETES = [
+  {rank:1,  name:'닭백연어스테이크',  qty:502, prevRank:2},
+  {rank:2,  name:'소불고기가득해물덮밥', qty:496, prevRank:1},
+  {rank:3,  name:'해물가득영양밥',    qty:467, prevRank:3},
+  {rank:4,  name:'로찌닭가슴살영양밥', qty:441, prevRank:6},
+  {rank:5,  name:'매콤오징어제육덮밥', qty:427, prevRank:4},
+  {rank:6,  name:'저당 안심덮밥',      qty:411, prevRank:5},
+  {rank:7,  name:'저당 안심 짜장영양밥', qty:406, prevRank:null},
+  {rank:8,  name:'치즈닭가슴살덮밥',   qty:362, prevRank:7},
+  {rank:9,  name:'간장돼지구이연근밥', qty:354, prevRank:8},
+  {rank:10, name:'소불고기고소버섯덮밥', qty:320, prevRank:9},
+];
+
+// ── 신장케어 TOP 10 ──
+let BEST_KIDNEY = [
+  {rank:1,  name:'삼색소고기밥',       qty:625, prevRank:1},
+  {rank:2,  name:'닭백한연어스테이크', qty:610, prevRank:3},
+  {rank:3,  name:'돼지고기 안심 짜장밥', qty:603, prevRank:2},
+  {rank:4,  name:'소고기덮밥',         qty:574, prevRank:4},
+  {rank:5,  name:'돼지불고기덮밥',     qty:539, prevRank:7},
+  {rank:6,  name:'모짜렐라치킨라이스', qty:498, prevRank:5},
+  {rank:7,  name:'치킨돈부리',         qty:484, prevRank:6},
+  {rank:8,  name:'해물가득빠에야',     qty:467, prevRank:9},
+  {rank:9,  name:'매콤 안심고추장밥',  qty:467, prevRank:8},
+  {rank:10, name:'취나물가득소불고기덮밥', qty:460, prevRank:null},
+];
+
+// ── 암케어 TOP 10 ──
+let BEST_CANCER = [
+  {rank:1, name:'닭백한돈부새우영양밥', qty:402, prevRank:1},
+  {rank:2, name:'연어소불고기영양밥',   qty:373, prevRank:3},
+  {rank:3, name:'닭백한연어영양밥',     qty:355, prevRank:2},
+  {rank:4, name:'닭백한닭가슴살영양밥', qty:354, prevRank:5},
+  {rank:5, name:'매콤제육부부연근밥',   qty:298, prevRank:4},
+  {rank:6, name:'고소한들깨파스타',      qty:288, prevRank:6},
+  {rank:7, name:'유산슬치찌영양밥',     qty:288, prevRank:8},
+  {rank:8, name:'닭고가득덮밥',         qty:288, prevRank:7},
+  {rank:9, name:'닭백한치킨알리오올리오', qty:267, prevRank:null},
+  {rank:10, name:'들깨가득버섯밥',      qty:229, prevRank:9},
+];
+
+// ── 상태 ──
+// ※ 실제 건강케어 전체 메뉴 수 (대시보드에는 TOP 20만 표시). 필요시 값 변경 가능.
+let BEST_HEALTH_TOTAL = 45;
+
+let bestSortMode = 'qty';      // 기본: 수량순
+let bestSearchQuery = '';
+let bestInited = false;
+
+// ── 유틸 ──
+function bestFmtNum(n) { return n.toLocaleString('ko-KR'); }
+function bestStars(level) {
+  const full = '★'.repeat(level);
+  const dim  = '★'.repeat(4 - level);
+  return `<span class="star-rating">${full}<span class="star-dim">${dim}</span></span>`;
+}
+function bestEscapeReg(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+function bestHighlight(text, query) {
+  if (!query) return text;
+  const re = new RegExp('(' + bestEscapeReg(query) + ')', 'gi');
+  return text.replace(re, '<span class="hl">$1</span>');
+}
+
+// 순위 변동 배지 생성
+// currentRank: 현재 순위, prevRank: 전월 순위 (null이면 NEW)
+function bestChgBadge(currentRank, prevRank) {
+  if (prevRank === null || prevRank === undefined) {
+    return `<span class="chg-badge new" title="신규 진입">NEW</span>`;
+  }
+  const diff = prevRank - currentRank;  // 양수=상승, 음수=하락
+  if (diff === 0) {
+    return `<span class="chg-badge same" title="순위 변동 없음">−</span>`;
+  }
+  if (diff > 0) {
+    return `<span class="chg-badge up" title="${diff}단계 상승"><span class="chg-arrow">▲</span>${diff}</span>`;
+  }
+  return `<span class="chg-badge down" title="${-diff}단계 하락"><span class="chg-arrow">▼</span>${-diff}</span>`;
+}
+
+// ── 건강케어 렌더 ──
+function bestRenderHealth() {
+  const q = bestSearchQuery.trim().toLowerCase();
+  const searching = q.length > 0;
+
+  // 정렬 기준으로 순위 동적 계산
+  const sortKey = bestSortMode === 'expo' ? 'expo' : 'qty';
+  const ranked = [...BEST_HEALTH]
+    .sort((a,b) => b[sortKey] - a[sortKey])
+    .map((m, i) => ({ ...m, dynamicRank: i + 1 }));
+
+  const maxExpo = Math.max(...BEST_HEALTH.map(m => m.expo));
+
+  // 검색 필터링
+  let display = searching
+    ? ranked.filter(m => m.name.toLowerCase().includes(q))
+    : ranked;
+
+  // 행 HTML 생성 함수
+  const rowHtml = (m, tier) => {
+    const rowCls = tier === 'gold' ? 'row-gold' : tier === 'silver' ? 'row-silver' : '';
+    const rankCls = m.dynamicRank <= 5 ? 'gold' : m.dynamicRank <= 10 ? 'silver' : '';
+    const pct = (m.expo / maxExpo) * 100;
+    return `<tr class="${rowCls}">
+      <td><span class="rank-b ${rankCls}">${m.dynamicRank}</span></td>
+      <td style="text-align:center">${bestChgBadge(m.dynamicRank, m.prevRank)}</td>
+      <td><span class="menu-name">${bestHighlight(m.name, bestSearchQuery)}</span></td>
+      <td style="text-align:right"><span class="qty-val">${bestFmtNum(m.qty)}</span></td>
+      <td style="text-align:center"><span class="plan-pill">${m.plans}</span></td>
+      <td><div class="expo-cell"><div class="expo-bar-wrap"><div class="expo-bar-fill" style="width:${pct}%"></div></div><span class="expo-val">${m.expo}</span></div></td>
+      <td style="text-align:center">${bestStars(m.importance)}</td>
+    </tr>`;
+  };
+
+  const goldEl = document.getElementById('health-body-gold');
+  const silverEl = document.getElementById('health-body-silver');
+  const normalEl = document.getElementById('health-body-normal');
+  const goldSec = document.getElementById('health-tier-gold');
+  const silverSec = document.getElementById('health-tier-silver');
+  const normalSec = document.getElementById('health-tier-normal');
+
+  // 티어 헤더 라벨을 정렬 기준에 따라 업데이트
+  const sortLabel = sortKey === 'qty' ? '수량' : '노출당 선택량';
+
+  if (searching) {
+    // 검색 모드: 단일 테이블에 통합 표시
+    goldEl.innerHTML = display.length
+      ? display.map(m => rowHtml(m, m.dynamicRank <= 5 ? 'gold' : m.dynamicRank <= 10 ? 'silver' : 'normal')).join('')
+      : `<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:24px;">검색 결과가 없습니다</td></tr>`;
+    silverSec.style.display = 'none';
+    normalSec.style.display = 'none';
+    goldSec.querySelector('.tier-header span:nth-of-type(2)').textContent = `🔍 '${bestSearchQuery}' 검색 결과`;
+    goldSec.querySelector('.tier-count').textContent = `${display.length}개`;
+  } else {
+    // 기본 티어 모드 (3단 구조 유지)
+    silverSec.style.display = '';
+    normalSec.style.display = '';
+    goldSec.querySelector('.tier-header span:nth-of-type(2)').textContent = `TOP 5 · 최상위 선호 메뉴 (${sortLabel} 기준)`;
+    goldSec.querySelector('.tier-count').textContent = '가장 핵심 메뉴';
+    silverSec.querySelector('.tier-header span:nth-of-type(2)').textContent = `TOP 6~10 · 상위 메뉴`;
+    normalSec.querySelector('.tier-header span:nth-of-type(2)').textContent = `TOP 11~20 · 기타 메뉴`;
+
+    goldEl.innerHTML   = display.filter(m => m.dynamicRank <= 5).map(m => rowHtml(m, 'gold')).join('');
+    silverEl.innerHTML = display.filter(m => m.dynamicRank > 5 && m.dynamicRank <= 10).map(m => rowHtml(m, 'silver')).join('');
+    normalEl.innerHTML = display.filter(m => m.dynamicRank > 10).map(m => rowHtml(m, 'normal')).join('');
+  }
+}
+
+// ── 질환케어 렌더 ──
+function bestRenderDisease(key, data) {
+  const body = document.getElementById(key + '-body');
+  const q = bestSearchQuery.trim().toLowerCase();
+
+  // 수량 기준 동적 순위 (질환케어는 수량만 있음 → 정렬 기준 무관하게 수량순)
+  let ranked = [...data]
+    .sort((a,b) => b.qty - a.qty)
+    .map((m, i) => ({ ...m, dynamicRank: i + 1 }));
+
+  let filtered = q ? ranked.filter(m => m.name.toLowerCase().includes(q)) : ranked;
+
+  if (!filtered.length) {
+    body.innerHTML = `<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:24px;">검색 결과가 없습니다</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = filtered.map(m => {
+    const rankCls = m.dynamicRank <= 3 ? 'bronze' : '';
+    return `<tr>
+      <td><span class="rank-b ${rankCls}">${m.dynamicRank}</span></td>
+      <td style="text-align:center">${bestChgBadge(m.dynamicRank, m.prevRank)}</td>
+      <td><span class="menu-name">${bestHighlight(m.name, bestSearchQuery)}</span></td>
+      <td style="text-align:right"><span class="qty-val">${bestFmtNum(m.qty)}</span></td>
+    </tr>`;
+  }).join('');
+
+  const countEl = document.getElementById(key + '-count');
+  if (countEl) countEl.textContent = filtered.length;
+}
+
+function bestRenderAllDiseases() {
+  bestRenderDisease('dia', BEST_DIABETES);
+  bestRenderDisease('kid', BEST_KIDNEY);
+  bestRenderDisease('can', BEST_CANCER);
+}
+
+// ── Summary KPI 렌더 ──
+function bestRenderKpi() {
+  const sortKey = bestSortMode === 'expo' ? 'expo' : 'qty';
+  const ranked = [...BEST_HEALTH].sort((a,b) => b[sortKey] - a[sortKey]);
+  const top1 = ranked[0];
+
+  document.getElementById('best-kpi-top1').textContent = top1.name;
+  const sortLabel = sortKey === 'qty' ? '수량순' : '노출당순';
+  document.getElementById('best-kpi-top1-sub').textContent =
+    `${sortLabel} 1위 · 수량 ${bestFmtNum(top1.qty)} · 노출당 ${top1.expo}`;
+
+  // 전체 건강케어 메뉴 수 (대시보드에는 상위 20개만 노출)
+  document.getElementById('best-kpi-total').textContent = BEST_HEALTH_TOTAL + '개';
+
+  const avgExpo = Math.round(BEST_HEALTH.reduce((s,m) => s+m.expo, 0) / BEST_HEALTH.length);
+  document.getElementById('best-kpi-avg-expo').textContent = avgExpo;
+
+  // TOP 5 점유율 (현재 정렬 기준)
+  const top5 = ranked.slice(0, 5).reduce((s,m) => s + m[sortKey], 0);
+  const total = ranked.reduce((s,m) => s + m[sortKey], 0);
+  const share = (top5 / total * 100).toFixed(1);
+  document.getElementById('best-kpi-share').textContent = share + '%';
+  document.getElementById('best-kpi-share-sub').textContent =
+    sortKey === 'qty' ? '총 수량 기준' : '총 노출당 선택량 기준';
+}
+
+// ── 정렬 전환 ──
+function bestSetSort(mode, btn) {
+  bestSortMode = mode;
+  document.querySelectorAll('#best-slide .best-sort-big').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  bestRenderKpi();
+  bestRenderHealth();
+  bestRenderAllDiseases();
+}
+
+// ── 질환 탭 전환 ──
+function bestSwDisease(key, btn) {
+  document.querySelectorAll('#best-slide .disease-tab').forEach(b => b.classList.remove('on'));
+  document.querySelectorAll('#best-slide .disease-page').forEach(p => p.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById('disease-' + key).classList.add('on');
+}
+
+// ── 초기화 ──
+function bestInit() {
+  if (bestInited) return;
+  bestInited = true;
+
+  bestRenderKpi();
+  bestRenderHealth();
+  bestRenderAllDiseases();
+
+  // 검색 입력 이벤트
+  document.getElementById('best-search-input').addEventListener('input', e => {
+    bestSearchQuery = e.target.value;
+    bestRenderHealth();
+    bestRenderAllDiseases();
+  });
+}
+
+// 엑셀 업로드 후 데이터가 갱신되었을 때 재렌더 (가드 무시)
+function bestRerender() {
+  if (!bestInited) return; // 초기화되지 않은 상태면 init 쪽에서 처리됨
+  bestRenderKpi();
+  bestRenderHealth();
+  bestRenderAllDiseases();
+}
+
 </script>
 </body>
 </html>
