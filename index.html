@@ -1266,10 +1266,10 @@ body {
     background:#FEE2E2;color:#B91C1C;border:1px solid #FCA5A5;
   }
   #own-slide .chg-badge.same {
-    background:var(--surface2);color:var(--muted);border:1px solid var(--border);
+    background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;
   }
   #own-slide .chg-badge.new {
-    background:#EEF2FF;color:#4338CA;border:1px solid #C7D2FE;font-weight:800;
+    background:#F1F5F9;color:#94A3B8;border:1px solid #CBD5E1;font-weight:700;
   }
   #own-slide .chg-arrow {
     font-size:9px;line-height:1;
@@ -2447,10 +2447,10 @@ body {
     background:#FEE2E2;color:#B91C1C;border:1px solid #FCA5A5;
   }
   #own-slide .chg-badge.same {
-    background:var(--surface2);color:var(--muted);border:1px solid var(--border);
+    background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE;
   }
   #own-slide .chg-badge.new {
-    background:#EEF2FF;color:#4338CA;border:1px solid #C7D2FE;font-weight:800;
+    background:#F1F5F9;color:#94A3B8;border:1px solid #CBD5E1;font-weight:700;
   }
   #own-slide .chg-arrow {
     font-size:9px;line-height:1;
@@ -6457,12 +6457,14 @@ function bestHighlight(text, query) {
 // 순위 변동 배지 생성
 // currentRank: 현재 순위, prevRank: 전월 순위 (null이면 NEW)
 function bestChgBadge(currentRank, prevRank) {
+  // 전월 데이터 없음 → 회색 (비교 불가)
   if (prevRank === null || prevRank === undefined) {
-    return `<span class="chg-badge new" title="신규 진입">NEW</span>`;
+    return `<span class="chg-badge new" title="전월 데이터 없음">–</span>`;
   }
   const diff = prevRank - currentRank;  // 양수=상승, 음수=하락
+  // 동일 순위 → 파란색
   if (diff === 0) {
-    return `<span class="chg-badge same" title="순위 변동 없음">−</span>`;
+    return `<span class="chg-badge same" title="전월과 동일 순위">−</span>`;
   }
   if (diff > 0) {
     return `<span class="chg-badge up" title="${diff}단계 상승"><span class="chg-arrow">▲</span>${diff}</span>`;
