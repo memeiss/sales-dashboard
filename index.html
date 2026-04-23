@@ -168,6 +168,17 @@ body {
 }
 .nav-tab:hover { color:var(--blue); background:var(--bg); }
 .nav-tab.active { background:var(--blue); color:#fff; font-weight:700; }
+.nav-tab.nav-tab-disabled {
+  color:#CBD5E1; background:transparent; cursor:not-allowed;
+  opacity:0.55; pointer-events:none;
+}
+.coming-soon-wrap {
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  min-height:420px; gap:16px; color:var(--muted);
+}
+.coming-soon-icon { font-size:48px; opacity:0.4; }
+.coming-soon-title { font-size:20px; font-weight:800; color:#CBD5E1; letter-spacing:-0.4px; }
+.coming-soon-desc  { font-size:13px; color:#94A3B8; }
 
 /* ── Arrow Nav ── */
 .arrow-nav {
@@ -604,7 +615,7 @@ body {
     <div class="logo-badge">G</div>
     <div>
       <div class="header-title">Sales Dashboard</div>
-      <div class="header-meta">Growth실 매출 현황 대시보드</div>
+      <div class="header-meta">Growth실 매추 현황 대시보드</div>
     </div>
   </div>
   <div class="header-right">
@@ -628,11 +639,13 @@ body {
 <!-- Nav -->
 <div class="nav-container">
   <div class="nav-tabs">
-    <button class="nav-tab active" onclick="goTo(0)">OMNI</button>
-    <button class="nav-tab" onclick="goTo(1)">자사몰</button>
-    <button class="nav-tab" onclick="goTo(2)" style="display:none"> 신세계</button>
-    <button class="nav-tab" id="tab-event" onclick="goTo(3)" style="display:none"> 이벤트</button>
-    <button class="nav-tab" onclick="goTo(4)" style="display:none">Top Sel</button>
+    <button class="nav-tab nav-tab-disabled" onclick="goTo(0)" disabled title="준비 중">Growth</button>
+    <button class="nav-tab nav-tab-disabled" onclick="goTo(1)" disabled title="준비 중">Sales</button>
+    <button class="nav-tab active" onclick="goTo(2)">OMNI</button>
+    <button class="nav-tab" onclick="goTo(3)">자사몰</button>
+    <button class="nav-tab" onclick="goTo(4)" style="display:none"> 신세계</button>
+    <button class="nav-tab" id="tab-event" onclick="goTo(5)" style="display:none"> 이벤트</button>
+    <button class="nav-tab" onclick="goTo(6)" style="display:none">Top Sel</button>
   </div>
 </div>
 
@@ -642,11 +655,13 @@ body {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15,18 9,12 15,6"/></svg>이전
   </button>
   <div class="slide-indicator">
-    <div class="dot active" onclick="goTo(0)"></div>
-    <div class="dot" onclick="goTo(1)"></div>
-    <div class="dot" onclick="goTo(2)" style="display:none"></div>
-    <div class="dot" id="dot-event" onclick="goTo(3)" style="display:none"></div>
+    <div class="dot" onclick="goTo(0)" style="display:none"></div>
+    <div class="dot" onclick="goTo(1)" style="display:none"></div>
+    <div class="dot active" onclick="goTo(2)"></div>
+    <div class="dot" onclick="goTo(3)"></div>
     <div class="dot" onclick="goTo(4)" style="display:none"></div>
+    <div class="dot" id="dot-event" onclick="goTo(5)" style="display:none"></div>
+    <div class="dot" onclick="goTo(6)" style="display:none"></div>
   </div>
   <button class="arrow-btn" id="nextBtn" onclick="navigate(1)">
     다음<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9,6 15,12 9,18"/></svg>
@@ -659,7 +674,25 @@ body {
 <div class="slides-wrapper">
 <div class="slides-track" id="slidesTrack">
 
-<!-- ─── SLIDE 1 : OMNI ─── -->
+<!-- ─── SLIDE 0 : Growth (준비 중) ─── -->
+<div class="slide" id="growth-slide">
+  <div class="coming-soon-wrap">
+    <div class="coming-soon-icon">📈</div>
+    <div class="coming-soon-title">Growth Dashboard</div>
+    <div class="coming-soon-desc">성장 지표 대시보드 — 준비 중입니다</div>
+  </div>
+</div>
+
+<!-- ─── SLIDE 1 : Sales (준비 중) ─── -->
+<div class="slide" id="sales-slide">
+  <div class="coming-soon-wrap">
+    <div class="coming-soon-icon">💰</div>
+    <div class="coming-soon-title">Sales Dashboard</div>
+    <div class="coming-soon-desc">세일즈 대시보드 — 준비 중입니다</div>
+  </div>
+</div>
+
+<!-- ─── SLIDE 2 : OMNI ─── -->
 <div class="slide">
   <div class="section-title">
     <div class="section-icon" style="background:var(--blue-lt);display:none;"></div>
@@ -3220,7 +3253,7 @@ body {
 
 <script>
 // ─── Slide Nav ───
-let current = 0;
+let current = 2;  // Growth(0), Sales(1) 건너뛰고 OMNI(2)에서 시작
 const track = document.getElementById('slidesTrack');
 const dots  = document.querySelectorAll('.dot');
 const tabs  = document.querySelectorAll('.nav-tab');
@@ -3239,14 +3272,14 @@ function goTo(i) {
   dots.forEach((d,j) => d.classList.toggle('active', j === current));
   tabs.forEach((t,j) => t.classList.toggle('active', j === current));
   prevBtn.disabled = current === 0;
-  nextBtn.disabled = current === 1;
+  nextBtn.disabled = current === 3;  // 자사몰이 마지막 활성 탭
   // 슬라이드 전환 후 차트 크기 재계산
   setTimeout(() => {
     Object.values(charts).forEach(c => { try { c.resize(); } catch(e){} });
-    if (current === 2) {
+    if (current === 4) {  // 신세계 슬라이드 인덱스
       Object.values(ssgCharts).forEach(c => { try { c.resize(); } catch(e){} });
     }
-    if (current === 1) {
+    if (current === 3) {  // 자사몰 슬라이드 인덱스
       const activeSubTab = document.querySelector('#own-slide .own-subtab.on');
       const activeTab = activeSubTab ? (activeSubTab.getAttribute('onclick').match(/\'(\w+)\'/)||[])[1] : 'sales';
 
@@ -3267,10 +3300,10 @@ function goTo(i) {
 function navigate(d) {
   let next = current + d;
   // 숨겨진 탭은 건너뛰기
-  while (next >= 0 && next <= 4 && isSlideHidden(next)) {
+  while (next >= 0 && next <= 6 && isSlideHidden(next)) {
     next += d;
   }
-  goTo(Math.max(0, Math.min(1, next)));
+  goTo(Math.max(2, Math.min(3, next)));  // Growth/Sales는 비활성, OMNI(2)~자사몰(3) 범위
 }
 
 // 창 크기 변경 시 모든 차트 크기 재계산
@@ -5690,6 +5723,7 @@ async function loadAllFromFirebase() {
 }
 
 // ─── Init ───
+goTo(2);  // 페이지 로드 시 OMNI 탭으로 바로 이동
 onPeriodChange();
 loadAllFromFirebase();
 
