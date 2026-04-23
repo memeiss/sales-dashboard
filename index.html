@@ -1824,7 +1824,7 @@ body {
       <div class="arpu-kpi arppu">
         <div class="arpu-kpi-label">ARPPU <span class="arpu-kpi-tag buy">구매자</span></div>
         <div class="arpu-kpi-val" id="s2-arppu">–</div>
-        <div class="arpu-kpi-sub">매출 ÷ 구매 고객 수</div>
+        <div class="arpu-kpi-sub">매출 ÷ 구매자 수 (D2C 14행)</div>
       </div>
       <div class="arpu-kpi gap">
         <div class="arpu-kpi-label">ARPU vs ARPPU 전환 격차 <span class="arpu-kpi-tag gap">Gap</span></div>
@@ -3591,8 +3591,8 @@ function parseWB(wb) {
   const newD2c = parseDataRows(ws2, {
     ownSales:7, navSales:8, etcSales:9,
     ownUV:10, ownNewUV:11, ownRetUV:12,
-    ownOrd:13, ownRepeat:14,
-    ownPrev:15, navPrev:16, etcPrev:17
+    ownOrd:13, ownBuyers:14, ownRepeat:15,
+    ownPrev:16, navPrev:17, etcPrev:18
   });
   if (newD2c.length) {
     const ymSet = new Set(newD2c.map(r => r.date.slice(0,7)));
@@ -4306,9 +4306,11 @@ const retUV  = sum('ownRetUV');
   // ═══════════════════════════════════════════════════
 
   // ARPU  = 매출 ÷ 방문자 수
-  // ARPPU = 매출 ÷ 구매 고객 수 (주문건수로 근사)
-  const arpu  = ownUV  > 0 ? ownT / ownUV  : 0;
-  const arppu = ownOrd > 0 ? ownT / ownOrd : 0;
+  // ARPPU = 매출 ÷ 구매자 수 (엑셀 14행; 없으면 주문건수로 fallback)
+  const ownBuyers = sum('ownBuyers');
+  const arppu_base = ownBuyers > 0 ? ownBuyers : ownOrd;  // 구매자 수 우선
+  const arpu  = ownUV      > 0 ? ownT / ownUV      : 0;
+  const arppu = arppu_base > 0 ? ownT / arppu_base : 0;
   const gapRatio = arpu > 0 ? (arppu / arpu) : 0;
 
   // 핵심 KPI 카드
