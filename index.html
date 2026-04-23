@@ -3258,7 +3258,7 @@ function goTo(i) {
         const d2cRows = DATA.d2c.filter(filterDate);
         if (d2cRows.length) renderS2(d2cRows);
       } else if (activeTab === 'topsel') {
-        bestInited = false;
+        bestSyncCurrentMonth();
         if (typeof bestInit === 'function') bestInit();
       }
     }
@@ -3340,6 +3340,8 @@ function onPeriodChange() {
     const ym = `${YEAR}-${String(MONTH).padStart(2,'0')}`;
     if (DATA.monthTargetsMap[ym]) DATA.monthTargets = DATA.monthTargetsMap[ym];
   }
+  // 베스트메뉴 월 동기화
+  bestSyncCurrentMonth();
 
   if (DATA.daily.length > 0 || DATA.products.length > 0) {
     const filterDate = r => { const d = new Date(r.date); return d.getFullYear()==YEAR && d.getMonth()+1==MONTH; };
@@ -3448,6 +3450,9 @@ async function saveDataToFirebase() {
         monthTargets:   (DATA.monthTargetsMap && DATA.monthTargetsMap[ym])
                           ? DATA.monthTargetsMap[ym]
                           : (DATA.monthTargets || prev.monthTargets || null),
+        bestData:       (DATA.bestMap && DATA.bestMap[ym])
+                          ? DATA.bestMap[ym]
+                          : (prev.bestData || null),
         updatedAt:      new Date().toISOString(),
       };
       await docRef.set(payload);
@@ -3616,25 +3621,27 @@ function parseWB(wb) {
   }
 
   // ── ⭐ 베스트메뉴 ──
-  // 카테고리별 메뉴 데이터 (건강/당뇨/신장/암)
   const wsBest = wb.Sheets['⭐ 베스트메뉴'];
   if (wsBest) {
     const bestParsed = parseBestSheet(wsBest);
-    if (bestParsed) {
-      // 건강케어 전체 메뉴 수 (Row 3, B3)
-      if (bestParsed.healthTotal > 0) BEST_HEALTH_TOTAL = bestParsed.healthTotal;
-      // 카테고리별 데이터 업데이트
-      if (bestParsed.health.length)    BEST_HEALTH    = bestParsed.health;
-      if (bestParsed.diabetes.length)  BEST_DIABETES  = bestParsed.diabetes;
-      if (bestParsed.kidney.length)    BEST_KIDNEY    = bestParsed.kidney;
-      if (bestParsed.cancer.length)    BEST_CANCER    = bestParsed.cancer;
-      // 엑셀 재업로드 시 bestInited 리셋 → 다음 탭 진입 시 bestInit 재실행
+    if (bestParsed && bestParsed.year && bestParsed.month) {
+      if (!DATA.bestMap) DATA.bestMap = {};
+      const bKey = `${bestParsed.year}-${String(bestParsed.month).padStart(2,'0')}`;
+      DATA.bestMap[bKey] = {
+        year: bestParsed.year,
+        month: bestParsed.month,
+        healthTotal: bestParsed.healthTotal,
+        health:   bestParsed.health,
+        diabetes: bestParsed.diabetes,
+        kidney:   bestParsed.kidney,
+        cancer:   bestParsed.cancer,
+      };
+      // 전월 데이터가 있으면 prevRank를 현재 월 데이터에 자동 계산
+      bestApplyPrevRank(bKey);
+      // bestInited 리셋 → 월 전환 또는 탭 진입 시 최신 데이터로 재렌더
       bestInited = false;
-      // Top Sel 탭이 현재 열려있으면 즉시 재렌더
-      const topselPage = document.getElementById('own-page-topsel');
-      if (topselPage && topselPage.classList.contains('on')) {
-        if (typeof bestInit === 'function') bestInit();
-      }
+      // Top Sel 탭이 열려있으면 즉시 반영
+      bestSyncCurrentMonth();
     }
   }
 
@@ -3822,6 +3829,9 @@ function parseSubSheet(ws) {
 function parseBestSheet(ws) {
   if (!ws) return null;
 
+  // 연월 (B2:연도, C2:월)
+  const year  = cellV(ws, 1, 1) || 0;  // B2
+  const month = cellV(ws, 1, 2) || 0;  // C2
   // 전체 건강케어 메뉴 수 (B3)
   const healthTotal = cellV(ws, 2, 1) || 0;
 
@@ -3878,6 +3888,7 @@ function parseBestSheet(ws) {
   const cancerTop10   = cancer.slice(0, 10);
 
   return {
+    year, month,
     healthTotal,
     health:   healthTop20,
     diabetes: diabetesTop10,
@@ -3886,6 +3897,61 @@ function parseBestSheet(ws) {
   };
 }
 
+
+// ─── 베스트메뉴 월 동기화 ───────────────────────────────────────
+// 현재 YEAR/MONTH에 맞는 베스트 데이터를 BEST_* 전역 변수에 반영
+function bestSyncCurrentMonth() {
+  if (!DATA.bestMap) return;
+  const ym = `${YEAR}-${String(MONTH).padStart(2,'0')}`;
+  const cur = DATA.bestMap[ym];
+  if (cur) {
+    BEST_HEALTH       = cur.health   || [];
+    BEST_DIABETES     = cur.diabetes || [];
+    BEST_KIDNEY       = cur.kidney   || [];
+    BEST_CANCER       = cur.cancer   || [];
+    BEST_HEALTH_TOTAL = cur.healthTotal || 0;
+  } else {
+    BEST_HEALTH = []; BEST_DIABETES = []; BEST_KIDNEY = []; BEST_CANCER = [];
+    BEST_HEALTH_TOTAL = 0;
+  }
+  // Top Sel 탭이 열려있으면 즉시 재렌더
+  bestInited = false;
+  const topselPage = document.getElementById('own-page-topsel');
+  if (topselPage && topselPage.classList.contains('on')) {
+    if (typeof bestInit === 'function') bestInit();
+  }
+}
+
+// 전월 데이터로 prevRank 자동 계산
+// bKey: 현재 월 키 (e.g. '2026-03')
+// 전월 데이터가 DATA.bestMap에 있으면 각 메뉴의 prevRank를 계산해 주입
+function bestApplyPrevRank(bKey) {
+  if (!DATA.bestMap || !DATA.bestMap[bKey]) return;
+  const [y, m] = bKey.split('-').map(Number);
+  const prevM = m === 1 ? 12 : m - 1;
+  const prevY = m === 1 ? y - 1 : y;
+  const prevKey = `${prevY}-${String(prevM).padStart(2,'0')}`;
+  const prev = DATA.bestMap[prevKey];
+  if (!prev) return;  // 전월 없으면 건강케어 엑셀 G열 값 유지
+
+  const cur = DATA.bestMap[bKey];
+
+  // 카테고리별로 전월 순위 매핑
+  const applyPrev = (curArr, prevArr) => {
+    // 전월 수량순 순위 맵 생성
+    const prevRankMap = {};
+    [...prevArr].sort((a,b) => b.qty - a.qty)
+      .forEach((m, i) => { prevRankMap[m.name] = i + 1; });
+    curArr.forEach(item => {
+      item.prevRank = prevRankMap[item.name] !== undefined ? prevRankMap[item.name] : null;
+    });
+  };
+
+  applyPrev(cur.health,   prev.health);
+  applyPrev(cur.diabetes, prev.diabetes);
+  applyPrev(cur.kidney,   prev.kidney);
+  applyPrev(cur.cancer,   prev.cancer);
+}
 
 function getTargets() {
   if (!DATA.monthTargets) return null;
@@ -4979,9 +5045,9 @@ function ownSwTab(tab, btn) {
       if (d2cRows.length) renderS2(d2cRows);
     }
 
-    // Top Sel 탭: bestInited 가드를 초기화 후 재실행
+    // Top Sel 탭: 현재 월 데이터 동기화 후 재렌더
     if (tab === 'topsel') {
-      bestInited = false;
+      bestSyncCurrentMonth();  // YEAR/MONTH에 맞는 데이터로 교체
       if (typeof bestInit === 'function') bestInit();
     }
   }, 120);
@@ -5570,6 +5636,7 @@ async function loadAllFromFirebase() {
     DATA.subHistory = [];
     DATA.monthTargets = null;
     DATA.monthTargetsMap = {};
+    DATA.bestMap = {};
 
     snap.forEach(doc => {
       const d = doc.data();
@@ -5592,9 +5659,12 @@ async function loadAllFromFirebase() {
       }
       if (d.monthTargets) {
         DATA.monthTargets = d.monthTargets;
-        // monthTargetsMap에도 문서 키(연월) 기준으로 복원
         if (!DATA.monthTargetsMap) DATA.monthTargetsMap = {};
         DATA.monthTargetsMap[doc.id] = d.monthTargets;
+      }
+      if (d.bestData) {
+        if (!DATA.bestMap) DATA.bestMap = {};
+        DATA.bestMap[doc.id] = d.bestData;
       }
     });
 
@@ -5603,7 +5673,11 @@ async function loadAllFromFirebase() {
       document.getElementById('statusDot').style.boxShadow = '0 0 0 3px rgba(74,222,128,0.3)';
       document.getElementById('statusText').textContent = ' 서버 데이터 연동됨';
       updatePeriodSelector();
-      onPeriodChange();
+      onPeriodChange();  // 내부에서 bestSyncCurrentMonth() 호출됨
+      // 전월 → 현월 prevRank 재계산 (Firebase 로드 후)
+      if (DATA.bestMap) {
+        Object.keys(DATA.bestMap).forEach(bKey => bestApplyPrevRank(bKey));
+      }
       showToast(' 데이터를 불러왔습니다');
     } else {
       document.getElementById('statusText').textContent = '엑셀 파일을 업로드해주세요';
@@ -6354,7 +6428,8 @@ function ssgInit(){
 // ── 건강케어 TOP 20 데이터 (이미지 기반) ──
 // {rank, name, qty, plans(식단 구성), expo(노출당 선택량), importance(중요도 별점 1~4), prevRank(전월 수량순 순위)}
 // ※ prevRank: 전월 '수량 기준' 순위. null이면 NEW(신규 진입)
-// ── 엑셀 업로드 전 빈 상태 유지 — 하드코딩 샘플 제거 ──
+// ── 베스트메뉴: 월별 맵으로 관리 (DATA.bestMap[ym] = {...}) ──
+// 렌더 시점에 현재 선택 월 기준으로 꺼내 사용
 let BEST_HEALTH   = [];
 let BEST_DIABETES = [];
 let BEST_KIDNEY   = [];
