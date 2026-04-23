@@ -3333,6 +3333,12 @@ function onPeriodChange() {
   const dd   = String(days).padStart(2,'0');
   document.getElementById('periodBadge').textContent = `${mm}.01 – ${mm}.${dd}`;
 
+  // 선택된 연월의 목표값으로 교체
+  if (DATA.monthTargetsMap) {
+    const ym = `${YEAR}-${String(MONTH).padStart(2,'0')}`;
+    if (DATA.monthTargetsMap[ym]) DATA.monthTargets = DATA.monthTargetsMap[ym];
+  }
+
   if (DATA.daily.length > 0 || DATA.products.length > 0) {
     const filterDate = r => { const d = new Date(r.date); return d.getFullYear()==YEAR && d.getMonth()+1==MONTH; };
     renderAll(
@@ -3437,7 +3443,9 @@ async function saveDataToFirebase() {
                           merged.push(newEntry);
                           return merged;
                         })(),
-        monthTargets:   DATA.monthTargets || prev.monthTargets || null,
+        monthTargets:   (DATA.monthTargetsMap && DATA.monthTargetsMap[ym])
+                          ? DATA.monthTargetsMap[ym]
+                          : (DATA.monthTargets || prev.monthTargets || null),
         updatedAt:      new Date().toISOString(),
       };
       await docRef.set(payload);
@@ -3561,17 +3569,27 @@ function parseWB(wb) {
   // 카테고리별 매출은  상품별매출 시트에서 자동 집계됨 (parseProdSheet 참고)
   // 카테고리 목표액은 현재 미사용 (필요시 다른 시트에 추가 예정)
 
-  // ── 날짜별 데이터 파싱 ──
-  DATA.daily = parseDataRows(ws1, {
+  // ── 날짜별 데이터 파싱 (연월 기준 merge — 덮어쓰기 방지) ──
+  const newDaily = parseDataRows(ws1, {
     online:7, offline:8, total:9,
     prevOnline:10, prevOffline:11, prevTotal:12
   });
-  DATA.d2c = parseDataRows(ws2, {
+  if (newDaily.length) {
+    const ymSet = new Set(newDaily.map(r => r.date.slice(0,7)));
+    DATA.daily = DATA.daily.filter(r => !ymSet.has(r.date.slice(0,7)));
+    DATA.daily = DATA.daily.concat(newDaily);
+  }
+  const newD2c = parseDataRows(ws2, {
     ownSales:7, navSales:8, etcSales:9,
     ownUV:10, ownNewUV:11, ownRetUV:12,
     ownOrd:13, ownRepeat:14,
     ownPrev:15, navPrev:16, etcPrev:17
   });
+  if (newD2c.length) {
+    const ymSet = new Set(newD2c.map(r => r.date.slice(0,7)));
+    DATA.d2c = DATA.d2c.filter(r => !ymSet.has(r.date.slice(0,7)));
+    DATA.d2c = DATA.d2c.concat(newD2c);
+  }
   // DATA.cat 은 parseProdSheet 내부에서 자동 생성됨
 
   // ──  상품별매출 ──
@@ -3613,11 +3631,19 @@ function parseWB(wb) {
     }
   }
 
-  // ── 목표 저장 ──
-  DATA.monthTargets = {
+  // ── 목표 저장 (연월 키별 누적 — 마지막 업로드 덮어쓰기 방지) ──
+  // ws1 Row3(r=2), C열(c=2)부터 연도/월 읽기
+  const tgtY = ws1 ? cellV(ws1, 2, 2) : 0;  // Row3 C열 = 연도
+  const tgtM = ws1 ? cellV(ws1, 3, 2) : 0;  // Row4 C열 = 월
+  if (!DATA.monthTargetsMap) DATA.monthTargetsMap = {};
+  const tgtKey = tgtY && tgtM ? `${tgtY}-${String(tgtM).padStart(2,'0')}` : null;
+  const newTargets = {
     onlineTarget: onlTgt, offlineTarget: offTgt,
     ownTarget: ownTgt, navTarget: navTgt, etcTarget: etcTgt,
   };
+  if (tgtKey) DATA.monthTargetsMap[tgtKey] = newTargets;
+  // 현재 선택된 월 기준으로 DATA.monthTargets 갱신
+  DATA.monthTargets = newTargets;
 
   updatePeriodSelector();
   onPeriodChange();
@@ -5519,6 +5545,7 @@ async function loadAllFromFirebase() {
     DATA.products = [];
     DATA.subHistory = [];
     DATA.monthTargets = null;
+    DATA.monthTargetsMap = {};
 
     snap.forEach(doc => {
       const d = doc.data();
@@ -5539,7 +5566,12 @@ async function loadAllFromFirebase() {
         const exists = DATA.subHistory.find(h => d.sub && h.year==d.sub.year && h.month==d.sub.month);
         if (!exists && d.sub.year) DATA.subHistory.push(d.sub);
       }
-      if (d.monthTargets) DATA.monthTargets = d.monthTargets;
+      if (d.monthTargets) {
+        DATA.monthTargets = d.monthTargets;
+        // monthTargetsMap에도 문서 키(연월) 기준으로 복원
+        if (!DATA.monthTargetsMap) DATA.monthTargetsMap = {};
+        DATA.monthTargetsMap[doc.id] = d.monthTargets;
+      }
     });
 
     if (DATA.daily.length || DATA.products.length) {
