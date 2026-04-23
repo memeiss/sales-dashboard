@@ -3254,9 +3254,18 @@ function goTo(i) {
       Object.values(ssgCharts).forEach(c => { try { c.resize(); } catch(e){} });
     }
     if (current === 1) {
-      // 자사몰 슬라이드 진입 시 topsel 탭이 활성 상태면 bestInit
-      const topselBtn = document.querySelector('#own-slide .own-subtab[onclick*="topsel"]');
-      if (topselBtn && topselBtn.classList.contains('on')) {
+      const activeSubTab = document.querySelector('#own-slide .own-subtab.on');
+      const activeTab = activeSubTab ? (activeSubTab.getAttribute('onclick').match(/\'(\w+)\'/)||[])[1] : 'sales';
+
+      if (activeTab === 'customer') {
+        const filterDate = r => {
+          const d = new Date(r.date);
+          return d.getFullYear() == YEAR && d.getMonth() + 1 == MONTH;
+        };
+        const d2cRows = DATA.d2c.filter(filterDate);
+        if (d2cRows.length) renderS2(d2cRows);
+      } else if (activeTab === 'topsel') {
+        bestInited = false;
         if (typeof bestInit === 'function') bestInit();
       }
     }
@@ -3626,8 +3635,13 @@ function parseWB(wb) {
       if (bestParsed.diabetes.length)  BEST_DIABETES  = bestParsed.diabetes;
       if (bestParsed.kidney.length)    BEST_KIDNEY    = bestParsed.kidney;
       if (bestParsed.cancer.length)    BEST_CANCER    = bestParsed.cancer;
-      // 이미 초기화된 상태라면 즉시 재렌더
-      if (typeof bestRerender === 'function') bestRerender();
+      // 엑셀 재업로드 시 bestInited 리셋 → 다음 탭 진입 시 bestInit 재실행
+      bestInited = false;
+      // Top Sel 탭이 현재 열려있으면 즉시 재렌더
+      const topselPage = document.getElementById('own-page-topsel');
+      if (topselPage && topselPage.classList.contains('on')) {
+        if (typeof bestInit === 'function') bestInit();
+      }
     }
   }
 
@@ -4075,7 +4089,7 @@ function resetDash() {
 function renderAll(daily, d2c, cat, products) {
   if (!daily.length && !d2c.length && !cat.length && !products.length) { resetDash(); return; }
   renderS1(daily);
-  renderS2(d2c);
+  if (d2c.length) renderS2(d2c);
   renderS3(cat, products);
   renderAnnualTable();
 }
@@ -4955,12 +4969,27 @@ function ownSwTab(tab, btn) {
   document.querySelectorAll('#own-slide .own-page').forEach(p => p.classList.remove('on'));
   btn.classList.add('on');
   document.getElementById('own-page-' + tab).classList.add('on');
-  // 탭 전환 후 차트 리사이즈
+
   setTimeout(() => {
+    // 탭 전환 후 차트 리사이즈
     Object.values(charts).forEach(c => { try { c.resize(); } catch(e){} });
-    // Top Sel 탭 진입 시 bestInit 호출
-    if (tab === 'topsel' && typeof bestInit === 'function') bestInit();
-  }, 100);
+
+    // 고객 탭: display:none 상태에서 차트 생성에 실패했을 수 있으므로 재렌더
+    if (tab === 'customer') {
+      const filterDate = r => {
+        const d = new Date(r.date);
+        return d.getFullYear() == YEAR && d.getMonth() + 1 == MONTH;
+      };
+      const d2cRows = DATA.d2c.filter(filterDate);
+      if (d2cRows.length) renderS2(d2cRows);
+    }
+
+    // Top Sel 탭: bestInited 가드를 초기화 후 재실행
+    if (tab === 'topsel') {
+      bestInited = false;
+      if (typeof bestInit === 'function') bestInit();
+    }
+  }, 120);
 }
 
 
