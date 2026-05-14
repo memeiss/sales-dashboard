@@ -641,8 +641,8 @@ body {
   <div class="nav-tabs">
     <button class="nav-tab nav-tab-disabled" onclick="goTo(0)" disabled title="준비 중">Growth</button>
     <button class="nav-tab nav-tab-disabled" onclick="goTo(1)" disabled title="준비 중">Sales</button>
-    <button class="nav-tab active" onclick="goTo(2)">OMNI</button>
-    <button class="nav-tab" onclick="goTo(3)">자사몰</button>
+    <button class="nav-tab" onclick="goTo(2)">OMNI</button>
+    <button class="nav-tab active" onclick="goTo(3)">자사몰</button>
     <button class="nav-tab" onclick="goTo(4)" style="display:none"> 신세계</button>
     <button class="nav-tab" id="tab-event" onclick="goTo(5)" style="display:none"> 이벤트</button>
     <button class="nav-tab" onclick="goTo(6)" style="display:none">Top Sel</button>
@@ -657,8 +657,8 @@ body {
   <div class="slide-indicator">
     <div class="dot" onclick="goTo(0)" style="display:none"></div>
     <div class="dot" onclick="goTo(1)" style="display:none"></div>
-    <div class="dot active" onclick="goTo(2)"></div>
-    <div class="dot" onclick="goTo(3)"></div>
+    <div class="dot" onclick="goTo(2)"></div>
+    <div class="dot active" onclick="goTo(3)"></div>
     <div class="dot" onclick="goTo(4)" style="display:none"></div>
     <div class="dot" id="dot-event" onclick="goTo(5)" style="display:none"></div>
     <div class="dot" onclick="goTo(6)" style="display:none"></div>
@@ -1543,15 +1543,15 @@ body {
 
   <!-- 서브탭 -->
   <div class="own-subtabs">
-    <button class="own-subtab on" onclick="ownSwTab('sales', this)">매출</button>
-    <button class="own-subtab" onclick="ownSwTab('customer', this)">고객</button>
+    <button class="own-subtab" onclick="ownSwTab('sales', this)">매출</button>
+    <button class="own-subtab on" onclick="ownSwTab('customer', this)">고객</button>
     <button class="own-subtab" onclick="ownSwTab('topsel', this)">Top Sel</button>
   </div>
 
   <!-- ══════════════════════════════════════════
        매출 페이지
   ══════════════════════════════════════════ -->
-  <div class="own-page on" id="own-page-sales">
+  <div class="own-page" id="own-page-sales">
 
     <div class="ch-label-wrap">
       <div class="ch-label" style="flex:1;">자사몰 매출 현황</div>
@@ -1832,7 +1832,7 @@ body {
   <!-- ══════════════════════════════════════════
        고객 지표 페이지
   ══════════════════════════════════════════ -->
-  <div class="own-page" id="own-page-customer">
+  <div class="own-page on" id="own-page-customer">
 
 
     <!-- ② 핵심 KPI -->
@@ -5723,7 +5723,7 @@ async function loadAllFromFirebase() {
 }
 
 // ─── Init ───
-goTo(2);  // 페이지 로드 시 OMNI 탭으로 바로 이동
+goTo(3);  // 페이지 로드 시 자사몰 탭으로 바로 이동
 onPeriodChange();
 loadAllFromFirebase();
 
